@@ -1,6 +1,8 @@
 package com.equationl.giteetodo.data.repos
 
+import com.equationl.giteetodo.data.repos.model.request.CreateComments
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
+import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.data.repos.model.response.Issues
 import com.equationl.giteetodo.data.repos.model.response.Labels
 import com.equationl.giteetodo.data.user.model.response.Repos
@@ -107,8 +109,7 @@ interface ReposApi {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Path("number") number: String,
-        @Query("access_token") accessToken: String,
-        @Body list: List<String>
+        @Query("access_token") accessToken: String
     ): Response<Any?>
 
     /**
@@ -122,4 +123,63 @@ interface ReposApi {
         @Path("name") name: String,
         @Query("access_token") accessToken: String
     ): Response<Any?>
+
+    /**
+     * 获取某个 issue 的所有评论
+     * */
+    @GET("{owner}/{repo}/issues/{number}/comments")
+    suspend fun getAllComments(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("number") number: String,
+        @Query("access_token") accessToken: String,
+        @Query("since") since: String? = null,
+        @Query("page") page: Int? = null,
+        @Query("per_page") perPage: Int? = null,
+        @Query("order") sort: String? = null,
+    ): List<Comment>
+
+    /**
+     * 创建某个 issue 的评论
+     * */
+    @POST("{owner}/{repo}/issues/{number}/comments")
+    suspend fun createComment(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("number") number: String,
+        @Body createComments: CreateComments
+    ): Comment
+
+    /**
+     * 获取仓库的某条评论
+     * */
+    @GET("{owner}/{repo}/issues/comments/{id}")
+    suspend fun getComment(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("id") id: Int,
+        @Query("access_token") accessToken: String
+    ): Comment
+
+    /**
+     * 更新 issue 某条评论
+     * */
+    @PATCH("{owner}/{repo}/issues/comments/{id}")
+    suspend fun updateComment(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("id") id: Int,
+        @Body createComments: CreateComments
+    ): Comment
+
+    /**
+     * 删除 issue 某条评论
+     * */
+    @DELETE("{owner}/{repo}/issues/comments/{id}")
+    suspend fun deleteComment(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("id") id: Int,
+        @Query("access_token") accessToken: String
+    )
 }

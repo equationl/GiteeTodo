@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
+import com.equationl.giteetodo.ui.LoginScreen
 import com.equationl.giteetodo.ui.theme.GiteeTodoTheme
 import com.equationl.giteetodo.viewmodel.MainViewModel
 
@@ -27,7 +28,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    CreateIssues()
+                    //CreateIssues()
+                    LoginScreen()
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.equationl.giteetodo.data
 
+import com.equationl.giteetodo.data.auth.OAuthApi
 import com.equationl.giteetodo.data.repos.ReposApi
 import com.equationl.giteetodo.data.user.UserApi
 import okhttp3.OkHttpClient
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitManger {
     private var userApi: UserApi? = null
     private var reposApi: ReposApi? = null
+    private var oAuthApi: OAuthApi? = null
 
     private const val CONNECTION_TIME_OUT = 10L
     private const val READ_TIME_OUT = 10L
@@ -50,6 +52,23 @@ object RetrofitManger {
             }
         }
         return reposApi!!
+    }
+
+    fun getOAuthApi(): OAuthApi {
+        if (oAuthApi == null) {
+            synchronized(this) {
+                if (oAuthApi == null) {
+                    val okHttpClient =
+                        buildOkHttpClient()
+                    oAuthApi =
+                        buildRetrofit(
+                            "https://gitee.com/oauth/",
+                            okHttpClient
+                        ).create(OAuthApi::class.java)
+                }
+            }
+        }
+        return oAuthApi!!
     }
 
     private fun buildOkHttpClient(): OkHttpClient.Builder {

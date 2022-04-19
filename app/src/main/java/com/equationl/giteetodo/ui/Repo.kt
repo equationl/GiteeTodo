@@ -13,12 +13,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.viewmodel.MainViewModel
 
 @Composable
-fun RepoDetailScreen() {
+fun RepoDetailScreen(navController: NavHostController) {
     val viewModel: MainViewModel = viewModel()
 
     MaterialTheme {
@@ -35,6 +37,7 @@ fun RepoDetailScreen() {
                     }
                 }) {
                     // TODO 点击返回
+                    navController.popBackStack()
                 }
             })
         {
@@ -94,5 +97,5 @@ fun RepoDetailContent() {
 @Preview
 @Composable
 fun RepoDetailPreview() {
-    RepoDetailScreen()
+    RepoDetailScreen(rememberNavController())
 }

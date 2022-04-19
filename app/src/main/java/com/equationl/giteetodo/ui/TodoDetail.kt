@@ -1,8 +1,6 @@
 package com.equationl.giteetodo.ui
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -12,17 +10,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
-import com.equationl.giteetodo.util.Utils.isEmail
 import com.equationl.giteetodo.viewmodel.MainViewModel
 
 @Composable
-fun TodoDetailScreen() {
+fun TodoDetailScreen(navController: NavHostController, issueNum: String) {
     val viewModel: MainViewModel = viewModel()
+
+    if (issueNum == "null") {
+        viewModel.isEdit = true
+    }
 
     MaterialTheme {
         Scaffold(
@@ -38,21 +42,24 @@ fun TodoDetailScreen() {
                     }
                 }) {
                     // TODO 点击返回
+                    navController.popBackStack()
                 }
             })
         {
-            TodoDetailContent()
+            TodoDetailContent(it.calculateTopPadding())
         }
     }
 }
 
 @Composable
-fun TodoDetailContent() {
+fun TodoDetailContent(topPadding: Dp) {
     val viewModel: MainViewModel = viewModel()
 
     Column(modifier = Modifier
         .fillMaxSize()
-        .background(baseBackground)) {
+        .padding(top = topPadding)
+        .background(baseBackground)
+        .verticalScroll(rememberScrollState())) {
         OutlinedTextField(value = "我是标题", onValueChange = {}, readOnly = !viewModel.isEdit, modifier = Modifier
             .fillMaxWidth()
             .padding(2.dp)
@@ -118,7 +125,7 @@ fun TodoDetailCardItem(title: String, content: String, onclick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(2.dp)
-            .padding(top = 24.dp)
+            .padding(top = 8.dp)
             .background(Color.White)) {
         Row(
             Modifier
@@ -135,5 +142,5 @@ fun TodoDetailCardItem(title: String, content: String, onclick: () -> Unit) {
 @Preview
 @Composable
 fun TodoDetailPreview() {
-    TodoDetailScreen()
+    TodoDetailScreen(rememberNavController(), "null")
 }

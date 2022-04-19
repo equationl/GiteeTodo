@@ -1,5 +1,6 @@
 package com.equationl.giteetodo.ui
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -20,28 +22,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
+import com.equationl.giteetodo.util.RouteConfig
 import com.equationl.giteetodo.util.Utils.isEmail
 import com.equationl.giteetodo.viewmodel.MainViewModel
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavHostController) {
+    val activity = (LocalContext.current as? Activity)
     MaterialTheme {
         Scaffold(
             topBar = {
-                TopBar("登录") {
-                    // TODO 点击返回
+                TopBar("登录", navigationIcon = Icons.Outlined.Close) {
+                    // 点击退出
+                    activity?.finish()
                 }
             })
         {
-           LoginContent()
+           LoginContent(navController)
         }
     }
 }
 
 @Composable
-fun LoginContent() {
+fun LoginContent(navController: NavHostController) {
     val mainViewModel: MainViewModel = viewModel()
     var email: String by remember { mutableStateOf("") }
     var psw: String by remember { mutableStateOf("") }
@@ -191,7 +198,7 @@ fun LoginContent() {
                             emailLabel = "请输入正确的邮箱"
                             return@Button
                         }
-                        clickLogin(mainViewModel, email, psw)
+                        clickLogin(navController, mainViewModel, email, psw)
                     },
                     shape = Shapes.large) {
                     Text(text = "登录", fontSize = 20.sp, modifier = Modifier.padding(start = 82.dp, end = 82.dp, top = 4.dp, bottom = 4.dp))
@@ -229,7 +236,10 @@ fun LoginContent() {
                 )
             }
 
-            Row(Modifier.fillMaxWidth().padding(32.dp, 0.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp, 0.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "OAuth2授权登录", color = MaterialTheme.colors.primary, fontSize = 12.sp, modifier = Modifier.clickable { /*TODO*/ })
                 Text(text = "私人令牌登录", color = MaterialTheme.colors.primary, fontSize = 12.sp, modifier = Modifier.clickable { /*TODO*/ })
             }
@@ -237,13 +247,24 @@ fun LoginContent() {
     }
 }
 
-private fun clickLogin(viewModel: MainViewModel, email: String, psw: String) {
+private fun clickLogin(
+    navController: NavHostController,
+    viewModel: MainViewModel,
+    email: String,
+    psw: String
+) {
     // TODO 点击登录
-    viewModel.pswLogin(email, psw)
+    //viewModel.pswLogin(email, psw)
+
+    navController.navigate(RouteConfig.ROUTE_TODO_LIST) {
+        popUpTo(RouteConfig.ROUTE_LOGIN) {
+            inclusive = true
+        }
+    }
 }
 
 @Preview
 @Composable
 fun PreviewLogin() {
-    LoginScreen()
+    LoginScreen(rememberNavController())
 }

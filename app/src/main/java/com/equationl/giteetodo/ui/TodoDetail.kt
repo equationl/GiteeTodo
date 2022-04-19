@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +27,16 @@ fun TodoDetailScreen() {
     MaterialTheme {
         Scaffold(
             topBar = {
-                TopBar("TODO DETAIL") {
+                TopBar("TODO DETAIL", actions = {
+                    if (!viewModel.isEdit) {
+                        IconButton(onClick = {
+                            // TODO 点击编辑
+                            viewModel.isEdit = true
+                        }) {
+                            Icon(Icons.Outlined.EditNote, contentDescription = "编辑")
+                        }
+                    }
+                }) {
                     // TODO 点击返回
                 }
             })
@@ -67,6 +78,10 @@ fun TodoDetailContent() {
         }
 
         TodoDetailCardItem(title = "优先级：", content = "主要") {
+
+        }
+
+        TodoDetailCardItem(title = "标签：", content = "bug, feature") {
 
         }
 

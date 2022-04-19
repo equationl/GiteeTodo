@@ -199,7 +199,7 @@ fun LoginContent() {
             }
         }
 
-        Column(Modifier.weight(1f)) {
+        Column(Modifier.weight(1.5f)) {
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -212,24 +212,26 @@ fun LoginContent() {
                         .weight(1f)
                 )
                 Row(horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .padding(start = 8.dp)
                         .weight(1f)) {
                     Text(text = "其他登录方式")
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(Icons.Outlined.HelpOutline, contentDescription = "疑问", tint = MaterialTheme.colors.primary)
+                    }
                 }
                 Divider(
                     thickness = 2.dp,
                     modifier = Modifier
-                        .padding(end = 8.dp)
+                        .padding(end = 8.dp, start = 8.dp)
                         .weight(1f)
                 )
             }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "授权登录", color = MaterialTheme.colors.primary, modifier = Modifier.clickable { /*TODO*/ })
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(Icons.Outlined.HelpOutline, contentDescription = "疑问", tint = MaterialTheme.colors.primary)
-                }
+            Row(Modifier.fillMaxWidth().padding(32.dp, 0.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "OAuth2授权登录", color = MaterialTheme.colors.primary, fontSize = 12.sp, modifier = Modifier.clickable { /*TODO*/ })
+                Text(text = "私人令牌登录", color = MaterialTheme.colors.primary, fontSize = 12.sp, modifier = Modifier.clickable { /*TODO*/ })
             }
         }
     }

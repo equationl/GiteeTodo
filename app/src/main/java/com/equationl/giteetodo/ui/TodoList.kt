@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.LibraryAdd
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,13 +27,35 @@ fun TodoListScreen() {
     MaterialTheme {
         Scaffold(
             topBar = {
-                TopBar("TODO") {
+                TopBar("TODO", actions = {
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(Icons.Outlined.LibraryAdd, "添加仓库")
+                    }
+                }) {
                     // TODO 点击返回
                 }
             })
         {
-            Column(Modifier.background(baseBackground).fillMaxSize()) {
+            Column(
+                Modifier
+                    .background(baseBackground)
+                    .fillMaxSize()) {
                 val cardData = viewModel.getIssue()
+
+                TabRow(selectedTabIndex = 0) {
+                    Tab(selected = true, onClick = { /*TODO*/ }, text = {
+                        Text(text = "仓库1")
+                    })
+                    Tab(selected = true, onClick = { /*TODO*/ }, text = {
+                        Text(text = "仓库2")
+                    })
+                    Tab(selected = true, onClick = { /*TODO*/ }, text = {
+                        Text(text = "仓库3")
+                    })
+
+                    // TODO 如果显示的仓库过多应该隐藏掉，改成 “更多” 菜单，或者支持滑动，而不是现在这样直接堆叠
+                }
+
                 LazyColumn {
                     cardData.forEach{
                         item(it.date) {
@@ -45,7 +70,9 @@ fun TodoListScreen() {
 
 @Composable
 fun TodoCardScreen(data: TodoCardData) {
-    Card(modifier = Modifier.heightIn(20.dp, 500.dp).padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
+    Card(modifier = Modifier
+        .heightIn(20.dp, 500.dp)
+        .padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column(Modifier.padding(8.dp)) {
             Text(text = data.date, Modifier.padding(8.dp))
 

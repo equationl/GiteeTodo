@@ -25,7 +25,7 @@ class MainViewModel : ViewModel() {
 
     var apiError: MutableLiveData<Throwable> = MutableLiveData()
 
-    var isEdit by mutableStateOf(true)
+    var isEdit by mutableStateOf(false)
 
     fun getIssue(): List<TodoCardData> {
         // TODO

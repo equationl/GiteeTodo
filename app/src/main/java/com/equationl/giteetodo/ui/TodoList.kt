@@ -7,11 +7,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.LibraryAdd
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,14 +28,45 @@ fun TodoListScreen() {
     MaterialTheme {
         Scaffold(
             topBar = {
-                TopBar("TODO", actions = {
+                TopBar("TODO",
+                    navigationIcon = Icons.Outlined.Close
+                    ,actions = {
                     IconButton(onClick = { /*TODO*/ }) {
                         Icon(Icons.Outlined.LibraryAdd, "添加仓库")
                     }
                 }) {
-                    // TODO 点击返回
+                    // TODO 点击退出
                 }
-            })
+            },
+            bottomBar = {
+                BottomAppBar {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.clickable { /*TODO*/ }
+                            .fillMaxWidth()
+                            .weight(1f)) {
+                        Icon(Icons.Filled.Home, "Home")
+                        Text("首页")
+                    }
+                    Spacer(Modifier.weight(1f, true))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.clickable { /*TODO*/ }
+                            .fillMaxWidth()
+                            .weight(1f)) {
+                        Icon(Icons.Outlined.Person, "Me")
+                        Text("我的", color = Color.Gray)
+                    }
+                }
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = { /*TODO*/ }) {
+                    Icon(Icons.Outlined.Add, "Add")
+                }
+            },
+            floatingActionButtonPosition = FabPosition.Center,
+            isFloatingActionButtonDocked = true
+        )
         {
             Column(
                 Modifier

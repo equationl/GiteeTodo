@@ -28,7 +28,7 @@ object RetrofitManger {
                         buildOkHttpClient()
                     userApi =
                         buildRetrofit(
-                            BaseUrl +"user/",
+                            BaseUrl,
                             okHttpClient
                         ).create(UserApi::class.java)
                 }

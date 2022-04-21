@@ -14,12 +14,12 @@ interface UserApi {
     /**
      * 获取用户信息
      * */
-    @GET
+    @GET("user/")
     suspend fun getUser(@Query("access_token") accessToken: String): Response<User>
 
     /**
      * 创建一个仓库
      * */
-    @POST("repos")
+    @POST("user/repos")
     suspend fun createRepos(@Body createRepos: UserRepos): Response<Repos>
 }

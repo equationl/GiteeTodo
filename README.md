@@ -1,6 +1,6 @@
 # GiteeTodo - 码云待办
 
-GiteeTodo 是一款基于 compose + viewmodel + Retrofit 使用 Gitee（码云）的 issue 作为储存仓库的 TODO 应用。 
+GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TODO 应用；基于 Gitee（码云）的 issue 作为储存仓库。
 
 ## 使用方法
 
@@ -35,3 +35,10 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 使用 Gitee（码云�
 使用码云官方 OAuth2 认证授权。
    
 使用 OAuth2 的优势：不会暴露账号密码、权限可以自己控制、随时可以修改或删除授权、token有效期只有一天。
+
+## 关于
+由于我是第一次接触 MVI 架构，所以我也不确定这个程序是否符合 MVI 规范，如有错误，还望海涵并希望大佬们能不吝赐教。
+
+该程序使用 API 来自于 Gitee 的 [OpenAPI](https://gitee.com/api/v5/swagger) 。
+
+该程序在撰写过程中参照了 [shenzhen2017](https://github.com/shenzhen2017) 的 [wanandroid-compose](https://github.com/shenzhen2017/wanandroid-compose)

@@ -9,7 +9,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.LibraryAdd
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,8 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.theme.baseBackground
-import com.equationl.giteetodo.util.RouteConfig
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.viewmodel.MainViewModel
 
@@ -39,7 +42,7 @@ fun TodoListScreen(navController: NavHostController) {
                     actions = {
                     IconButton(onClick = {
                     /*TODO*/
-                        navController.navigate(RouteConfig.ROUTE_REPO_DETAIL)
+                        navController.navigate(Route.REPO_DETAIL)
                     }) {
                         Icon(Icons.Outlined.LibraryAdd, "添加仓库")
                     }
@@ -73,7 +76,7 @@ fun TodoListScreen(navController: NavHostController) {
                 FloatingActionButton(onClick = {
                 /*TODO*/
                     viewModel.isEdit = true
-                    navController.navigate("${RouteConfig.ROUTE_TODO_DETAIL}/null")
+                    navController.navigate("${Route.TODO_DETAIL}/null")
                 }) {
                     Icon(Icons.Outlined.Add, "Add")
                 }
@@ -168,7 +171,7 @@ fun TodoItem(navController: NavHostController, title: String, state: Utils.Issue
         modifier = Modifier.clickable {
         /*TODO 点击文字*/
             val issueNum = "123456"
-            navController.navigate("${RouteConfig.ROUTE_TODO_DETAIL}/$issueNum")
+            navController.navigate("${Route.TODO_DETAIL}/$issueNum")
         })
     }
 }

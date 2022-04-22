@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.airbnb.lottie.compose.*
 import com.equationl.giteetodo.R
 import com.equationl.giteetodo.ui.common.Route
@@ -321,6 +320,12 @@ fun LoginHelpDialog(loginViewModel: LoginViewModel, viewState: LoginViewState) {
 
 @Preview
 @Composable
-fun PreviewLogin() {
-    LoginScreen(rememberNavController())
+fun PreviewLoginView() {
+    LoginContent()
+}
+
+@Preview
+@Composable
+fun PreviewLogging() {
+    LoggingContent()
 }

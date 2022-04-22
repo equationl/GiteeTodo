@@ -5,22 +5,38 @@ import com.equationl.giteetodo.data.repos.model.request.CreateIssues
 import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.data.repos.model.response.Issues
 import com.equationl.giteetodo.data.repos.model.response.Labels
+import com.equationl.giteetodo.data.user.model.request.UserRepos
 import com.equationl.giteetodo.data.user.model.response.Repos
 import retrofit2.Response
 import retrofit2.http.*
 
 interface ReposApi {
     /**
-     * 创建一个 仓库
+     * 创建一个仓库
      * */
-    suspend fun createRepo(): Response<Repos> {
-        throw UnsupportedOperationException("Please call UserApi.createRepos()")
-    }
+    @POST("user/repos")
+    suspend fun createRepos(@Body createRepos: UserRepos): Response<Repos>
+
+    /**
+     * 获取所有仓库
+     * */
+    @GET("user/repos")
+    suspend fun getRepos(
+        @Query("access_token") accessToken: String,
+        @Query("visibility") visibility: String? = null,
+        @Query("affiliation") affiliation: String? = null,
+        @Query("type") type: String = "owner",
+        @Query("sort") sort: String = "updated",
+        @Query("direction") direction: String = "desc",
+        @Query("q") q: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("per_page")perPage: Int = 100
+    ): Response<List<Repos>>
 
     /**
      * 删除一个 仓库
      * */
-    @DELETE("{owner}/{repo}")
+    @DELETE("repos/{owner}/{repo}")
     suspend fun deleteRepo(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -30,14 +46,14 @@ interface ReposApi {
     /**
      * 创建一个 issue
      * */
-    @POST("{owner}/issues")
+    @POST("repos/{owner}/issues")
     suspend fun createIssues(@Path("owner") owner: String, @Body createIssues: CreateIssues): Response<Issues>
 
 
     /**
      * 获取所有 issue
      * */
-    @GET("{owner}/{repo}/issues")
+    @GET("repos/{owner}/{repo}/issues")
     suspend fun getAllIssues(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -48,7 +64,7 @@ interface ReposApi {
     /**
      * 获取指定 issue
      * */
-    @GET("{owner}/{repo}/issues/{number}")
+    @GET("repos/{owner}/{repo}/issues/{number}")
     suspend fun getIssues(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -59,7 +75,7 @@ interface ReposApi {
     /**
      * 更新指定 issue
      * */
-    @PATCH("{owner}/issues/{number}")
+    @PATCH("repos/{owner}/issues/{number}")
     suspend fun updateIssues(
         @Path("owner") owner: String,
         @Path("number") number: String,
@@ -69,7 +85,7 @@ interface ReposApi {
     /**
      * 获取指定 label
      * */
-    @GET("{owner}/{repo}/labels/{name}")
+    @GET("repos/{owner}/{repo}/labels/{name}")
     suspend fun getLabel(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -80,7 +96,7 @@ interface ReposApi {
     /**
      * 创建 issue label
      * */
-    @POST("{owner}/{repo}/issues/{number}/labels")
+    @POST("repos/{owner}/{repo}/issues/{number}/labels")
     suspend fun createIssueLabel(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -92,7 +108,7 @@ interface ReposApi {
     /**
      * 替换 issue 所有 label
      * */
-    @PUT("{owner}/{repo}/issues/{number}/labels")
+    @PUT("repos/{owner}/{repo}/issues/{number}/labels")
     suspend fun replaceIssueLabel(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -104,7 +120,7 @@ interface ReposApi {
     /**
      * 删除 issue 所有 label
      * */
-    @DELETE("{owner}/{repo}/issues/{number}/labels")
+    @DELETE("repos/{owner}/{repo}/issues/{number}/labels")
     suspend fun deleteAllIssueLabel(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -115,7 +131,7 @@ interface ReposApi {
     /**
      * 删除 issue 的指定 label
      * */
-    @DELETE("{owner}/{repo}/issues/{number}/labels/{name}")
+    @DELETE("repos/{owner}/{repo}/issues/{number}/labels/{name}")
     suspend fun deleteIssueLabel(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -127,7 +143,7 @@ interface ReposApi {
     /**
      * 获取某个 issue 的所有评论
      * */
-    @GET("{owner}/{repo}/issues/{number}/comments")
+    @GET("repos/{owner}/{repo}/issues/{number}/comments")
     suspend fun getAllComments(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -142,7 +158,7 @@ interface ReposApi {
     /**
      * 创建某个 issue 的评论
      * */
-    @POST("{owner}/{repo}/issues/{number}/comments")
+    @POST("repos/{owner}/{repo}/issues/{number}/comments")
     suspend fun createComment(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -153,7 +169,7 @@ interface ReposApi {
     /**
      * 获取仓库的某条评论
      * */
-    @GET("{owner}/{repo}/issues/comments/{id}")
+    @GET("repos/{owner}/{repo}/issues/comments/{id}")
     suspend fun getComment(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -164,7 +180,7 @@ interface ReposApi {
     /**
      * 更新 issue 某条评论
      * */
-    @PATCH("{owner}/{repo}/issues/comments/{id}")
+    @PATCH("repos/{owner}/{repo}/issues/comments/{id}")
     suspend fun updateComment(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
@@ -175,7 +191,7 @@ interface ReposApi {
     /**
      * 删除 issue 某条评论
      * */
-    @DELETE("{owner}/{repo}/issues/comments/{id}")
+    @DELETE("repos/{owner}/{repo}/issues/comments/{id}")
     suspend fun deleteComment(
         @Path("owner") owner: String,
         @Path("repo") repo: String,

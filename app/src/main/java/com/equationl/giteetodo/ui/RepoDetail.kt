@@ -17,6 +17,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
+import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.viewmodel.MainViewModel
 
 @Composable
@@ -75,6 +76,12 @@ fun RepoDetailContent() {
             .fillMaxWidth()
             .padding(2.dp)
             .background(Color.White))
+
+        Row(Modifier.fillMaxSize().padding(top = 8.dp), horizontalArrangement = Arrangement.End) {
+            LinkText(text = "导入已有仓库") {
+                // TODO
+            }
+        }
 
         if (viewModel.isEdit) {
             Row(

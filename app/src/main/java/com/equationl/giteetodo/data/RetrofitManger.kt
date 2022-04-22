@@ -45,7 +45,7 @@ object RetrofitManger {
                         buildOkHttpClient()
                     reposApi =
                         buildRetrofit(
-                            BaseUrl +"repos/",
+                            BaseUrl,
                             okHttpClient
                         ).create(ReposApi::class.java)
                 }

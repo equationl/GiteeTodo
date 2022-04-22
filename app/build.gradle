@@ -45,6 +45,11 @@ android {
     }
 }
 
+// 用于忽略使用 OptIn 注解的警告
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+}
+
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.7.0'

@@ -10,8 +10,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ChangeCircle
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.LibraryAdd
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,7 +44,7 @@ fun TodoListScreen(navController: NavHostController) {
                     /*TODO*/
                         navController.navigate(Route.REPO_DETAIL)
                     }) {
-                        Icon(Icons.Outlined.LibraryAdd, "添加仓库")
+                        Icon(Icons.Outlined.ChangeCircle, "切换仓库")
                     }
                 }) {
                     // 点击退出

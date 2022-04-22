@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,13 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.airbnb.lottie.compose.*
-import com.equationl.giteetodo.R
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.BaseAlertDialog
 import com.equationl.giteetodo.ui.widgets.LinkText
+import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.viewmodel.LoginViewAction
 import com.equationl.giteetodo.viewmodel.LoginViewEvent
 import com.equationl.giteetodo.viewmodel.LoginViewModel
@@ -50,7 +48,7 @@ fun LoginScreen(navController: NavHostController) {
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
             if (it is LoginViewEvent.NavToHome) {
-                navController.navigate(Route.TODO_LIST) {
+                navController.navigate(Route.REPO_LIST) {
                     popUpTo(Route.LOGIN) {
                         inclusive = true
                     }
@@ -63,7 +61,6 @@ fun LoginScreen(navController: NavHostController) {
                 }
             }
         }
-
     }
 
     MaterialTheme {
@@ -83,7 +80,7 @@ fun LoginScreen(navController: NavHostController) {
             viewModel.dispatch(LoginViewAction.CheckLoginState)
 
             if (viewState.isLogging) {
-                LoggingContent()
+                LoadDataContent(text = "正在登录中…")
             }
             else {
                 LoginContent()
@@ -201,19 +198,6 @@ fun LoginContent() {
 }
 
 @Composable
-fun LoggingContent() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
-        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))
-        val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
-        LottieAnimation(
-            composition,
-            progress
-        )
-        Text(text = "正在登录中…", Modifier.padding(top = 18.dp))
-    }
-}
-
-@Composable
 fun EmailEditWidget(loginViewModel: LoginViewModel, viewState: LoginViewState) {
     OutlinedTextField(
         value = viewState.email,
@@ -322,10 +306,4 @@ fun LoginHelpDialog(loginViewModel: LoginViewModel, viewState: LoginViewState) {
 @Composable
 fun PreviewLoginView() {
     LoginContent()
-}
-
-@Preview
-@Composable
-fun PreviewLogging() {
-    LoggingContent()
 }

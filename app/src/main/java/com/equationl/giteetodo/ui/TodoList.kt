@@ -30,7 +30,8 @@ import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.viewmodel.MainViewModel
 
 @Composable
-fun TodoListScreen(navController: NavHostController) {
+fun TodoListScreen(navController: NavHostController, repoPath: String?) {
+    println("repo path is: $repoPath")
     val viewModel: MainViewModel = viewModel()
     val activity = (LocalContext.current as? Activity)
 
@@ -190,5 +191,5 @@ data class TodoCardItemData(
 @Preview
 @Composable
 fun TodoListPreview() {
-    TodoListScreen(rememberNavController())
+    TodoListScreen(rememberNavController(), null)
 }

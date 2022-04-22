@@ -8,6 +8,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LibraryAdd
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,55 +20,85 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.R
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.BlurImage
-
-val testData = listOf(
-    RepoItemData("equation/testRepo1", 10, "仓库1", "2022年04月22日 12:00"),
-    RepoItemData("equation/kjhsadj", 0, "测试仓库", "2022年04月22日 12:00"),
-    RepoItemData("equation/loasjdlihj_,lansdk", 1, "这是一个超标的仓库名字，我很长很长", "2022年04月22日 12:00"),
-    RepoItemData("equation9498451541/98618151asdasdoliasndbiouabnsdiubasdbuasdb", 30, "今日待办", "2022年04月22日 12:00"),
-    RepoItemData("equation/loasjdlihj_,lansdk45", 1, "这是我的待办", "2022年04月22日 12:00")
-)
+import com.equationl.giteetodo.ui.widgets.ListEmptyContent
+import com.equationl.giteetodo.ui.widgets.LoadDataContent
+import com.equationl.giteetodo.viewmodel.RepoItemData
+import com.equationl.giteetodo.viewmodel.RepoListViewAction
+import com.equationl.giteetodo.viewmodel.RepoListViewEvent
+import com.equationl.giteetodo.viewmodel.RepoListViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun RepoListScreen(navController: NavHostController) {
+    val viewModel: RepoListViewModel = viewModel()
+    val viewState = viewModel.viewStates
+    val scaffoldState = rememberScaffoldState()
+    val coroutineState = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.viewEvents.collect {
+            if (it is RepoListViewEvent.ShowMessage) {
+                println("收到错误消息：${it.message}")
+                coroutineState.launch {
+                    scaffoldState.snackbarHostState.showSnackbar(message = it.message)
+                }
+            }
+        }
+    }
+
     MaterialTheme {
         Scaffold(
             topBar = {
-                TopBar("REPO LIST", actions = {
+                TopBar("仓库列表", actions = {
                     IconButton(onClick = {
-                        /*TODO*/
                         navController.navigate(Route.REPO_DETAIL)
                     }) {
                         Icon(Icons.Outlined.LibraryAdd, "添加仓库")
                     }
                 }) {
-                    // TODO 点击返回
                     navController.popBackStack()
                 }
-            })
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                    Snackbar(snackbarData = snackBarData)
+                }})
         {
-            RepoListContent(testData)
+            if (viewState.isLoading) {
+                LoadDataContent("正在加载中…")
+                viewModel.dispatch(RepoListViewAction.LoadRepos)
+            }
+            else {
+                RepoListContent(viewState.repoList, viewModel, navController)  // 读取数据
+            }
         }
     }
 }
 
 @Composable
-fun RepoListContent(repoList: List<RepoItemData>) {
-    // TODO
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(baseBackground)) {
-        LazyColumn {
-            for (item in repoList) {
-                item(key = item.path) {
-                    RepoItem(item)
+fun RepoListContent(repoList: List<RepoItemData>, viewModel: RepoListViewModel, navController: NavHostController) {
+    if (repoList.isEmpty()) {
+        ListEmptyContent {
+            viewModel.dispatch(RepoListViewAction.LoadRepos)
+        }
+    }
+    else {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .background(baseBackground)) {
+            LazyColumn {
+                for (item in repoList) {
+                    item(key = item.path) {
+                        RepoItem(navController, item)
+                    }
                 }
             }
         }
@@ -75,10 +107,10 @@ fun RepoListContent(repoList: List<RepoItemData>) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun RepoItem(itemData: RepoItemData) {
-    Card(onClick = { /*TODO*/ }, modifier = Modifier.padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
+fun RepoItem(navController: NavHostController, itemData: RepoItemData) {
+    Card(onClick = { navController.navigate("${Route.TODO_LIST}/${itemData.path}") },  // FIXME 跳转会闪退
+        modifier = Modifier.padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column {
-
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -128,13 +160,6 @@ fun RepoItem(itemData: RepoItemData) {
         }
     }
 }
-
-data class RepoItemData(
-    val path: String,
-    val notClosedCount: Int,
-    val name: String,
-    val createDate: String
-)
 
 @Preview
 @Composable

@@ -12,10 +12,13 @@ import com.equationl.giteetodo.constants.ClientInfo
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.datastore.DataKey
 import com.equationl.giteetodo.datastore.DataStoreUtils
+import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils.isEmail
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class LoginViewModel: ViewModel() {
     private var loginMethod: LoginMethod = LoginMethod.Email
@@ -85,7 +88,7 @@ class LoginViewModel: ViewModel() {
                 DataStoreUtils.saveSyncStringData(DataKey.LoginPassword, viewStates.password)
                 DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, LoginMethod.Email.name)
 
-                _viewEvents.send(LoginViewEvent.NavToHome)
+                navToHome()
             }
             else {
                 viewStates = viewStates.copy(isLogging = false)
@@ -116,7 +119,7 @@ class LoginViewModel: ViewModel() {
                 DataStoreUtils.saveSyncStringData(DataKey.LoginPassword, "")
                 DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, LoginMethod.AccessToken.name)
 
-                _viewEvents.send(LoginViewEvent.NavToHome)
+                navToHome()
             }
             else {
                 viewStates = viewStates.copy(isLogging = false)
@@ -127,6 +130,26 @@ class LoginViewModel: ViewModel() {
                     _viewEvents.send(LoginViewEvent.ShowMessage("登录失败，获取失败信息失败：${result.exceptionOrNull()?.message ?: ""}"))
                 }
             }
+        }
+    }
+
+    private suspend fun navToHome() {
+        val usingRepo = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
+        val repoListRoute = Route.REPO_LIST
+        if (usingRepo.isBlank()) {
+            _viewEvents.send(LoginViewEvent.NavTo(repoListRoute))
+        }
+        else {
+            kotlin.runCatching {
+                "${Route.TODO_LIST}/${URLEncoder.encode(usingRepo, StandardCharsets.UTF_8.toString())}"
+            }.fold(
+                {
+                    _viewEvents.send(LoginViewEvent.NavTo(it))
+                },
+                {
+                    _viewEvents.send(LoginViewEvent.ShowMessage("获取仓库失败，请重新选择：${it.message}"))
+                    _viewEvents.send(LoginViewEvent.NavTo(repoListRoute))
+                })
         }
     }
 
@@ -243,7 +266,7 @@ data class LoginViewState(
 )
 
 sealed class LoginViewEvent {
-    object NavToHome : LoginViewEvent()
+    data class NavTo(val route: String) : LoginViewEvent()
     data class ShowMessage(val message: String) : LoginViewEvent()
 }
 

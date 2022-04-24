@@ -1,5 +1,7 @@
 package com.equationl.giteetodo.ui
 
+import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,13 +10,13 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LibraryAdd
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,17 +35,15 @@ import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.viewmodel.*
 import kotlinx.coroutines.launch
 
+private const val TAG = "el, RepoList"
+
 @Composable
-fun RepoListScreen(navController: NavHostController, isNeedLoad: Boolean = true) {
+fun RepoListScreen(navController: NavHostController) {
+    val activity = (LocalContext.current as? Activity)
     val viewModel: RepoListViewModel = viewModel()
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()
-
-    DisposableEffect(Unit) {
-        viewModel.dispatch(RepoListViewAction.CheckRepo)
-        onDispose {  }
-    }
 
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
@@ -70,7 +70,13 @@ fun RepoListScreen(navController: NavHostController, isNeedLoad: Boolean = true)
                         Icon(Icons.Outlined.LibraryAdd, "添加仓库")
                     }
                 }) {
-                    navController.popBackStack()
+                    if (navController.backQueue.size <= 2) {
+                        Log.i(TAG, "RepoListScreen: 退出1")
+                        activity?.finish()
+                    }
+                    else {
+                        navController.popBackStack()
+                    }
                 }
             },
             snackbarHost = {
@@ -78,22 +84,7 @@ fun RepoListScreen(navController: NavHostController, isNeedLoad: Boolean = true)
                     Snackbar(snackbarData = snackBarData)
                 }})
         {
-            if (viewState.isSelectedRepo) {
-                println("on test 123: isSelected=${viewState.isSelectedRepo}, isNeedLoad=$isNeedLoad")
-                if (viewState.isCheckingRepo) return@Scaffold
-                if (isNeedLoad) {
-                    // 需要重新载入
-                    LoadRepoListContent(viewModel = viewModel, viewState = viewState)
-                }
-                else {
-                    viewModel.dispatch(RepoListViewAction.ChoiceARepo(Route.TODO_LIST, viewState.selectedRepo))
-                }
-            }
-            else {
-                if (!viewState.isCheckingRepo) {
-                    LoadRepoListContent(viewModel = viewModel, viewState = viewState)
-                }
-            }
+            LoadRepoListContent(viewModel = viewModel, viewState = viewState)
         }
     }
 }

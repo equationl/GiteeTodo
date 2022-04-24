@@ -44,16 +44,8 @@ fun HomeNavHost() {
             RepoDetailScreen(navController)
         }
 
-        composable("${Route.REPO_LIST}?${RouteParams.PAR_NEED_LOAD_REPO_LIST}={${RouteParams.PAR_NEED_LOAD_REPO_LIST}}",
-        arguments = listOf(
-            navArgument(RouteParams.PAR_NEED_LOAD_REPO_LIST) {
-                defaultValue = true
-                type = NavType.BoolType
-            }
-        )) {
-            val argument = requireNotNull(it.arguments)
-            val isNeedLoad = argument.getBoolean(RouteParams.PAR_NEED_LOAD_REPO_LIST)
-            RepoListScreen(navController, isNeedLoad)
+        composable(Route.REPO_LIST) {
+            RepoListScreen(navController)
         }
     }
 }

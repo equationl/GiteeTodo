@@ -27,7 +27,6 @@ class RepoListViewModel: ViewModel() {
     fun dispatch(action: RepoListViewAction) {
         when (action) {
             is RepoListViewAction.LoadRepos -> loadRepos()
-            is RepoListViewAction.CheckRepo -> checkRepo()
             is RepoListViewAction.ChoiceARepo -> choiceARepo(action.route, action.repoPath)
         }
     }
@@ -65,24 +64,12 @@ class RepoListViewModel: ViewModel() {
             println("null=${result.exceptionOrNull()?.stackTraceToString()}")
         }
     }
-
-    private fun checkRepo() {
-        val usingRepo = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-        viewStates = if (usingRepo.isBlank()) {
-            viewStates.copy(isSelectedRepo = false, isCheckingRepo = false)
-        } else {
-            viewStates.copy(isSelectedRepo = true, isCheckingRepo = false, selectedRepo = usingRepo)
-        }
-    }
 }
 
 data class RepoListViewState(
     val repoList: List<RepoItemData> = listOf(),
     val selectedRepo: String = "",
-    val isLoading: Boolean = true,
-    // fixme me 如果将该状态也放入统一的状态管理，那么会由于其他状态的变化导致重复多次重组，并且热启动会死循环重组
-    val isSelectedRepo: Boolean = false,
-    val isCheckingRepo: Boolean = true
+    val isLoading: Boolean = true
 )
 
 sealed class RepoListViewEvent {
@@ -91,7 +78,6 @@ sealed class RepoListViewEvent {
 }
 
 sealed class RepoListViewAction {
-    object CheckRepo: RepoListViewAction()
     object LoadRepos : RepoListViewAction()
     data class ChoiceARepo(val route: String, val repoPath: String): RepoListViewAction()
 }

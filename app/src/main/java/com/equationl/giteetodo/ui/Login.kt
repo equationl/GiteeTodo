@@ -9,6 +9,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -46,6 +47,11 @@ fun LoginScreen(navController: NavHostController) {
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()
 
+    DisposableEffect(Unit) {
+        viewModel.dispatch(LoginViewAction.CheckLoginState)
+        onDispose {  }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
             if (it is LoginViewEvent.NavToHome) {
@@ -80,7 +86,6 @@ fun LoginScreen(navController: NavHostController) {
         {
             if (viewState.isLogging) {
                 LoadDataContent(text = "正在登录中…")
-                viewModel.dispatch(LoginViewAction.CheckLoginState)
             }
             else {
                 LoginContent()

@@ -56,22 +56,22 @@ class RepoListViewModel: ViewModel() {
     private fun choiceARepo(route: String, repoPath: String) {
         viewModelScope.launch {
             DataStoreUtils.saveSyncStringData(DataKey.UsingRepo, repoPath)
-            kotlin.runCatching {
+            val result = kotlin.runCatching {
+                println("repoPath=$repoPath")
                 val encodeRepoPath = URLEncoder.encode(repoPath, StandardCharsets.UTF_8.toString())
                 val fullRoute = "$route/$encodeRepoPath"
                 _viewEvents.send(RepoListViewEvent.Goto(fullRoute))
             }
+            println("null=${result.exceptionOrNull()?.stackTraceToString()}")
         }
     }
 
     private fun checkRepo() {
-        viewModelScope.launch {
-            val usingRepo = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-            viewStates = if (usingRepo.isBlank()) {
-                viewStates.copy(isSelectedRepo = false, isCheckingRepo = false)
-            } else {
-                viewStates.copy(isSelectedRepo = true, isCheckingRepo = false, selectedRepo = usingRepo)
-            }
+        val usingRepo = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
+        viewStates = if (usingRepo.isBlank()) {
+            viewStates.copy(isSelectedRepo = false, isCheckingRepo = false)
+        } else {
+            viewStates.copy(isSelectedRepo = true, isCheckingRepo = false, selectedRepo = usingRepo)
         }
     }
 }
@@ -80,6 +80,7 @@ data class RepoListViewState(
     val repoList: List<RepoItemData> = listOf(),
     val selectedRepo: String = "",
     val isLoading: Boolean = true,
+    // fixme me 如果将该状态也放入统一的状态管理，那么会由于其他状态的变化导致重复多次重组，并且热启动会死循环重组
     val isSelectedRepo: Boolean = false,
     val isCheckingRepo: Boolean = true
 )

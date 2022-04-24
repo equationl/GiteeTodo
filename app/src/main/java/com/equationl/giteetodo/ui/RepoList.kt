@@ -8,6 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LibraryAdd
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -29,10 +30,7 @@ import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.BlurImage
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
-import com.equationl.giteetodo.viewmodel.RepoItemData
-import com.equationl.giteetodo.viewmodel.RepoListViewAction
-import com.equationl.giteetodo.viewmodel.RepoListViewEvent
-import com.equationl.giteetodo.viewmodel.RepoListViewModel
+import com.equationl.giteetodo.viewmodel.*
 import kotlinx.coroutines.launch
 
 @Composable
@@ -41,6 +39,11 @@ fun RepoListScreen(navController: NavHostController, isNeedLoad: Boolean = true)
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()
+
+    DisposableEffect(Unit) {
+        viewModel.dispatch(RepoListViewAction.CheckRepo)
+        onDispose {  }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
@@ -75,37 +78,34 @@ fun RepoListScreen(navController: NavHostController, isNeedLoad: Boolean = true)
                     Snackbar(snackbarData = snackBarData)
                 }})
         {
-            if (viewState.isCheckingRepo) {
-                LoadDataContent("正在加载数据中…")
-                viewModel.dispatch(RepoListViewAction.CheckRepo)
-            }
-            else {
-                if (viewState.isSelectedRepo) {
-                    if (isNeedLoad) {
-                        // 需要重新载入
-                        if (viewState.isLoading) {
-                            LoadDataContent("正在加载仓库列表中…")
-                            viewModel.dispatch(RepoListViewAction.LoadRepos)
-                        }
-                        else {
-                            RepoListContent(viewState.repoList, viewModel)  // 读取数据
-                        }
-                    }
-                    else {
-                        viewModel.dispatch(RepoListViewAction.ChoiceARepo(Route.TODO_LIST, viewState.selectedRepo))
-                    }
+            if (viewState.isSelectedRepo) {
+                println("on test 123: isSelected=${viewState.isSelectedRepo}, isNeedLoad=$isNeedLoad")
+                if (viewState.isCheckingRepo) return@Scaffold
+                if (isNeedLoad) {
+                    // 需要重新载入
+                    LoadRepoListContent(viewModel = viewModel, viewState = viewState)
                 }
                 else {
-                    if (viewState.isLoading) {
-                        LoadDataContent("正在加载仓库列表中…")
-                        viewModel.dispatch(RepoListViewAction.LoadRepos)
-                    }
-                    else {
-                        RepoListContent(viewState.repoList, viewModel)  // 读取数据
-                    }
+                    viewModel.dispatch(RepoListViewAction.ChoiceARepo(Route.TODO_LIST, viewState.selectedRepo))
+                }
+            }
+            else {
+                if (!viewState.isCheckingRepo) {
+                    LoadRepoListContent(viewModel = viewModel, viewState = viewState)
                 }
             }
         }
+    }
+}
+
+@Composable
+fun LoadRepoListContent(viewModel: RepoListViewModel, viewState: RepoListViewState) {
+    if (viewState.isLoading) {
+        LoadDataContent("正在加载仓库列表中…")
+        viewModel.dispatch(RepoListViewAction.LoadRepos)
+    }
+    else {
+        RepoListContent(viewState.repoList, viewModel)  // 读取数据
     }
 }
 

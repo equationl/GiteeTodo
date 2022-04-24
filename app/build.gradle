@@ -26,6 +26,9 @@ android {
         }
     }
     compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -71,6 +74,9 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
     implementation "com.airbnb.android:lottie-compose:5.0.3"
+
+    // see: https://developer.android.com/studio/write/java8-support#library-desugaring
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

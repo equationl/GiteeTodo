@@ -43,7 +43,7 @@ fun TodoListScreen(navController: NavHostController, repoPath: String?) {
                     actions = {
                     IconButton(onClick = {
                     /*TODO*/
-                        navController.navigate(Route.REPO_DETAIL)
+                        navController.navigate(Route.REPO_LIST)
                     }) {
                         Icon(Icons.Outlined.ChangeCircle, "切换仓库")
                     }

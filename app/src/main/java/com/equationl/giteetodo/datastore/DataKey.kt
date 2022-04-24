@@ -5,4 +5,6 @@ object DataKey {
     const val LoginEmail = "login_email"
     const val LoginPassword = "login_password"
     const val LoginAccess = "login_access"
+
+    const val UsingRepo = "using_repo"
 }

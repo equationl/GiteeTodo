@@ -12,6 +12,8 @@ import com.equationl.giteetodo.util.Utils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class RepoListViewModel: ViewModel() {
     private val repoApi = RetrofitManger.getReposApi()
@@ -25,7 +27,8 @@ class RepoListViewModel: ViewModel() {
     fun dispatch(action: RepoListViewAction) {
         when (action) {
             is RepoListViewAction.LoadRepos -> loadRepos()
-            is RepoListViewAction.ChoiceARepo -> TODO()
+            is RepoListViewAction.CheckRepo -> checkRepo()
+            is RepoListViewAction.ChoiceARepo -> choiceARepo(action.route, action.repoPath)
         }
     }
 
@@ -49,20 +52,47 @@ class RepoListViewModel: ViewModel() {
             }
         }
     }
+
+    private fun choiceARepo(route: String, repoPath: String) {
+        viewModelScope.launch {
+            DataStoreUtils.saveSyncStringData(DataKey.UsingRepo, repoPath)
+            kotlin.runCatching {
+                val encodeRepoPath = URLEncoder.encode(repoPath, StandardCharsets.UTF_8.toString())
+                val fullRoute = "$route/$encodeRepoPath"
+                _viewEvents.send(RepoListViewEvent.Goto(fullRoute))
+            }
+        }
+    }
+
+    private fun checkRepo() {
+        viewModelScope.launch {
+            val usingRepo = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
+            viewStates = if (usingRepo.isBlank()) {
+                viewStates.copy(isSelectedRepo = false, isCheckingRepo = false)
+            } else {
+                viewStates.copy(isSelectedRepo = true, isCheckingRepo = false, selectedRepo = usingRepo)
+            }
+        }
+    }
 }
 
 data class RepoListViewState(
     val repoList: List<RepoItemData> = listOf(),
-    val isLoading: Boolean = true
+    val selectedRepo: String = "",
+    val isLoading: Boolean = true,
+    val isSelectedRepo: Boolean = false,
+    val isCheckingRepo: Boolean = true
 )
 
 sealed class RepoListViewEvent {
+    data class Goto(val route: String): RepoListViewEvent()
     data class ShowMessage(val message: String) : RepoListViewEvent()
 }
 
 sealed class RepoListViewAction {
+    object CheckRepo: RepoListViewAction()
     object LoadRepos : RepoListViewAction()
-    data class ChoiceARepo(val path: String): RepoListViewAction()
+    data class ChoiceARepo(val route: String, val repoPath: String): RepoListViewAction()
 }
 
 data class RepoItemData(

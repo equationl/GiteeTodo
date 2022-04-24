@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.ui.common.Route
+import com.equationl.giteetodo.ui.common.RouteParams
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.BaseAlertDialog
@@ -48,7 +49,7 @@ fun LoginScreen(navController: NavHostController) {
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
             if (it is LoginViewEvent.NavToHome) {
-                navController.navigate(Route.REPO_LIST) {
+                navController.navigate("${Route.REPO_LIST}?${RouteParams.PAR_NEED_LOAD_REPO_LIST}=false") {
                     popUpTo(Route.LOGIN) {
                         inclusive = true
                     }
@@ -77,10 +78,9 @@ fun LoginScreen(navController: NavHostController) {
                 }}
         )
         {
-            viewModel.dispatch(LoginViewAction.CheckLoginState)
-
             if (viewState.isLogging) {
                 LoadDataContent(text = "正在登录中…")
+                viewModel.dispatch(LoginViewAction.CheckLoginState)
             }
             else {
                 LoginContent()

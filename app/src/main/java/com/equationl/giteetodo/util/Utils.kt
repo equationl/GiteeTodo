@@ -1,8 +1,10 @@
 package com.equationl.giteetodo.util
 
-import android.util.Log
 import com.equationl.giteetodo.data.user.model.response.Repos
 import com.equationl.giteetodo.viewmodel.RepoItemData
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 object Utils {
     private const val TAG = "Utils"
@@ -37,7 +39,7 @@ object Utils {
                         repo.fullName,
                         repo.openIssuesCount,
                         repo.name,
-                        repo.createdAt  // TODO 格式化日期
+                        getDateTimeString(repo.createdAt)
                     )
                 )
             }
@@ -45,13 +47,11 @@ object Utils {
         return result
     }
 
-    fun getIssueState(state: String): IssueState {
-        return try {
-            IssueState.valueOf(state.uppercase())
-        } catch (e: IllegalArgumentException) {
-            Log.e(TAG, "getIssueState: get Issue state fail", e)
-            IssueState.OPEN
-        }
+    fun getDateTimeString(sourceDateTime: String, pattern: String = "M月dd日"): String {
+
+        val date = LocalDate.parse(sourceDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+        return date.format(DateTimeFormatter.ofPattern(pattern, Locale.CHINA))
     }
 
     enum class IssueState(val des: String) {

@@ -36,7 +36,7 @@ import com.equationl.giteetodo.viewmodel.RepoListViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun RepoListScreen(navController: NavHostController) {
+fun RepoListScreen(navController: NavHostController, isNeedLoad: Boolean = true) {
     val viewModel: RepoListViewModel = viewModel()
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
@@ -49,6 +49,10 @@ fun RepoListScreen(navController: NavHostController) {
                 coroutineState.launch {
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }
+            }
+            else if (it is RepoListViewEvent.Goto) {
+                println("Goto route=${it.route}")
+                navController.navigate(it.route)
             }
         }
     }
@@ -71,19 +75,42 @@ fun RepoListScreen(navController: NavHostController) {
                     Snackbar(snackbarData = snackBarData)
                 }})
         {
-            if (viewState.isLoading) {
-                LoadDataContent("正在加载中…")
-                viewModel.dispatch(RepoListViewAction.LoadRepos)
+            if (viewState.isCheckingRepo) {
+                LoadDataContent("正在加载数据中…")
+                viewModel.dispatch(RepoListViewAction.CheckRepo)
             }
             else {
-                RepoListContent(viewState.repoList, viewModel, navController)  // 读取数据
+                if (viewState.isSelectedRepo) {
+                    if (isNeedLoad) {
+                        // 需要重新载入
+                        if (viewState.isLoading) {
+                            LoadDataContent("正在加载仓库列表中…")
+                            viewModel.dispatch(RepoListViewAction.LoadRepos)
+                        }
+                        else {
+                            RepoListContent(viewState.repoList, viewModel)  // 读取数据
+                        }
+                    }
+                    else {
+                        viewModel.dispatch(RepoListViewAction.ChoiceARepo(Route.TODO_LIST, viewState.selectedRepo))
+                    }
+                }
+                else {
+                    if (viewState.isLoading) {
+                        LoadDataContent("正在加载仓库列表中…")
+                        viewModel.dispatch(RepoListViewAction.LoadRepos)
+                    }
+                    else {
+                        RepoListContent(viewState.repoList, viewModel)  // 读取数据
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun RepoListContent(repoList: List<RepoItemData>, viewModel: RepoListViewModel, navController: NavHostController) {
+fun RepoListContent(repoList: List<RepoItemData>, viewModel: RepoListViewModel) {
     if (repoList.isEmpty()) {
         ListEmptyContent {
             viewModel.dispatch(RepoListViewAction.LoadRepos)
@@ -97,7 +124,7 @@ fun RepoListContent(repoList: List<RepoItemData>, viewModel: RepoListViewModel, 
             LazyColumn {
                 for (item in repoList) {
                     item(key = item.path) {
-                        RepoItem(navController, item)
+                        RepoItem(viewModel, item)
                     }
                 }
             }
@@ -107,8 +134,8 @@ fun RepoListContent(repoList: List<RepoItemData>, viewModel: RepoListViewModel, 
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun RepoItem(navController: NavHostController, itemData: RepoItemData) {
-    Card(onClick = { navController.navigate("${Route.TODO_LIST}/${itemData.path}") },  // FIXME 跳转会闪退
+fun RepoItem(viewModel: RepoListViewModel, itemData: RepoItemData) {
+    Card(onClick = { viewModel.dispatch(RepoListViewAction.ChoiceARepo(Route.TODO_LIST, itemData.path)) },
         modifier = Modifier.padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column {
             Box(

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class LoginViewModel: ViewModel() {
+    private var loginMethod: LoginMethod = LoginMethod.Email
     private val oAuthApi by lazy { RetrofitManger.getOAuthApi() }
     private val userApi by lazy { RetrofitManger.getUserApi() }
 
@@ -47,7 +48,7 @@ class LoginViewModel: ViewModel() {
     private fun login() {
         viewStates = viewStates.copy(isLogging = true)
 
-        when (viewStates.loginMethod) {
+        when (loginMethod) {
             LoginMethod.Email -> loginByEmail()
             LoginMethod.OAuth2 -> throw UnsupportedOperationException("暂不支持 OAuth2 授权登录")
             LoginMethod.AccessToken -> loginByAccess()
@@ -142,17 +143,14 @@ class LoginViewModel: ViewModel() {
     }
 
     private fun switchToAccessToken() {
-        if (viewStates.loginMethod != LoginMethod.AccessToken) {
-            viewStates = viewStates.copy(
-                loginMethod = LoginMethod.AccessToken,
+        viewStates = if (loginMethod != LoginMethod.AccessToken) {
+            viewStates.copy(
                 password = "",
                 passwordLabel = "令牌",
                 isShowEmailEdit = false,
                 accessLoginTitle = "账号密码登录")
-        }
-        else {
-            viewStates = viewStates.copy(
-                loginMethod = LoginMethod.Email,
+        } else {
+            viewStates.copy(
                 password = "",
                 passwordLabel = "密码",
                 isShowEmailEdit = true,
@@ -181,7 +179,7 @@ class LoginViewModel: ViewModel() {
     }
 
     private fun updatePassword(password: String) {
-        val label = if (viewStates.loginMethod == LoginMethod.Email) "密码" else "令牌"
+        val label = if (loginMethod == LoginMethod.Email) "密码" else "令牌"
         viewStates = viewStates.copy(password = password, isPassWordError = false, passwordLabel = label)
     }
 
@@ -195,34 +193,32 @@ class LoginViewModel: ViewModel() {
 
     private fun checkLoginState() {
         viewModelScope.launch {
-            val loginMethod = DataStoreUtils.readStringData(DataKey.LoginMethod)
-            if (loginMethod.isBlank()) {
+            val loginMethodString = DataStoreUtils.readStringData(DataKey.LoginMethod)
+            if (loginMethodString.isBlank()) {
                 // 从未登录过
                 viewStates = viewStates.copy(isLogging = false)
             }
             else {
                 // 本地保存了登录信息
-                viewStates = try {
-                    viewStates.copy(loginMethod = LoginMethod.valueOf(loginMethod))
+                try {
+                    loginMethod = LoginMethod.valueOf(loginMethodString)
                 } catch (e: IllegalArgumentException) {
                     _viewEvents.send(LoginViewEvent.ShowMessage("程序内部错误，请重新登录"))
-                    viewStates.copy(isLogging = false)
+                    viewStates = viewStates.copy(isLogging = false)
                 }
 
-                when (viewStates.loginMethod) {
+                when (loginMethod) {
                     LoginMethod.Email -> {
                         viewStates = viewStates.copy(
                             email = DataStoreUtils.readStringData(DataKey.LoginEmail),
-                            password = DataStoreUtils.readStringData(DataKey.LoginPassword),
-                            loginMethod = LoginMethod.Email
+                            password = DataStoreUtils.readStringData(DataKey.LoginPassword)
                         )
                         loginByEmail()
                     }
                     LoginMethod.OAuth2 -> throw UnsupportedOperationException()
                     LoginMethod.AccessToken -> {
                         viewStates = viewStates.copy(
-                            password = DataStoreUtils.readStringData(DataKey.LoginAccess),
-                            loginMethod = LoginMethod.AccessToken
+                            password = DataStoreUtils.readStringData(DataKey.LoginAccess)
                         )
                         loginByAccess()
                     }
@@ -235,7 +231,6 @@ class LoginViewModel: ViewModel() {
 data class LoginViewState(
     val email: String = "",
     val password: String = "",
-    val loginMethod: LoginMethod = LoginMethod.Email,
     val emailLabel: String = "邮箱",
     val passwordLabel: String = "密码",
     val accessLoginTitle: String = "私人令牌登录",
@@ -244,7 +239,7 @@ data class LoginViewState(
     val isPassWordError: Boolean = false,
     val isShowEmailEdit: Boolean = true,
     val isShowLoginHelpDialog: Boolean = false,
-    val isLogging: Boolean = true
+    val isLogging: Boolean = true,
 )
 
 sealed class LoginViewEvent {

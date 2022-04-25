@@ -2,6 +2,7 @@ package com.equationl.giteetodo.data.repos
 
 import com.equationl.giteetodo.data.repos.model.request.CreateComments
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
+import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
 import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.data.repos.model.response.Issues
 import com.equationl.giteetodo.data.repos.model.response.Labels
@@ -58,7 +59,11 @@ interface ReposApi {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Query("access_token") accessToken: String,
-        @QueryMap filters: Map<String, String>? = null): Response<List<Issues>>
+        @Query("state") state: String = "all",
+        @Query("sort") sort: String = "created",
+        @Query("page") page: Int = 1,
+        @Query("per_page") perPage: Int = 100,
+        @QueryMap filters: Map<String, String> = mapOf()): Response<List<Issues>>
 
 
     /**
@@ -79,7 +84,7 @@ interface ReposApi {
     suspend fun updateIssues(
         @Path("owner") owner: String,
         @Path("number") number: String,
-        @Body createIssues: CreateIssues
+        @Body updateIssue: UpdateIssue
     ): Response<Issues>
 
     /**

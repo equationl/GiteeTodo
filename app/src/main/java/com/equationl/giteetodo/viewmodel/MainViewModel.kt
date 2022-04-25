@@ -10,9 +10,6 @@ import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
 import com.equationl.giteetodo.data.repos.model.response.Issues
-import com.equationl.giteetodo.ui.TodoCardData
-import com.equationl.giteetodo.ui.TodoCardItemData
-import com.equationl.giteetodo.util.Utils
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 
@@ -26,38 +23,6 @@ class MainViewModel : ViewModel() {
     var apiError: MutableLiveData<Throwable> = MutableLiveData()
 
     var isEdit by mutableStateOf(false)
-
-    fun getIssue(): List<TodoCardData> {
-        // TODO
-        return listOf(
-            TodoCardData("2022年04月19日",
-                listOf(
-                    TodoCardItemData("Open", Utils.IssueState.OPEN, "0001"),
-                    TodoCardItemData("Closed", Utils.IssueState.CLOSED, "0002"),
-                    TodoCardItemData("Open", Utils.IssueState.PROGRESSING, "0003"),
-                    TodoCardItemData("Open", Utils.IssueState.REJECTED, "0004"),
-                    TodoCardItemData("超级长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长的字符串", Utils.IssueState.REJECTED, "0005")
-                    )
-            ),
-            TodoCardData("2022年04月18日",
-                listOf(
-                    TodoCardItemData("Open", Utils.IssueState.OPEN, "0001"),
-                )
-            ),
-            TodoCardData("2022年04月17日",
-                listOf(
-                    TodoCardItemData("超级长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长的字符串", Utils.IssueState.REJECTED, "0005")
-                )
-            ),
-            TodoCardData("2022年04月16日",
-                listOf(
-                    TodoCardItemData("Open", Utils.IssueState.OPEN, "0001"),
-                    TodoCardItemData("Closed", Utils.IssueState.CLOSED, "0002"),
-                    TodoCardItemData("Open", Utils.IssueState.PROGRESSING, "0003"),
-                )
-            )
-        )
-    }
 
     fun pswLogin(email: String, psw: String) {
         val exception = CoroutineExceptionHandler { coroutineContext, throwable ->

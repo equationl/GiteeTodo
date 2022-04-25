@@ -1,9 +1,6 @@
 package com.equationl.giteetodo.ui.widgets
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -15,10 +12,16 @@ import com.airbnb.lottie.compose.*
 import com.equationl.giteetodo.R
 
 @Composable
-fun ListEmptyContent(onRefresh: () -> Unit) {
+fun ListEmptyContent(text: String = "没有找到仓库数据，点击刷新", onRefresh: () -> Unit) {
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        // TODO 加个动画咯
-        LinkText(text = "没有找到仓库数据，点击刷新", onClick = onRefresh)
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.no_result))
+        val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
+        LottieAnimation(
+            composition,
+            progress,
+            modifier = Modifier.heightIn(0.dp, 300.dp)
+        )
+        LinkText(text = text, onClick = onRefresh)
     }
 }
 

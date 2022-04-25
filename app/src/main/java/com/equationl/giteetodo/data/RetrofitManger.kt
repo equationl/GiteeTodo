@@ -18,6 +18,8 @@ object RetrofitManger {
     private const val CONNECTION_TIME_OUT = 10L
     private const val READ_TIME_OUT = 10L
 
+    // TODO 加入缓存到本地数据库，避免频繁请求
+
     var BaseUrl = "https://gitee.com/api/v5/"
 
     fun getUserApi(): UserApi {

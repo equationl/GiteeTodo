@@ -78,17 +78,17 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
                     .background(baseBackground)
                     .fillMaxSize()
                     .padding(bottom = it.calculateBottomPadding())) {
-                HomeContent(viewState.currentPage, viewModel, navController, repoPath)
+                HomeContent(viewState.currentPage, viewModel, navController, repoPath, scaffoldState)
             }
         }
     }
 }
 
 @Composable
-fun HomeContent(currentPager: CurrentPager, viewModel: TodoHomeViewModel, navController: NavHostController, repoPath: String) {
+fun HomeContent(currentPager: CurrentPager, viewModel: TodoHomeViewModel, navController: NavHostController, repoPath: String, scaffoldState: ScaffoldState) {
     if (currentPager == CurrentPager.HOME_TODO) {
         viewModel.dispatch(TodoHomeViewAction.ChangeTitle(repoPath.split("/")[1]))
-        TodoListScreen(navController = navController, repoPath = repoPath)
+        TodoListScreen(navController, repoPath, scaffoldState)
     }
     else if (currentPager == CurrentPager.HOME_ME) {
         viewModel.dispatch(TodoHomeViewAction.ChangeTitle(repoPath.split("/")[0]))

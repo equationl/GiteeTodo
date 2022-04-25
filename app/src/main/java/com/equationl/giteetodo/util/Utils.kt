@@ -53,11 +53,4 @@ object Utils {
 
         return date.format(DateTimeFormatter.ofPattern(pattern, Locale.CHINA))
     }
-
-    enum class IssueState(val des: String) {
-        OPEN("open"),
-        PROGRESSING("progressing"),
-        CLOSED("closed"),
-        REJECTED("rejected")
-    }
 }

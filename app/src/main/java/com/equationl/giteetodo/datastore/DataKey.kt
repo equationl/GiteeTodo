@@ -7,4 +7,6 @@ object DataKey {
     const val LoginAccess = "login_access"
 
     const val UsingRepo = "using_repo"
+
+    const val FilterOnlyOpenIssue = "filter_only_open_issue"
 }

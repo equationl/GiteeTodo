@@ -17,11 +17,23 @@ fun HomeNavHost() {
             LoginScreen(navController)
         }
 
+        composable("${Route.HOME}/{${RouteParams.PAR_REPO_PATH}}",
+            arguments = listOf(
+                navArgument(RouteParams.PAR_REPO_PATH) {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            )) {
+            val argument = requireNotNull(it.arguments)
+            val repoPath = argument.getString(RouteParams.PAR_REPO_PATH) ?: "null"
+            HomeScreen(navController, repoPath)
+        }
+
         composable("${Route.TODO_LIST}/{${RouteParams.PAR_REPO_PATH}}",
             arguments = listOf(
                 navArgument(RouteParams.PAR_REPO_PATH) {
                     type = NavType.StringType
-                    nullable = true
+                    nullable = false
                 }
             )) {
             val argument = requireNotNull(it.arguments)

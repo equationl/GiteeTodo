@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.datastore.DataKey
 import com.equationl.giteetodo.datastore.DataStoreUtils
+import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -27,7 +28,7 @@ class RepoListViewModel: ViewModel() {
     fun dispatch(action: RepoListViewAction) {
         when (action) {
             is RepoListViewAction.LoadRepos -> loadRepos()
-            is RepoListViewAction.ChoiceARepo -> choiceARepo(action.route, action.repoPath)
+            is RepoListViewAction.ChoiceARepo -> choiceARepo(action.repoPath)
         }
     }
 
@@ -52,13 +53,13 @@ class RepoListViewModel: ViewModel() {
         }
     }
 
-    private fun choiceARepo(route: String, repoPath: String) {
+    private fun choiceARepo(repoPath: String) {
         viewModelScope.launch {
             DataStoreUtils.saveSyncStringData(DataKey.UsingRepo, repoPath)
             val result = kotlin.runCatching {
                 println("repoPath=$repoPath")
                 val encodeRepoPath = URLEncoder.encode(repoPath, StandardCharsets.UTF_8.toString())
-                val fullRoute = "$route/$encodeRepoPath"
+                val fullRoute = "${Route.HOME}/$encodeRepoPath"
                 _viewEvents.send(RepoListViewEvent.Goto(fullRoute))
             }
             println("null=${result.exceptionOrNull()?.stackTraceToString()}")
@@ -79,7 +80,7 @@ sealed class RepoListViewEvent {
 
 sealed class RepoListViewAction {
     object LoadRepos : RepoListViewAction()
-    data class ChoiceARepo(val route: String, val repoPath: String): RepoListViewAction()
+    data class ChoiceARepo(val repoPath: String): RepoListViewAction()
 }
 
 data class RepoItemData(

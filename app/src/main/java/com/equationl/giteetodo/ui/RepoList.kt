@@ -126,7 +126,7 @@ fun RepoListContent(repoList: List<RepoItemData>, viewModel: RepoListViewModel) 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun RepoItem(viewModel: RepoListViewModel, itemData: RepoItemData) {
-    Card(onClick = { viewModel.dispatch(RepoListViewAction.ChoiceARepo(Route.TODO_LIST, itemData.path)) },
+    Card(onClick = { viewModel.dispatch(RepoListViewAction.ChoiceARepo(itemData.path)) },
         modifier = Modifier.padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column {
             Box(

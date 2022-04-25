@@ -141,7 +141,7 @@ class LoginViewModel: ViewModel() {
         }
         else {
             kotlin.runCatching {
-                "${Route.TODO_LIST}/${URLEncoder.encode(usingRepo, StandardCharsets.UTF_8.toString())}"
+                "${Route.HOME}/${URLEncoder.encode(usingRepo, StandardCharsets.UTF_8.toString())}"
             }.fold(
                 {
                     _viewEvents.send(LoginViewEvent.NavTo(it))

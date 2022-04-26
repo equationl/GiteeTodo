@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.equationl.giteetodo.datastore.DataStoreUtils
 import com.equationl.giteetodo.ui.common.Route
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -30,6 +31,7 @@ class TodoHomeViewModel : ViewModel() {
             is TodoHomeViewAction.GoToMe -> goToMe()
             is TodoHomeViewAction.GoToTodo -> goToTodo()
             is TodoHomeViewAction.AddATodo -> addATodo()
+            is TodoHomeViewAction.Logout -> logout()
             is TodoHomeViewAction.ChangeTitle -> changeTitle(action.title)
         }
     }
@@ -74,6 +76,13 @@ class TodoHomeViewModel : ViewModel() {
     private fun changeTitle(title: String) {
         viewStates = viewStates.copy(title = title)
     }
+
+    private fun logout() {
+        viewModelScope.launch {
+            DataStoreUtils.clear()
+            _viewEvents.send(TodoHomeViewEvent.Goto(Route.LOGIN))
+        }
+    }
 }
 
 data class TodoHomeViewState(
@@ -96,6 +105,7 @@ sealed class TodoHomeViewAction {
     object GoToTodo: TodoHomeViewAction()
     object GoToMe: TodoHomeViewAction()
     object AddATodo: TodoHomeViewAction()
+    object Logout: TodoHomeViewAction()
     data class ChangeTitle(val title: String): TodoHomeViewAction()
 }
 

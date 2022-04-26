@@ -49,8 +49,6 @@ class LoginViewModel: ViewModel() {
     }
 
     private fun login() {
-        viewStates = viewStates.copy(isLogging = true)
-
         when (loginMethod) {
             LoginMethod.Email -> loginByEmail()
             LoginMethod.OAuth2 -> throw UnsupportedOperationException("暂不支持 OAuth2 授权登录")
@@ -72,6 +70,7 @@ class LoginViewModel: ViewModel() {
             return
         }
 
+        viewStates = viewStates.copy(isLogging = true)
 
         viewModelScope.launch {
             val response = oAuthApi.getTokenByPsw(
@@ -108,10 +107,10 @@ class LoginViewModel: ViewModel() {
             return
         }
 
+        viewStates = viewStates.copy(isLogging = true)
+
         viewModelScope.launch {
             val response = userApi.getUser(viewStates.password)
-
-            println("response = $response")
 
             if (response.isSuccessful) {
                 DataStoreUtils.saveSyncStringData(DataKey.LoginAccess, viewStates.password)
@@ -166,18 +165,20 @@ class LoginViewModel: ViewModel() {
     }
 
     private fun switchToAccessToken() {
-        viewStates = if (loginMethod != LoginMethod.AccessToken) {
-            viewStates.copy(
+        if (loginMethod != LoginMethod.AccessToken) {
+            viewStates = viewStates.copy(
                 password = "",
                 passwordLabel = "令牌",
                 isShowEmailEdit = false,
                 accessLoginTitle = "账号密码登录")
+            loginMethod = LoginMethod.AccessToken
         } else {
-            viewStates.copy(
+            viewStates = viewStates.copy(
                 password = "",
                 passwordLabel = "密码",
                 isShowEmailEdit = true,
                 accessLoginTitle = "私人令牌登录")
+            loginMethod = LoginMethod.Email
         }
     }
 

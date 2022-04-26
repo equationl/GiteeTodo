@@ -31,7 +31,8 @@ fun BlurImage(
         Image(painter = paint,
             contentDescription = contentDescription,
             contentScale = contentScale,
-            modifier = modifier.blur(16.dp)
+            alpha = 0.5f,
+            modifier = modifier
         )
     }
 }

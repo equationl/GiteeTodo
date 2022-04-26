@@ -92,7 +92,9 @@ fun HomeContent(currentPager: CurrentPager, viewModel: TodoHomeViewModel, navCon
     }
     else if (currentPager == CurrentPager.HOME_ME) {
         viewModel.dispatch(TodoHomeViewAction.ChangeTitle(repoPath.split("/")[0]))
-        // TODO
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("你好，${repoPath.split("/")[0]}", style = Typography().h3)
+        }
     }
 }
 
@@ -118,7 +120,7 @@ fun HomeTopBarAction(currentPager: CurrentPager, viewModel: TodoHomeViewModel) {
     }
     else if (currentPager == CurrentPager.HOME_ME) {
         IconButton(onClick = {
-            // TODO
+            viewModel.dispatch(TodoHomeViewAction.Logout)
         }) {
             Icon(Icons.Outlined.Logout, "注销")
         }

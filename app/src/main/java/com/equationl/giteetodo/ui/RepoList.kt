@@ -133,8 +133,9 @@ fun RepoItem(viewModel: RepoListViewModel, itemData: RepoItemData) {
                 Modifier
                     .fillMaxWidth()
                     .height(100.dp)) {
+                val bg = listOf(R.drawable.bg, R.drawable.bg2).random()
                 BlurImage(
-                    paint = painterResource(id = R.drawable.bg2),
+                    paint = painterResource(id = bg),
                     contentDescription = "background",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

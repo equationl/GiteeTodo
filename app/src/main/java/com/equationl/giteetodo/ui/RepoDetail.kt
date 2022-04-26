@@ -3,9 +3,9 @@ package com.equationl.giteetodo.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,84 +17,122 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
-import com.equationl.giteetodo.ui.widgets.LinkText
-import com.equationl.giteetodo.viewmodel.MainViewModel
+import com.equationl.giteetodo.ui.widgets.LoadDataContent
+import com.equationl.giteetodo.viewmodel.RepoDetailViewAction
+import com.equationl.giteetodo.viewmodel.RepoDetailViewEvent
+import com.equationl.giteetodo.viewmodel.RepoDetailViewModel
+import com.equationl.giteetodo.viewmodel.RepoDetailViewState
+import kotlinx.coroutines.launch
 
 @Composable
 fun RepoDetailScreen(navController: NavHostController) {
-    val viewModel: MainViewModel = viewModel()
+    val viewModel: RepoDetailViewModel = viewModel()
+    val viewState = viewModel.viewStates
+    val scaffoldState = rememberScaffoldState()
+    val coroutineState = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.viewEvents.collect {
+            if (it is RepoDetailViewEvent.ShowMessage) {
+                println("收到错误消息：${it.message}")
+                coroutineState.launch {
+                    scaffoldState.snackbarHostState.showSnackbar(message = it.message)
+                }
+            }
+            else if (it is RepoDetailViewEvent.Goto) {
+                println("Goto route=${it.route}")
+                navController.navigate(it.route)
+            }
+        }
+    }
 
     MaterialTheme {
         Scaffold(
             topBar = {
-                TopBar("REPO DETAIL", actions = {
-                    if (!viewModel.isEdit) {
-                        IconButton(onClick = {
-                            // TODO 点击编辑
-                            viewModel.isEdit = true
-                        }) {
-                            Icon(Icons.Outlined.EditNote, contentDescription = "编辑")
-                        }
-                    }
-                }) {
-                    // TODO 点击返回
+                TopBar("新建仓库") {
                     navController.popBackStack()
                 }
-            })
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                    Snackbar(snackbarData = snackBarData)
+                }})
         {
-            RepoDetailContent()
+            RepoDetailContent(viewModel, viewState)
         }
     }
 }
 
 @Composable
-fun RepoDetailContent() {
-    val viewModel: MainViewModel = viewModel()
-
+fun RepoDetailContent(viewModel: RepoDetailViewModel, viewState: RepoDetailViewState) {
     Column(modifier = Modifier
         .fillMaxSize()
         .background(baseBackground)) {
-        OutlinedTextField(value = "我是标题", onValueChange = {}, readOnly = !viewModel.isEdit, modifier = Modifier
-            .fillMaxWidth()
-            .padding(2.dp)
-            .background(Color.White))
-        Column(
-            Modifier
+
+        OutlinedTextField(
+            value = viewState.repoName,
+            onValueChange = { viewModel.dispatch(RepoDetailViewAction.ChangeName(it)) },
+            label = { Text("仓库名称")},
+            placeholder = { Text("仓库名只允许包含中文、字母、数字或者下划线(_)、中划线(-)、英文句号(.)、加号(+)，必须以字母或数字开头，不能以下划线/中划线结尾，且长度为2~191个字符")},
+            modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 2.dp), horizontalAlignment = Alignment.End) {
-            Text(text = "创建于 2022.04.18 12:00", fontSize = 12.sp)
-        }
-        OutlinedTextField(value = "我是内容，我是内容，\n我是内容，我是内容，我是内容，我是内容，我是内容，我是内容，我是内容，\n我是内容，我是内容，我是内容，我是内容，\n我是内容，结束",
-            onValueChange = {},
-            readOnly = !viewModel.isEdit,
+                .padding(2.dp)
+                .background(Color.White))
+
+        OutlinedTextField(
+            value = viewState.repoDescribe,
+            onValueChange = { viewModel.dispatch(RepoDetailViewAction.ChangeDescribe(it)) },
+            label = { Text("仓库描述")},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(2.dp)
                 .padding(top = 32.dp)
                 .background(Color.White))
-        OutlinedTextField(value = "this_is_path", onValueChange = {}, readOnly = !viewModel.isEdit, modifier = Modifier
-            .fillMaxWidth()
-            .padding(2.dp)
-            .background(Color.White))
 
-        Row(Modifier.fillMaxSize().padding(top = 8.dp), horizontalArrangement = Arrangement.End) {
-            LinkText(text = "导入已有仓库") {
-                // TODO
-            }
+
+        OutlinedTextField(
+            value = viewState.repoPath,
+            onValueChange = { viewModel.dispatch(RepoDetailViewAction.ChangePath(it)) },
+            label = { Text("仓库路径")},
+            placeholder = { Text("路径只允许包含字母、数字或者下划线(_)、中划线(-)、英文句号(.)，必须以字母开头，且长度为2~191个字符")},
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp)
+                .background(Color.White))
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(end = 8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = viewState.isPrivateRepo, onCheckedChange = { viewModel.dispatch(RepoDetailViewAction.ChangeIsPrivate(it)) })
+            Text("私有仓库")
         }
 
-        if (viewModel.isEdit) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(end = 8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = viewState.isInitRepo, onCheckedChange = { viewModel.dispatch(RepoDetailViewAction.ChangeIsInit(it)) })
+            Text("初始化")
+        }
+
+
+        if (viewState.isUnderCreation) {
+            Row(modifier = Modifier.heightIn(0.dp, 100.dp), horizontalArrangement = Arrangement.Center) {
+                LoadDataContent("正在创建中…")
+            }
+        }
+        else {
             Row(
                 Modifier
                     .fillMaxWidth()
                     .padding(top = 32.dp), horizontalArrangement = Arrangement.Center) {
                 Button(
                     onClick = {
-                        /*TODO*/
-                        viewModel.isEdit = !viewModel.isEdit
+                        viewModel.dispatch(RepoDetailViewAction.Create)
                     },
                     shape = Shapes.large) {
-                    Text(text = "保存", fontSize = 20.sp, modifier = Modifier.padding(start = 82.dp, end = 82.dp, top = 4.dp, bottom = 4.dp))
+                    Text(text = "创建", fontSize = 20.sp, modifier = Modifier.padding(start = 82.dp, end = 82.dp, top = 4.dp, bottom = 4.dp))
                 }
             }
         }

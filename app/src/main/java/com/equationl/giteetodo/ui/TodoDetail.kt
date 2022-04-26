@@ -21,6 +21,8 @@ import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.viewmodel.*
+import com.halilibo.richtext.markdown.Markdown
+import com.halilibo.richtext.ui.RichText
 import kotlinx.coroutines.launch
 
 private const val TAG = "el, TodoDetailScreen"
@@ -114,19 +116,8 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
             Text(text = "创建于 ${viewState.createdDateTime}", fontSize = 12.sp)
             Text(text = "更新于 ${viewState.updateDateTime}", fontSize = 12.sp)
         }
-        OutlinedTextField(
-            value = viewState.content,
-            onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnContentChange(it)) },
-            readOnly = !viewState.isEditAble,
-            label = {
-                Text("描述")
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(2.dp)
-                .padding(top = 32.dp)
-                .background(Color.White)
-        )
+
+        TodoDetailBodyItem(viewModel, viewState)
 
         TodoDetailSateItem(viewModel, viewState)
 
@@ -147,6 +138,40 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
                     shape = Shapes.large) {
                     Text(text = "保存", fontSize = 20.sp, modifier = Modifier.padding(start = 82.dp, end = 82.dp, top = 4.dp, bottom = 4.dp))
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailViewState) {
+    if (viewState.isEditAble) {
+        OutlinedTextField(
+            value = viewState.content,
+            onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnContentChange(it)) },
+            readOnly = !viewState.isEditAble,
+            label = {
+                Text("描述（支持 Markdown）")
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp)
+                .padding(top = 32.dp)
+                .background(Color.White)
+        )
+    }
+    else {
+        Text("描述：", modifier = Modifier.padding(top = 32.dp, start = 2.dp))
+        Card(
+            border = BorderStroke(1.dp, Color.Gray),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp)
+                .background(Color.White)) {
+            RichText(modifier = Modifier.padding(4.dp)) {
+                Markdown(
+                    viewState.content
+                )
             }
         }
     }

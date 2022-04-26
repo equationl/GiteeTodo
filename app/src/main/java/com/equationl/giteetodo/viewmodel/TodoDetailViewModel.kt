@@ -242,7 +242,7 @@ data class TodoDetailViewState(
     val content: String = "",
     val state: IssueState = IssueState.UNKNOWN,
     val priority: Int = 0,
-    val labels: String = "",
+    val labels: String = "未设置",
     val startDateTime: String = "",
     val stopDateTime: String = "",
     val isLoading: Boolean = true,

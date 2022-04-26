@@ -1,6 +1,5 @@
 package com.equationl.giteetodo.ui
 
-import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -102,6 +101,7 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
             value = viewState.title,
             onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnTitleChange(it)) },
             readOnly = !viewState.isEditAble,
+            label = { Text("标题")},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(2.dp)
@@ -128,25 +128,14 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
                 .background(Color.White)
         )
 
-        TodoDetailMultipleChoiceItem(viewModel, viewState, "状态：", viewState.state.humanName) {
-            viewModel.dispatch(TodoDetailViewAction.StateDropMenuShowState(true))
-        }
+        TodoDetailSateItem(viewModel, viewState)
 
-        TodoDetailMultipleChoiceItem(viewModel, viewState, "优先级：", viewState.priority.getPriorityString()) {
-            // OpenApi 中没有修改该值的接口
-        }
+        TodoDetailLabelsItem(viewModel, viewState)
 
-        TodoDetailMultipleChoiceItem(viewModel, viewState, "标签：", viewState.labels) {
-            viewModel.dispatch(TodoDetailViewAction.LabelsDropMenuShowState(true))
-        }
-
-        TodoDetailMultipleChoiceItem(viewModel, viewState, "开始时间：", viewState.startDateTime) {
-            // OpenApi 中没有修改该值的接口
-        }
-
-        TodoDetailMultipleChoiceItem(viewModel, viewState, "结束时间：", viewState.stopDateTime) {
-            // OpenApi 中没有修改该值的接口
-        }
+        // OpenApi 中没有修改下面这个三个值的接口
+        TodoDetailCommonItem("优先级：", viewState.priority.getPriorityString())
+        TodoDetailCommonItem("开始时间：", viewState.startDateTime)
+        TodoDetailCommonItem("结束时间：", viewState.stopDateTime)
 
         if (viewState.isEditAble) {
             Row(
@@ -164,7 +153,7 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
 }
 
 @Composable
-fun TodoDetailMultipleChoiceItem(viewModel: TodoDetailViewModel, viewState: TodoDetailViewState, title: String, content: String, onclick: () -> Unit) {
+fun TodoDetailSateItem(viewModel: TodoDetailViewModel, viewState: TodoDetailViewState) {
     Card(
         border = BorderStroke(1.dp, Color.Gray),
         modifier = Modifier
@@ -172,51 +161,79 @@ fun TodoDetailMultipleChoiceItem(viewModel: TodoDetailViewModel, viewState: Todo
             .padding(2.dp)
             .padding(top = 8.dp)
             .background(Color.White)) {
+        Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(text = "状态")
+            Box {
+                Text(text = viewState.state.humanName, modifier = Modifier
+                    .clickable(onClick = {
+                        viewModel.dispatch(TodoDetailViewAction.StateDropMenuShowState(true)) },
+                        enabled = viewState.isEditAble))
+                StateDropMenu(viewModel, viewState.isShowStateDropMenu)
+            }
+        }
+    }
+}
+
+@Composable
+fun TodoDetailLabelsItem(viewModel: TodoDetailViewModel, viewState: TodoDetailViewState) {
+    Card(
+        border = BorderStroke(1.dp, Color.Gray),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(2.dp)
+            .padding(top = 8.dp)
+            .background(Color.White)) {
+        Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(text = "标签")
+            Box {
+                Text(text = viewState.labels, modifier = Modifier
+                    .clickable(onClick = {
+                        viewModel.dispatch(TodoDetailViewAction.LabelsDropMenuShowState(true))
+                    },
+                        enabled = viewState.isEditAble))
+                LabelsDropMenu(viewModel.viewStates.availableLabels, viewModel, viewState)
+            }
+        }
+    }
+}
+
+@Composable
+fun TodoDetailCommonItem(title: String, content: String) {
+    Card(
+        border = BorderStroke(0.dp, Color.Gray),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(2.dp)
+            .padding(top = 8.dp)
+            .background(Color.White)) {
         Row(
             Modifier
-                .padding(8.dp)
-                .clickable(onClick = onclick, enabled = viewState.isEditAble),
+                .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = title)
             Text(text = content)
         }
-
-        LabelsDropMenu(viewModel.viewStates.availableLabels, viewModel, viewState)
-
-        StateDropMenu(viewModel, viewState.isShowStateDropMenu)
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun LabelsDropMenu(options: MutableMap<String, Boolean>, viewModel: TodoDetailViewModel, viewState: TodoDetailViewState) {
-    // FIXME 该 composable 会被重复重组导致弹出多个 dropMenu
+    DropdownMenu(expanded = viewState.isShowLabelsDropMenu, onDismissRequest = {
+        viewModel.dispatch(TodoDetailViewAction.UpdateLabels(options))
+    }) {
+        options.forEach { (name, checked) ->
+            var isChecked by remember { mutableStateOf(checked) }
+            DropdownMenuItem(
+                onClick = {
 
-    ExposedDropdownMenuBox(
-        expanded = viewState.isShowLabelsDropMenu,
-        onExpandedChange = {
-
-        }
-    ) {
-        ExposedDropdownMenu(
-            expanded = viewState.isShowLabelsDropMenu,
-            onDismissRequest = {
-                viewModel.dispatch(TodoDetailViewAction.UpdateLabels(options))
-            }
-        ) {
-            options.forEach { (name, checked) ->
-                var isChecked by remember { mutableStateOf(checked) }
-                DropdownMenuItem(
-                    onClick = {
-
-                    },
-                ) {
-                    Checkbox(checked = isChecked, onCheckedChange = {
-                        options["name"] = it
-                        isChecked = it
-                    })
-                    Text(text = name)
-                }
+                },
+            ) {
+                Checkbox(checked = isChecked, onCheckedChange = {
+                    options[name] = it
+                    isChecked = it
+                })
+                Text(text = name)
             }
         }
     }
@@ -225,15 +242,11 @@ fun LabelsDropMenu(options: MutableMap<String, Boolean>, viewModel: TodoDetailVi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun StateDropMenu(viewModel: TodoDetailViewModel, isShow: Boolean) {
-    // FIXME 该 composable 会被重复重组导致弹出多个 dropMenu
-
-    Log.i(TAG, "StateDropMenu: call StateDropMenu, isShow=$isShow")
     val options = listOf(IssueState.OPEN, IssueState.CLOSED, IssueState.PROGRESSING)
 
     DropdownMenu(expanded = isShow, onDismissRequest = {
         viewModel.dispatch(TodoDetailViewAction.StateDropMenuShowState(false))
     }) {
-        Log.i(TAG, "StateDropMenu: recompose, isShow=$isShow")
         options.forEach { state ->
             DropdownMenuItem(
                 onClick = {

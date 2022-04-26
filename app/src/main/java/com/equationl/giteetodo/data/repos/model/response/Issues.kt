@@ -6,7 +6,7 @@ data class Issues(
     @SerializedName("assignee")
     val assignee: Any?,
     @SerializedName("body")
-    val body: Any?,
+    val body: String?,
     @SerializedName("branch")
     val branch: Any?,
     @SerializedName("collaborators")
@@ -18,7 +18,7 @@ data class Issues(
     @SerializedName("created_at")
     val createdAt: String,
     @SerializedName("deadline")
-    val deadline: Any?,
+    val deadline: String?,
     @SerializedName("depth")
     val depth: Int,
     @SerializedName("finished_at")
@@ -36,7 +36,7 @@ data class Issues(
     @SerializedName("issue_type_detail")
     val issueTypeDetail: IssueTypeDetail,
     @SerializedName("labels")
-    val labels: List<Any>,
+    val labels: List<Label>,
     @SerializedName("labels_url")
     val labelsUrl: String,
     @SerializedName("milestone")
@@ -48,7 +48,7 @@ data class Issues(
     @SerializedName("parent_url")
     val parentUrl: Any?,
     @SerializedName("plan_started_at")
-    val planStartedAt: Any?,
+    val planStartedAt: String?,
     @SerializedName("priority")
     val priority: Int,
     @SerializedName("program")

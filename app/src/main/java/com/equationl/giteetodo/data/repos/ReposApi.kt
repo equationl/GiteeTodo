@@ -5,7 +5,7 @@ import com.equationl.giteetodo.data.repos.model.request.CreateIssues
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
 import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.data.repos.model.response.Issues
-import com.equationl.giteetodo.data.repos.model.response.Labels
+import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.data.user.model.request.UserRepos
 import com.equationl.giteetodo.data.user.model.response.Repos
 import retrofit2.Response
@@ -70,7 +70,7 @@ interface ReposApi {
      * 获取指定 issue
      * */
     @GET("repos/{owner}/{repo}/issues/{number}")
-    suspend fun getIssues(
+    suspend fun getIssue(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Path("number") number: String,
@@ -96,7 +96,17 @@ interface ReposApi {
         @Path("repo") repo: String,
         @Path("name") name: String,
         @Query("access_token") accessToken: String
-    ): Response<Labels>
+    ): Response<Label>
+
+    /**
+     * 获取指定仓库的所有可用标签
+     * */
+    @GET("repos/{owner}/{repo}/labels")
+    suspend fun getExistLabels(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Query("access_token") accessToken: String
+    ): Response<List<Label>>
 
     /**
      * 创建 issue label
@@ -108,7 +118,7 @@ interface ReposApi {
         @Path("number") number: String,
         @Query("access_token") accessToken: String,
         @Body list: List<String>
-    ): Response<List<Labels>>
+    ): Response<List<Label>>
 
     /**
      * 替换 issue 所有 label
@@ -120,7 +130,7 @@ interface ReposApi {
         @Path("number") number: String,
         @Query("access_token") accessToken: String,
         @Body list: List<String>
-    ): Response<List<Labels>>
+    ): Response<List<Label>>
 
     /**
      * 删除 issue 所有 label

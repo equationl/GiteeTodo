@@ -2,7 +2,7 @@ package com.equationl.giteetodo.util
 
 import com.equationl.giteetodo.data.user.model.response.Repos
 import com.equationl.giteetodo.viewmodel.RepoItemData
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -49,7 +49,7 @@ object Utils {
 
     fun getDateTimeString(sourceDateTime: String, pattern: String = "M月dd日"): String {
 
-        val date = LocalDate.parse(sourceDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        val date = LocalDateTime.parse(sourceDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
         return date.format(DateTimeFormatter.ofPattern(pattern, Locale.CHINA))
     }

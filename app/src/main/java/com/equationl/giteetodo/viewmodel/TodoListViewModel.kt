@@ -10,6 +10,8 @@ import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
 import com.equationl.giteetodo.datastore.DataKey
 import com.equationl.giteetodo.datastore.DataStoreUtils
+import com.equationl.giteetodo.ui.common.IssueState
+import com.equationl.giteetodo.ui.common.getIssueState
 import com.equationl.giteetodo.util.Utils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -77,7 +79,7 @@ class TodoListViewModel: ViewModel() {
                         )
                     }
                     else {
-                        val state = try { IssueState.valueOf(issue.state.uppercase()) } catch (e: IllegalArgumentException) { IssueState.OPEN }
+                        val state = getIssueState(issue.state)
                         currentItem.add(
                             TodoCardItemData(issue.title, state, issue.number)
                         )
@@ -165,10 +167,3 @@ data class TodoCardItemData(
     val state: IssueState,
     val number: String
 )
-
-enum class IssueState(val des: String) {
-    OPEN("open"),
-    PROGRESSING("progressing"),
-    CLOSED("closed"),
-    REJECTED("rejected")
-}

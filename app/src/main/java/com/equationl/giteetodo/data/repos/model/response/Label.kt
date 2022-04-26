@@ -2,7 +2,7 @@ package com.equationl.giteetodo.data.repos.model.response
 import com.google.gson.annotations.SerializedName
 
 
-data class Labels(
+data class Label(
     @SerializedName("color")
     val color: String,
     @SerializedName("created_at")

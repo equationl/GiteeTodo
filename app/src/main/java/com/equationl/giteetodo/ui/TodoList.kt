@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
@@ -97,7 +98,8 @@ fun TodoItem(navController: NavHostController, itemData: TodoCardItemData, viewM
         when (itemData.state) {
             IssueState.OPEN,
             IssueState.PROGRESSING,
-            IssueState.REJECTED -> {
+            IssueState.REJECTED,
+            IssueState.UNKNOWN -> {
                 false
             }
             IssueState.CLOSED -> {

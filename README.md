@@ -11,10 +11,14 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 - 编辑某个 ISSUE 详情
 
 ### 截图
-待补充
+| ![1](./docs/img/Screenshot_1.png) | ![2](./docs/img/Screenshot_2.png) |
+| --------------------------------- | --------------------------------- |
+| ![3](./docs/img/Screenshot_3.png) | ![4](./docs/img/Screenshot_4.png) |
+| ![5](./docs/img/Screenshot_5.png) | ![6](./docs/img/Screenshot_6.png) |
 
 ### 项目结构图
 ![包结构](./docs/img/pkg.png)
+
 ![架构](./docs/img/framework.png)
 
 ### 使用的技术栈及第三方库

@@ -1,4 +1,4 @@
-package com.equationl.giteetodo.ui
+package com.equationl.giteetodo.ui.page
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
+import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.RepoDetailViewAction
 import com.equationl.giteetodo.viewmodel.RepoDetailViewEvent
 import com.equationl.giteetodo.viewmodel.RepoDetailViewModel

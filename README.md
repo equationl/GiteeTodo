@@ -1,6 +1,31 @@
 # GiteeTodo - 码云待办
 
+## 简介
 GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TODO 应用；基于 Gitee（码云）的 issue 作为储存仓库。
+
+### 主要功能
+- 查看仓库列表（仅获取类型为 *个人* ，且登录账号为 *创建者* 的仓库）
+- 根据仓库查看 ISSUE 列表（支持筛选已完成和未完成）
+- 快速标记 ISSUE 完成状态
+- 查看某个 ISSUE 详情
+- 编辑某个 ISSUE 详情
+
+### 截图
+待补充
+
+### 项目结构图
+![包结构](./docs/img/pkg.png)
+![架构](./docs/img/framework.png)
+
+### 使用的技术栈及第三方库
+*基本架构： [MVI](https://juejin.cn/post/7048980213811642382)*
+
+- viewmodel： ViewModel 类旨在以注重生命周期的方式存储和管理界面相关的数据。
+- navigation： 构建和组织应用内界面，处理深层链接以及在屏幕之间导航。
+- retrofit2：网络请求库。
+- datastore： 以异步、一致的事务方式存储数据，克服了 SharedPreferences 的一些缺点。
+- compose-richtext： 用于在 compose 中显示富文本（包括 markdown）。
+- lottie： 动画库。
 
 ## 使用方法
 
@@ -41,4 +66,14 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 
 该程序使用 API 来自于 Gitee 的 [OpenAPI](https://gitee.com/api/v5/swagger) 。
 
+**请勿滥用 Gitee 资源。**
+
 该程序在撰写过程中参照了 [shenzhen2017](https://github.com/shenzhen2017) 的 [wanandroid-compose](https://github.com/shenzhen2017/wanandroid-compose)
+
+
+### 联系我
+email: admin@likehide.com
+
+website: [www.likehide.com](http://www.likehide.com)
+
+其他APP：[app.likehide.com](http://app.likehide.com)

@@ -8,11 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
-import com.equationl.giteetodo.datastore.DataKey
-import com.equationl.giteetodo.datastore.DataStoreUtils
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.getIssueState
 import com.equationl.giteetodo.util.Utils
+import com.equationl.giteetodo.util.datastore.DataKey
+import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch

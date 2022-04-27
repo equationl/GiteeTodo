@@ -1,7 +1,7 @@
 package com.equationl.giteetodo
 
 import android.app.Application
-import com.equationl.giteetodo.datastore.DataStoreUtils
+import com.equationl.giteetodo.util.datastore.DataStoreUtils
 
 class App: Application() {
     override fun onCreate() {

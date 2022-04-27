@@ -1,4 +1,4 @@
-package com.equationl.giteetodo.ui
+package com.equationl.giteetodo.ui.widgets
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.Icon

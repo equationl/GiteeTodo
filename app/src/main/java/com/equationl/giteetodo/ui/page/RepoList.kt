@@ -1,4 +1,4 @@
-package com.equationl.giteetodo.ui
+package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
 import android.util.Log
@@ -32,6 +32,7 @@ import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.BlurImage
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
+import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.*
 import kotlinx.coroutines.launch
 

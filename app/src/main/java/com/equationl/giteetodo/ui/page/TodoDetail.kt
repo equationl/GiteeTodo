@@ -1,4 +1,4 @@
-package com.equationl.giteetodo.ui
+package com.equationl.giteetodo.ui.page
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -20,6 +20,7 @@ import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
+import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.*
 import com.halilibo.richtext.markdown.Markdown
 import com.halilibo.richtext.ui.RichText

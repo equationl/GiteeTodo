@@ -10,10 +10,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.constants.ClientInfo
 import com.equationl.giteetodo.data.RetrofitManger
-import com.equationl.giteetodo.datastore.DataKey
-import com.equationl.giteetodo.datastore.DataStoreUtils
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils.isEmail
+import com.equationl.giteetodo.util.datastore.DataKey
+import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch

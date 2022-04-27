@@ -1,4 +1,4 @@
-package com.equationl.giteetodo.ui
+package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
 import androidx.compose.foundation.background
@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.ui.theme.baseBackground
+import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.*
 import kotlinx.coroutines.launch
 

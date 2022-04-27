@@ -12,8 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.equationl.giteetodo.datastore.DataStoreUtils
 import com.equationl.giteetodo.ui.common.Route
+import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch

@@ -27,11 +27,11 @@ fun BlurImage(
         )
     }
     else {
-        // TODO 适配安卓 12 以下机型的 blur 效果
+        // 放弃 适配安卓 12 以下机型的 blur 效果
         Image(painter = paint,
             contentDescription = contentDescription,
             contentScale = contentScale,
-            alpha = 0.5f,
+            //alpha = 0.5f,
             modifier = modifier
         )
     }

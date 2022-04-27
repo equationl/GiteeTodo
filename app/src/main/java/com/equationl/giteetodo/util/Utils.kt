@@ -1,7 +1,5 @@
 package com.equationl.giteetodo.util
 
-import com.equationl.giteetodo.data.user.model.response.Repos
-import com.equationl.giteetodo.viewmodel.RepoItemData
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -26,25 +24,6 @@ object Utils {
         }
 
         return false
-    }
-
-    fun resolveRepos(body: List<Repos>?): List<RepoItemData> {
-        val result = mutableListOf<RepoItemData>()
-        if (body == null) return result
-
-        for (repo in body) {
-            if (repo.namespace.type == "personal") {  // 仅加载类型为个人的仓库
-                result.add(
-                    RepoItemData(
-                        repo.fullName,
-                        repo.openIssuesCount,
-                        repo.name,
-                        getDateTimeString(repo.createdAt)
-                    )
-                )
-            }
-        }
-        return result
     }
 
     fun getDateTimeString(sourceDateTime: String, pattern: String = "M月dd日"): String {

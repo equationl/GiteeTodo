@@ -1,4 +1,4 @@
-package com.equationl.giteetodo.datastore
+package com.equationl.giteetodo.util.datastore
 
 object DataKey {
     const val LoginMethod = "login_method"

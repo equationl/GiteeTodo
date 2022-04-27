@@ -1,4 +1,4 @@
-package com.equationl.giteetodo.ui
+package com.equationl.giteetodo.ui.page
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

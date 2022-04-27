@@ -1,4 +1,4 @@
-package com.equationl.giteetodo.ui
+package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
 import androidx.compose.foundation.background
@@ -32,6 +32,7 @@ import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.BaseAlertDialog
 import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
+import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.LoginViewAction
 import com.equationl.giteetodo.viewmodel.LoginViewEvent
 import com.equationl.giteetodo.viewmodel.LoginViewModel

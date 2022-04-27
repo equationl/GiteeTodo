@@ -6,10 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.RetrofitManger
-import com.equationl.giteetodo.datastore.DataKey
-import com.equationl.giteetodo.datastore.DataStoreUtils
+import com.equationl.giteetodo.data.user.model.response.Repos
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils
+import com.equationl.giteetodo.util.datastore.DataKey
+import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -39,7 +40,7 @@ class RepoListViewModel: ViewModel() {
             val accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccess, "")
             val response = repoApi.getRepos(accessToken)
             if (response.isSuccessful) {
-                viewStates = viewStates.copy(isLoading = false, repoList = Utils.resolveRepos(response.body()))
+                viewStates = viewStates.copy(isLoading = false, repoList = resolveRepos(response.body()))
             }
             else {
                 viewStates = viewStates.copy(isLoading = false)
@@ -64,6 +65,25 @@ class RepoListViewModel: ViewModel() {
             }
             println("null=${result.exceptionOrNull()?.stackTraceToString()}")
         }
+    }
+
+    private fun resolveRepos(body: List<Repos>?): List<RepoItemData> {
+        val result = mutableListOf<RepoItemData>()
+        if (body == null) return result
+
+        for (repo in body) {
+            if (repo.namespace.type == "personal") {  // 仅加载类型为个人的仓库
+                result.add(
+                    RepoItemData(
+                        repo.fullName,
+                        repo.openIssuesCount,
+                        repo.name,
+                        Utils.getDateTimeString(repo.createdAt)
+                    )
+                )
+            }
+        }
+        return result
     }
 }
 

@@ -1,7 +1,7 @@
 # GiteeTodo - 码云待办
 
 ## 简介
-GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TODO 应用；基于 Gitee（码云）的 issue 作为储存仓库。
+GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TODO 应用；使用 Gitee（码云）的 issue 作为储存仓库。
 
 ### 主要功能
 - 查看仓库列表（仅获取类型为 *个人* ，且登录账号为 *创建者* 的仓库）
@@ -32,6 +32,21 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 - lottie： 动画库。
 
 ## 使用方法
+
+### 编译运行
+首先你需要有自己的 client_id 和  client_secret。
+
+请前往Gitee [注册](https://gitee.com/oauth/applications/new) 获取（详情请查阅 [创建应用流程](https://gitee.com/api/v5/oauth_doc#list-item-3)）。
+
+注册信息请根据自己情况随意填写，但是**应用回调地址必须填写** `giteetodoapp://authed` 否则将无法登录。
+
+然后在项目根目录下的 `local.properties` 文件中写入你创建的 id 和 密钥:
+```
+CLIENT_ID = "xxxxxx"
+CLIENT_SECRET = "xxxxxx"
+```
+
+最后按照正常安卓程序的编译流程编译即可。
 
 ### 常规用法
 由于本程序基于 Gitee 的 issue 系统，所以推荐的正确姿势是使用本应用来管理你的 Gitee 仓库 issue，方便随时新建、查看、修改 issue。
@@ -65,7 +80,7 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
    
 使用 OAuth2 的优势：不会暴露账号密码、权限可以自己控制、随时可以修改或删除授权、token有效期只有一天。
 
-**注意：**无论使用什么方式登录，我们都会储存你授权 Token ， 便于下次直接登录。
+**注意：**无论使用什么方式登录，我们都会储存你的授权 Token ， 便于下次直接登录。
 该 Token 你随时可以在 Gitee（码云）个人设置中查看并取消授权或删除、修改。
 
 ## 关于

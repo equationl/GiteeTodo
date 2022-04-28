@@ -2,6 +2,8 @@ package com.equationl.giteetodo.ui.page
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -68,7 +70,8 @@ fun RepoDetailScreen(navController: NavHostController) {
 fun RepoDetailContent(viewModel: RepoDetailViewModel, viewState: RepoDetailViewState) {
     Column(modifier = Modifier
         .fillMaxSize()
-        .background(baseBackground)) {
+        .background(baseBackground)
+        .verticalScroll(rememberScrollState())) {
 
         OutlinedTextField(
             value = viewState.repoName,
@@ -115,6 +118,17 @@ fun RepoDetailContent(viewModel: RepoDetailViewModel, viewState: RepoDetailViewS
                 .padding(end = 8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = viewState.isInitRepo, onCheckedChange = { viewModel.dispatch(RepoDetailViewAction.ChangeIsInit(it)) })
             Text("初始化")
+        }
+
+        if (viewState.isInitRepo) {
+            OutlinedTextField(
+                value = viewState.readmeContent,
+                onValueChange = { viewModel.dispatch(RepoDetailViewAction.ChangeReadmeContent(it)) },
+                label = { Text("仓库详细介绍（README）， 支持 markdown")},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(2.dp)
+                    .background(Color.White))
         }
 
 

@@ -12,7 +12,7 @@ import com.airbnb.lottie.compose.*
 import com.equationl.giteetodo.R
 
 @Composable
-fun ListEmptyContent(text: String = "没有找到仓库数据，点击刷新", onRefresh: () -> Unit) {
+fun ListEmptyContent(text: String, onRefresh: () -> Unit) {
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.no_result))
         val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
@@ -41,7 +41,7 @@ fun LoadDataContent(text: String) {
 @Preview
 @Composable
 fun PreviewEmptyContent() {
-    ListEmptyContent {
+    ListEmptyContent("没有找到仓库数据，点击刷新或点击右上角创建一个仓库") {
 
     }
 }

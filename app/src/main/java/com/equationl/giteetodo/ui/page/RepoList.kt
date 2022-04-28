@@ -104,7 +104,7 @@ fun LoadRepoListContent(viewModel: RepoListViewModel, viewState: RepoListViewSta
 @Composable
 fun RepoListContent(repoList: List<RepoItemData>, viewModel: RepoListViewModel) {
     if (repoList.isEmpty()) {
-        ListEmptyContent {
+        ListEmptyContent("没有找到仓库数据，点击刷新或点击右上角创建一个仓库") {
             viewModel.dispatch(RepoListViewAction.LoadRepos)
         }
     }

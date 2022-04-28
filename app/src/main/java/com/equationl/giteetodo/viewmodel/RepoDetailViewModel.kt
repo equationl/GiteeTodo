@@ -1,11 +1,15 @@
 package com.equationl.giteetodo.viewmodel
 
+import android.util.Base64
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.equationl.giteetodo.constants.DefaultText
 import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.repos.model.request.UpdateContent
 import com.equationl.giteetodo.data.user.model.request.UserRepos
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.datastore.DataKey
@@ -15,6 +19,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+
+private const val TAG = "el, RepoDetailViewModel"
 
 class RepoDetailViewModel: ViewModel() {
     private val repoApi = RetrofitManger.getReposApi()
@@ -33,6 +39,7 @@ class RepoDetailViewModel: ViewModel() {
             is RepoDetailViewAction.ChangeIsPrivate -> changeIsPrivate(action.checked)
             is RepoDetailViewAction.ChangeName -> changeName(action.text)
             is RepoDetailViewAction.ChangePath -> changePath(action.text)
+            is RepoDetailViewAction.ChangeReadmeContent -> changeReadmeContent(action.text)
         }
     }
 
@@ -67,7 +74,7 @@ class RepoDetailViewModel: ViewModel() {
                 DataStoreUtils.putSyncData(DataKey.UsingRepo, repos.fullName)
 
                 if (viewStates.isInitRepo) {
-                    // TODO 可以做一些初始化工作，比如把 README 文件改成仓库说明
+                    customInitRepo(token, repos.fullName)
                 }
 
                 kotlin.runCatching {
@@ -89,6 +96,54 @@ class RepoDetailViewModel: ViewModel() {
         }
     }
 
+    private suspend fun customInitRepo(token: String, repoPath: String) {
+        val contentMsg = DefaultText.ReadmeContent.trimIndent()
+        val contentResponse = repoApi.getContent(
+            owner = repoPath.split("/")[0],
+            repo = repoPath.split("/")[1],
+            path =  DefaultText.ReadmeFileName,
+            accessToken = token
+        )
+        if (!contentResponse.isSuccessful) {
+            kotlin.runCatching {
+                Log.w(TAG, "customInitRepo: 获取 ${DefaultText.ReadmeFileName} 文件内容失败！${contentResponse.errorBody()?.string()}")
+            }.fold({}, {
+                Log.w(TAG, "customInitRepo: 获取 ${DefaultText.ReadmeFileName}文件内容失败！", it)
+            })
+
+            return
+        }
+
+        val content = String(
+            Base64.encode((viewStates.readmeContent + contentMsg).toByteArray(), Base64.DEFAULT),
+            StandardCharsets.UTF_8)
+            .replace("\n", "")
+            .replace("\\n", "")
+
+        val updateResponse = repoApi.updateContent(
+            owner = repoPath.split("/")[0],
+            repo = repoPath.split("/")[1],
+            path = DefaultText.ReadmeFileName,
+            UpdateContent(
+                access_token = token,
+                content = content,
+                sha = contentResponse.body()?.sha ?: "",
+                message = "init by giteeTodo"
+            )
+        )
+
+        if (!updateResponse.isSuccessful) {
+            kotlin.runCatching {
+                Log.w(TAG, "customInitRepo: 更新 ${DefaultText.ReadmeFileName} 文件内容失败！${updateResponse.errorBody()?.string()}")
+            }.fold({}, {
+                Log.w(TAG, "customInitRepo: 更新 ${DefaultText.ReadmeFileName} 文件内容失败！", it)
+            })
+
+            return
+        }
+
+    }
+
     private fun changeDescribe(text: String) {
         viewStates = viewStates.copy(repoDescribe = text)
     }
@@ -104,6 +159,9 @@ class RepoDetailViewModel: ViewModel() {
     private fun changePath(text: String) {
         viewStates = viewStates.copy(repoPath = text)
     }
+    private fun changeReadmeContent(text: String) {
+        viewStates = viewStates.copy(readmeContent = text)
+    }
 
 }
 
@@ -111,6 +169,7 @@ data class RepoDetailViewState(
     val repoName: String = "",
     val repoDescribe: String = "",
     val repoPath: String = "",
+    val readmeContent: String = "",
     val isPrivateRepo: Boolean = true,
     val isInitRepo: Boolean = true,
     val isUnderCreation: Boolean = false
@@ -126,6 +185,7 @@ sealed class RepoDetailViewAction {
     data class ChangeName(val text: String): RepoDetailViewAction()
     data class ChangeDescribe(val text: String): RepoDetailViewAction()
     data class ChangePath(val text: String): RepoDetailViewAction()
+    data class ChangeReadmeContent(val text: String): RepoDetailViewAction()
     data class ChangeIsPrivate(val checked: Boolean): RepoDetailViewAction()
     data class ChangeIsInit(val checked: Boolean): RepoDetailViewAction()
 }

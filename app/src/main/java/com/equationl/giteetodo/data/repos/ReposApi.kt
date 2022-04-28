@@ -2,10 +2,9 @@ package com.equationl.giteetodo.data.repos
 
 import com.equationl.giteetodo.data.repos.model.request.CreateComments
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
+import com.equationl.giteetodo.data.repos.model.request.UpdateContent
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
-import com.equationl.giteetodo.data.repos.model.response.Comment
-import com.equationl.giteetodo.data.repos.model.response.Issues
-import com.equationl.giteetodo.data.repos.model.response.Label
+import com.equationl.giteetodo.data.repos.model.response.*
 import com.equationl.giteetodo.data.user.model.request.UserRepos
 import com.equationl.giteetodo.data.user.model.response.Repos
 import retrofit2.Response
@@ -213,4 +212,27 @@ interface ReposApi {
         @Path("id") id: Int,
         @Query("access_token") accessToken: String
     )
+
+    /**
+     * 获取仓库具体路径下的内容
+     */
+    @GET("repos/{owner}/{repo}/contents/{path}")
+    suspend fun getContent(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("path") path: String,
+        @Query("access_token") accessToken: String,
+        @Query("ref") ref: String? = null
+    ): Response<Contents>
+
+    /**
+    * 更新仓库中的指定文件内容
+    * */
+    @PUT("repos/{owner}/{repo}/contents/{path}")
+    suspend fun updateContent(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("path") path: String,
+        @Body updateContent: UpdateContent
+    ): Response<UpdateContentResponse>
 }

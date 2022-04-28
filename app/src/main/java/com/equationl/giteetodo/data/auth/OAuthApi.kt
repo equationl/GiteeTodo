@@ -5,6 +5,7 @@ import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface OAuthApi {
     @FormUrlEncoded
@@ -16,5 +17,20 @@ interface OAuthApi {
         @Field("client_secret") clientSecret: String,
         @Field("scope") scope: String = "projects user_info issues notes",
         @Field("grant_type") grantType: String = "password"
+    ): Response<Token>
+
+    @POST("token")
+    suspend fun getTokenByCode(
+        @Query("code") code: String,
+        @Query("client_id") clientId: String,
+        @Query("redirect_uri") redirectUri: String,
+        @Query("client_secret") clientSecret: String,
+        @Query("grant_type") grantType: String = "authorization_code"
+    ): Response<Token>
+
+    @POST("token")
+    suspend fun refreshToken(
+        @Query("refresh_token") refreshToken: String,
+        @Query("grant_type") grantType: String = "refresh_token"
     ): Response<Token>
 }

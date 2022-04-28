@@ -37,7 +37,7 @@ class RepoListViewModel: ViewModel() {
         //viewStates = viewStates.copy(isLoading = true)
 
         viewModelScope.launch {
-            val accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccess, "")
+            val accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
             val response = repoApi.getRepos(accessToken)
             if (response.isSuccessful) {
                 viewStates = viewStates.copy(isLoading = false, repoList = resolveRepos(response.body()))

@@ -6,6 +6,7 @@ object Route {
     const val REPO_LIST = "repoList"
     const val REPO_DETAIL = "repoDetail"
     const val HOME = "home"
+    const val OAuthLogin = "OAuthLogin"
 }
 
 object RouteParams {

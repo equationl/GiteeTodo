@@ -18,6 +18,10 @@ fun HomeNavHost() {
             LoginScreen(navController)
         }
 
+        composable(Route.OAuthLogin) {
+            OAuthLoginScreen(navController)
+        }
+
         composable("${Route.HOME}/{${RouteParams.PAR_REPO_PATH}}",
             arguments = listOf(
                 navArgument(RouteParams.PAR_REPO_PATH) {

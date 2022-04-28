@@ -40,7 +40,7 @@ class TodoListViewModel: ViewModel() {
         viewStates = viewStates.copy(isLoading = true)
 
         viewModelScope.launch {
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccess, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
             val response = reposApi.getAllIssues(
                 repoPath.split("/")[0],
                 repoPath.split("/")[1],
@@ -120,7 +120,7 @@ class TodoListViewModel: ViewModel() {
                 repoPath.split("/")[0],
                 issueNum,
                 UpdateIssue(
-                    DataStoreUtils.getSyncData(DataKey.LoginAccess, ""),
+                    DataStoreUtils.getSyncData(DataKey.LoginAccessToken, ""),
                     repo = repoPath.split("/")[1],
                     state = if (isClose) IssueState.CLOSED.des else IssueState.OPEN.des
                 )

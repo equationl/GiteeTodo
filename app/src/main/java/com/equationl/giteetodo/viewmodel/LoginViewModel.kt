@@ -3,6 +3,7 @@ package com.equationl.giteetodo.viewmodel
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.constants.ClientInfo
 import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.auth.model.response.Token
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils.isEmail
 import com.equationl.giteetodo.util.datastore.DataKey
@@ -17,8 +19,11 @@ import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import retrofit2.Response
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+
+private const val TAG = "el, LoginViewModel"
 
 class LoginViewModel: ViewModel() {
     private var loginMethod: LoginMethod = LoginMethod.Email
@@ -51,7 +56,7 @@ class LoginViewModel: ViewModel() {
     private fun login() {
         when (loginMethod) {
             LoginMethod.Email -> loginByEmail()
-            LoginMethod.OAuth2 -> throw UnsupportedOperationException("暂不支持 OAuth2 授权登录")
+            LoginMethod.OAuth2 -> throw IllegalArgumentException("OAuth need open in webView!")
             LoginMethod.AccessToken -> loginByAccess()
         }
     }
@@ -79,29 +84,11 @@ class LoginViewModel: ViewModel() {
                 ClientInfo.ClientId,
                 ClientInfo.ClientSecret)
 
-            println("response = $response")
-
-            if (response.isSuccessful) {
-                DataStoreUtils.saveSyncStringData(DataKey.LoginAccess, response.body()?.accessToken ?: "")
-                DataStoreUtils.saveSyncStringData(DataKey.LoginEmail, viewStates.email)
-                DataStoreUtils.saveSyncStringData(DataKey.LoginPassword, viewStates.password)
-                DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, LoginMethod.Email.name)
-
-                navToHome()
-            }
-            else {
-                viewStates = viewStates.copy(isLogging = false)
-                val result = kotlin.runCatching {
-                    _viewEvents.send(LoginViewEvent.ShowMessage(response.errorBody()?.string() ?: ""))
-                }
-                if (result.isFailure) {
-                    _viewEvents.send(LoginViewEvent.ShowMessage("登录失败，获取失败信息失败：${result.exceptionOrNull()?.message ?: ""}"))
-                }
-            }
+            resolveTokenResponse(response)
         }
     }
 
-    private fun loginByAccess() {
+    private fun loginByAccess(isClr: Boolean = false) {
         if (viewStates.password.isBlank()) {
             viewStates = viewStates.copy(isPassWordError = true, passwordLabel = "请输入令牌")
             return
@@ -113,15 +100,13 @@ class LoginViewModel: ViewModel() {
             val response = userApi.getUser(viewStates.password)
 
             if (response.isSuccessful) {
-                DataStoreUtils.saveSyncStringData(DataKey.LoginAccess, viewStates.password)
-                DataStoreUtils.saveSyncStringData(DataKey.LoginEmail, "")
-                DataStoreUtils.saveSyncStringData(DataKey.LoginPassword, "")
+                DataStoreUtils.saveSyncStringData(DataKey.LoginAccessToken, viewStates.password)
                 DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, LoginMethod.AccessToken.name)
 
                 navToHome()
             }
             else {
-                viewStates = viewStates.copy(isLogging = false)
+                viewStates = viewStates.copy(isLogging = false, password = if (isClr) "" else viewStates.password)
                 val result = kotlin.runCatching {
                     _viewEvents.send(LoginViewEvent.ShowMessage(response.errorBody()?.string() ?: ""))
                 }
@@ -160,7 +145,7 @@ class LoginViewModel: ViewModel() {
 
     private fun switchToOAuth2() {
         viewModelScope.launch {
-            _viewEvents.send(LoginViewEvent.ShowMessage("暂不支持该登录方式"))
+            _viewEvents.send(LoginViewEvent.NavTo(Route.OAuthLogin))
         }
     }
 
@@ -232,21 +217,60 @@ class LoginViewModel: ViewModel() {
                 }
 
                 when (loginMethod) {
-                    LoginMethod.Email -> {
-                        viewStates = viewStates.copy(
-                            email = DataStoreUtils.readStringData(DataKey.LoginEmail),
-                            password = DataStoreUtils.readStringData(DataKey.LoginPassword)
-                        )
-                        loginByEmail()
+                    LoginMethod.Email, LoginMethod.OAuth2 -> {
+                        val expireTime = DataStoreUtils.getSyncData(DataKey.LoginTokenExpireTime, 0)
+                        if (expireTime > System.currentTimeMillis() / 1000 - 1800) {  // 提前半小时刷新
+                            // 已过期，需要刷新
+                            val refreshToken = DataStoreUtils.getSyncData(DataKey.LoginRefreshToken, "")
+                            val response = oAuthApi.refreshToken(
+                                refreshToken = refreshToken
+                            )
+                            resolveTokenResponse(response)
+                        }
+                        else {
+                            // 未过期，开始检查
+                            viewStates = viewStates.copy(
+                                password = DataStoreUtils.readStringData(DataKey.LoginAccessToken)
+                            )
+                            loginByAccess(true)
+                        }
                     }
-                    LoginMethod.OAuth2 -> throw UnsupportedOperationException()
                     LoginMethod.AccessToken -> {
                         viewStates = viewStates.copy(
-                            password = DataStoreUtils.readStringData(DataKey.LoginAccess)
+                            password = DataStoreUtils.readStringData(DataKey.LoginAccessToken)
                         )
                         loginByAccess()
                     }
                 }
+            }
+        }
+    }
+
+    private suspend fun resolveTokenResponse(response: Response<Token>) {
+        Log.i(TAG, "resolveTokenResponse: response = $response")
+        if (response.isSuccessful) {
+            val tokenBody = response.body()
+            if (tokenBody == null) {
+                _viewEvents.send(LoginViewEvent.ShowMessage("登录失败：返回数据为空！"))
+            }
+            else {
+                val currentTime = (System.currentTimeMillis() / 1000).toInt()
+                DataStoreUtils.saveSyncStringData(DataKey.LoginAccessToken, tokenBody.accessToken)
+                DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, LoginMethod.Email.name)
+                DataStoreUtils.saveSyncStringData(DataKey.LoginRefreshToken, tokenBody.refreshToken)
+                DataStoreUtils.saveSyncIntData(DataKey.LoginTokenExpireTime, tokenBody.expiresIn + currentTime)
+                DataStoreUtils.saveSyncIntData(DataKey.LoginTokenRefreshTime, currentTime)
+
+                navToHome()
+            }
+        }
+        else {
+            viewStates = viewStates.copy(isLogging = false)
+            val result = kotlin.runCatching {
+                _viewEvents.send(LoginViewEvent.ShowMessage(response.errorBody()?.string() ?: ""))
+            }
+            if (result.isFailure) {
+                _viewEvents.send(LoginViewEvent.ShowMessage("登录失败，获取失败信息失败：${result.exceptionOrNull()?.message ?: ""}"))
             }
         }
     }

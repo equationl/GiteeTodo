@@ -46,7 +46,7 @@ class RepoDetailViewModel: ViewModel() {
                 return@launch
             }
 
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccess, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
 
             val response = repoApi.createRepos(UserRepos(
                 access_token = token,

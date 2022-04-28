@@ -60,7 +60,7 @@ class TodoDetailViewModel: ViewModel() {
         if (isShow) {
             viewModelScope.launch {
                 val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-                val token = DataStoreUtils.getSyncData(DataKey.LoginAccess, "")
+                val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
                 val response = repoApi.getExistLabels(
                     repoPath.split("/")[0],
                     repoPath.split("/")[1],
@@ -119,7 +119,7 @@ class TodoDetailViewModel: ViewModel() {
     private fun loadIssue(issueNum: String) {
         viewModelScope.launch {
             val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccess, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
 
             val response = repoApi.getIssue(
                 repoPath.split("/")[0],
@@ -183,7 +183,7 @@ class TodoDetailViewModel: ViewModel() {
             val body = viewStates.content.ifBlank { null }
 
             val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccess, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
 
             val response = if (issueNum == "null") {
                 repoApi.createIssues(

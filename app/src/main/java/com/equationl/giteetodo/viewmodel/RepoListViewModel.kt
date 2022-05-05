@@ -1,5 +1,6 @@
 package com.equationl.giteetodo.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,6 +17,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+
+private const val TAG = "el, RepoListViewModel"
 
 class RepoListViewModel: ViewModel() {
     private val repoApi = RetrofitManger.getReposApi()
@@ -34,9 +37,10 @@ class RepoListViewModel: ViewModel() {
     }
 
     private fun loadRepos() {
-        //viewStates = viewStates.copy(isLoading = true)
+        viewStates = viewStates.copy(isLoading = true)
 
         viewModelScope.launch {
+            Log.i(TAG, "loadRepos: 加载仓库数据")
             val accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
             val response = repoApi.getRepos(accessToken)
             if (response.isSuccessful) {
@@ -45,10 +49,10 @@ class RepoListViewModel: ViewModel() {
             else {
                 viewStates = viewStates.copy(isLoading = false)
                 val result = kotlin.runCatching {
-                    _viewEvents.send(RepoListViewEvent.ShowMessage(response.errorBody()?.string() ?: ""))
+                    _viewEvents.send(RepoListViewEvent.ShowMessage("加载失败："+response.errorBody()?.string()))
                 }
                 if (result.isFailure) {
-                    _viewEvents.send(RepoListViewEvent.ShowMessage("登录失败，获取失败信息失败：${result.exceptionOrNull()?.message ?: ""}"))
+                    _viewEvents.send(RepoListViewEvent.ShowMessage("加载失败，获取失败信息失败：${result.exceptionOrNull()?.message ?: ""}"))
                 }
             }
         }

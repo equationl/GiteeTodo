@@ -5,11 +5,13 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LibraryAdd
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -45,6 +47,11 @@ fun RepoListScreen(navController: NavHostController) {
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()
+
+    DisposableEffect(Unit) {
+        viewModel.dispatch(RepoListViewAction.LoadRepos)
+        onDispose {  }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
@@ -94,7 +101,7 @@ fun RepoListScreen(navController: NavHostController) {
 fun LoadRepoListContent(viewModel: RepoListViewModel, viewState: RepoListViewState) {
     if (viewState.isLoading) {
         LoadDataContent("正在加载仓库列表中…")
-        viewModel.dispatch(RepoListViewAction.LoadRepos)
+        //viewModel.dispatch(RepoListViewAction.LoadRepos)
     }
     else {
         RepoListContent(viewState.repoList, viewModel)  // 读取数据
@@ -114,9 +121,9 @@ fun RepoListContent(repoList: List<RepoItemData>, viewModel: RepoListViewModel) 
                 .fillMaxSize()
                 .background(baseBackground)) {
             LazyColumn {
-                for (item in repoList) {
-                    item(key = item.path) {
-                        RepoItem(viewModel, item)
+                items(repoList, key = { it.path }) { item ->
+                    RepoItem(item) {
+                        viewModel.dispatch(RepoListViewAction.ChoiceARepo(it))
                     }
                 }
             }
@@ -126,17 +133,16 @@ fun RepoListContent(repoList: List<RepoItemData>, viewModel: RepoListViewModel) 
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun RepoItem(viewModel: RepoListViewModel, itemData: RepoItemData) {
-    Card(onClick = { viewModel.dispatch(RepoListViewAction.ChoiceARepo(itemData.path)) },
+fun RepoItem(itemData: RepoItemData, onClick: (path: String) -> Unit) {
+    Card(onClick = { onClick.invoke(itemData.path) },
         modifier = Modifier.padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column {
             Box(
                 Modifier
                     .fillMaxWidth()
                     .height(100.dp)) {
-                val bg = listOf(R.drawable.bg, R.drawable.bg2).random()
                 BlurImage(
-                    paint = painterResource(id = bg),
+                    paint = painterResource(R.drawable.bg2),  // 如果使用随机的背景而非固定背景会造成卡顿与闪退（猜测是内存溢出）
                     contentDescription = "background",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

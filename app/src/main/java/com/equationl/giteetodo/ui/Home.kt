@@ -30,7 +30,7 @@ fun HomeNavHost() {
                 }
             )) {
             val argument = requireNotNull(it.arguments)
-            val repoPath = argument.getString(RouteParams.PAR_REPO_PATH) ?: "null"
+            val repoPath = argument.getString(RouteParams.PAR_REPO_PATH) ?: "null/null"
             HomeScreen(navController, repoPath)
         }
 

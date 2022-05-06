@@ -91,7 +91,7 @@ fun RepoListScreen(navController: NavHostController) {
                     Snackbar(snackbarData = snackBarData)
                 }})
         {
-            RepoListContent(viewState.repoList, viewModel, it)
+            RepoListContent(viewState.repoFlow, viewModel, it)
         }
     }
 }
@@ -160,7 +160,7 @@ fun RepoListContent(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun RepoItem(itemData: Repos, onClick: (path: String) -> Unit) {
-    Card(onClick = { onClick.invoke(itemData.path) },
+    Card(onClick = { onClick.invoke(itemData.fullName) },
         modifier = Modifier.padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column {
             Box(

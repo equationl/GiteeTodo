@@ -15,8 +15,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemsIndexed
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.Route
+import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.viewmodel.*
@@ -29,7 +33,7 @@ fun TodoListScreen(navController: NavHostController, repoPath: String, scaffoldS
     val coroutineState = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
-        viewModel.dispatch(TodoListViewAction.LoadIssues(repoPath))
+        viewModel.dispatch(TodoListViewAction.SetRepoPath(repoPath))
         onDispose {  }
     }
 
@@ -44,29 +48,53 @@ fun TodoListScreen(navController: NavHostController, repoPath: String, scaffoldS
         }
     }
 
-    if (viewState.isLoading) {
-        LoadDataContent("加载数据中…")
-    }
-    else {
-        TodoListContent(viewState, viewModel, repoPath, navController)
-    }
+    TodoListContent(viewState, viewModel, repoPath, navController)
 }
 
 @Composable
 fun TodoListContent(viewState: TodoListViewState, viewModel: TodoListViewModel, repoPath: String, navController: NavHostController) {
     // 筛选类型（只显示未完成、筛选排序规则等）
-    TodoFilterContent(viewState, viewModel, repoPath)
+    TodoFilterContent(viewState, viewModel)
 
-    if (viewState.todoList.isEmpty()) {
-        ListEmptyContent("还没有数据哦，点击立即刷新\n或点击下方 ”+“ 添加数据；也可以点击右上角切换仓库哦") {
-            viewModel.dispatch(TodoListViewAction.LoadIssues(repoPath))
+    val todoList = viewState.todoFlow.collectAsLazyPagingItems()
+
+    if (todoList.itemCount < 1) {
+        if (todoList.loadState.refresh == LoadState.Loading) {
+            LoadDataContent("正在加载中…")
+        }
+        else {
+            ListEmptyContent("还没有数据哦，点击立即刷新\n或点击下方 ”+“ 添加数据；也可以点击右上角切换仓库哦") {
+                todoList.refresh()
+            }
+            if (todoList.loadState.refresh is LoadState.Error) {
+                viewModel.dispatch(TodoListViewAction.SendMsg("加载错误："+ (todoList.loadState.refresh as LoadState.Error).error.message))
+            }
         }
     }
     else {
         LazyColumn {
-            viewState.todoList.forEach{
-                item(it.createDate) {
-                    TodoCardScreen(it, navController, viewModel, repoPath)
+            itemsIndexed(todoList, key = {_, item -> item.itemArray.toString()}) { _, item ->
+                if (item != null) {
+                    TodoCardScreen(item, navController, viewModel, repoPath)
+                }
+            }
+
+            item {
+                when (todoList.loadState.append) {
+                    is LoadState.NotLoading -> {}
+                    LoadState.Loading -> {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            Text("加载中")
+                        }
+                    }
+                    is LoadState.Error -> {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            LinkText("加载失败，点击重试") {
+                                todoList.retry()
+                            }
+                            viewModel.dispatch(TodoListViewAction.SendMsg("加载出错："+ (todoList.loadState.append as LoadState.Error).error.toString()))
+                        }
+                    }
                 }
             }
         }
@@ -125,12 +153,13 @@ fun TodoItem(navController: NavHostController, itemData: TodoCardItemData, viewM
 }
 
 @Composable
-fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel, repoPath: String) {
+fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel) {
+    // TODO 增加按标签筛选、按状态（已完成、已拒绝、进行中等）筛选、排序方式（正序、倒序）
+
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth().padding(end = 8.dp)) {
         Checkbox(checked = viewState.isFitterOnlyOpen,
             onCheckedChange = {
                 viewModel.dispatch(TodoListViewAction.CheckFitterOnlyOpen(it))
-                viewModel.dispatch(TodoListViewAction.LoadIssues(repoPath))
             })
         Text(text = "仅显示未完成")
     }

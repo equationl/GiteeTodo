@@ -6,14 +6,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.repos.model.pagingSource.IssuesPagingSource
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
 import com.equationl.giteetodo.ui.common.IssueState
-import com.equationl.giteetodo.ui.common.getIssueState
-import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -21,8 +28,19 @@ private const val TAG = "el, TodoListViewModel"
 
 class TodoListViewModel: ViewModel() {
     private val reposApi = RetrofitManger.getReposApi()
+    private val queryFlow = MutableStateFlow(QueryParameter())
 
-    var viewStates by mutableStateOf(TodoListViewState())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val issueData = queryFlow.flatMapLatest {
+        Log.i(TAG, "更新: $it")
+        Pager(
+            PagingConfig(pageSize = 50, initialLoadSize = 50)
+        ) {
+            IssuesPagingSource(reposApi, it)
+        }.flow.cachedIn(viewModelScope)
+    }
+
+    var viewStates by mutableStateOf(TodoListViewState(todoFlow = issueData))
         private set
 
     private val _viewEvents = Channel<TodoListViewEvent>(Channel.BUFFERED)
@@ -30,88 +48,32 @@ class TodoListViewModel: ViewModel() {
 
     fun dispatch(action: TodoListViewAction) {
         when (action) {
-            is TodoListViewAction.LoadIssues -> loadIssues(action.repoPath)
+            is TodoListViewAction.SetRepoPath -> setRepoPath(action.repoPath)
             is TodoListViewAction.CheckFitterOnlyOpen -> checkFitterOnlyOpen(action.checked)
             is TodoListViewAction.UpdateIssueState -> updateIssueState(action.issueNum, action.isClose, action.repoPath)
+            is TodoListViewAction.SendMsg -> sendMsg(action.msg)
         }
     }
 
-    private fun loadIssues(repoPath: String) {
-        viewStates = viewStates.copy(isLoading = true)
-
+    private fun sendMsg(msg: String) {
         viewModelScope.launch {
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
-            val response = reposApi.getAllIssues(
-                repoPath.split("/")[0],
-                repoPath.split("/")[1],
-                token,
-                state = if (viewStates.isFitterOnlyOpen) "open" else "all",
-                page = 1  // TODO 加载下一页（数量和页码信息在 header 中）
-            )
+            _viewEvents.send(TodoListViewEvent.ShowMessage(msg))
+        }
+    }
 
-            if (response.isSuccessful) {
-                val issueList = response.body()
-                if (issueList.isNullOrEmpty()) {
-                    viewStates = viewStates.copy(isLoading = false, todoList = listOf())
-                    Log.i(TAG, "loadIssues: 内容为空！")
-                    return@launch
-                }
-                val todoCardDataList = arrayListOf<TodoCardData>()
-                var currentDate = Utils.getDateTimeString(issueList[0].createdAt)
-                val currentItem = arrayListOf<TodoCardItemData>()
-
-                for (issue in issueList) {
-                    val issueDate = Utils.getDateTimeString(issue.createdAt)
-                    Log.i(TAG, "loadIssues: issue=${issue.title}, date=${issue.createdAt}, currentDate=$currentDate, issueDate=$issueDate")
-                    if (issueDate != currentDate) {
-                        val tempItem: ArrayList<TodoCardItemData> = arrayListOf()
-                        tempItem.addAll(currentItem)
-                        todoCardDataList.add(
-                            TodoCardData(currentDate, tempItem)
-                        )
-                        Log.i(TAG, "loadIssues: 添加：$currentDate, $tempItem, $currentItem")
-                        currentDate = issueDate
-                        currentItem.clear()
-
-                        val state = try { IssueState.valueOf(issue.state.uppercase()) } catch (e: IllegalArgumentException) { IssueState.OPEN }
-                        currentItem.add(
-                            TodoCardItemData(issue.title, state, issue.number)
-                        )
-                    }
-                    else {
-                        val state = getIssueState(issue.state)
-                        currentItem.add(
-                            TodoCardItemData(issue.title, state, issue.number)
-                        )
-                    }
-                }
-
-                val tempItem: ArrayList<TodoCardItemData> = arrayListOf()
-                tempItem.addAll(currentItem)
-                todoCardDataList.add(
-                    TodoCardData(currentDate, tempItem)
-                )
-
-                viewStates = viewStates.copy(isLoading = false, todoList = todoCardDataList)
-                Log.i(TAG, "loadIssues: cardList=$todoCardDataList")
-            }
-            else {
-                viewStates = viewStates.copy(isLoading = false, todoList = listOf())
-
-                val result = kotlin.runCatching {
-                    _viewEvents.send(TodoListViewEvent.ShowMessage(response.errorBody()?.string() ?: ""))
-                }
-                if (result.isFailure) {
-                    _viewEvents.send(TodoListViewEvent.ShowMessage("加载失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
-                }
-            }
-
+    private fun setRepoPath(repoPath: String) {
+        viewModelScope.launch {
+            queryFlow.emit(queryFlow.value.copy(repoPath = repoPath))
         }
     }
 
     private fun checkFitterOnlyOpen(checked: Boolean) {
         viewStates = viewStates.copy(isFitterOnlyOpen = checked)
         DataStoreUtils.putSyncData(DataKey.FilterOnlyOpenIssue, checked)
+        val state = if (checked) "open" else "all"
+        viewModelScope.launch {
+            queryFlow.emit(queryFlow.value.copy(state = state))
+        }
     }
 
     private fun updateIssueState(issueNum: String, isClose: Boolean, repoPath: String) {
@@ -141,9 +103,8 @@ class TodoListViewModel: ViewModel() {
 }
 
 data class TodoListViewState(
-    val isLoading: Boolean = true,
+    val todoFlow: Flow<PagingData<TodoCardData>>,
     val isFitterOnlyOpen: Boolean = DataStoreUtils.getSyncData(DataKey.FilterOnlyOpenIssue, true),
-    val todoList: List<TodoCardData> = listOf(),
 )
 
 sealed class TodoListViewEvent {
@@ -152,18 +113,25 @@ sealed class TodoListViewEvent {
 
 sealed class TodoListViewAction {
     data class CheckFitterOnlyOpen(val checked: Boolean) : TodoListViewAction()
-    data class LoadIssues(val repoPath: String): TodoListViewAction()
+    data class SetRepoPath(val repoPath: String): TodoListViewAction()
     data class UpdateIssueState(val issueNum: String, val isClose: Boolean, val repoPath: String): TodoListViewAction()
+    data class SendMsg(val msg: String): TodoListViewAction()
 }
 
 
 data class TodoCardData(
     val createDate: String,
-    val itemArray: List<TodoCardItemData>
+    val itemArray: ArrayList<TodoCardItemData>
 )
 
 data class TodoCardItemData(
     val title: String,
     val state: IssueState,
     val number: String
+)
+
+data class QueryParameter(
+    val repoPath: String = "null/null",
+    val state: String = if (DataStoreUtils.getSyncData(DataKey.FilterOnlyOpenIssue, true)) "open" else "all",
+    val accessToken: String = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
 )

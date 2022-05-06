@@ -36,7 +36,7 @@ class RepoListViewModel: ViewModel() {
         }.flow.cachedIn(viewModelScope)
     }
 
-    var viewStates by mutableStateOf(RepoListViewState(repoList = reposData))
+    var viewStates by mutableStateOf(RepoListViewState(repoFlow = reposData))
         private set
 
     private val _viewEvents = Channel<RepoListViewEvent>(Channel.BUFFERED)
@@ -70,8 +70,7 @@ class RepoListViewModel: ViewModel() {
 }
 
 data class RepoListViewState(
-    val repoList: Flow<PagingData<Repos>>,
-    val isLoading: Boolean = true
+    val repoFlow: Flow<PagingData<Repos>>,
 )
 
 sealed class RepoListViewEvent {

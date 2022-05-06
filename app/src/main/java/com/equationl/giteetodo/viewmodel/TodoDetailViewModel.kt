@@ -13,6 +13,7 @@ import com.equationl.giteetodo.ui.common.getIssueState
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -25,6 +26,12 @@ class TodoDetailViewModel: ViewModel() {
 
     private val _viewEvents = Channel<TodoDetailViewEvent>(Channel.BUFFERED)
     val viewEvents = _viewEvents.receiveAsFlow()
+
+    private val exception = CoroutineExceptionHandler { _, throwable ->
+        viewModelScope.launch {
+            _viewEvents.send(TodoDetailViewEvent.ShowMessage("错误："+throwable.message))
+        }
+    }
 
     fun dispatch(action: TodoDetailViewAction) {
         when (action) {
@@ -58,7 +65,7 @@ class TodoDetailViewModel: ViewModel() {
 
     private fun labelsDropMenuShowState(isShow: Boolean) {
         if (isShow) {
-            viewModelScope.launch {
+            viewModelScope.launch(exception) {
                 val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
                 val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
                 val response = repoApi.getExistLabels(
@@ -117,7 +124,7 @@ class TodoDetailViewModel: ViewModel() {
     }
 
     private fun loadIssue(issueNum: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(exception) {
             val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
             val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
 
@@ -172,7 +179,7 @@ class TodoDetailViewModel: ViewModel() {
 
     private fun clickSave(issueNum: String) {
         viewStates = viewStates.copy(isEditAble = false)
-        viewModelScope.launch {
+        viewModelScope.launch(exception) {
             if (viewStates.title.isBlank()) {
                 _viewEvents.send(TodoDetailViewEvent.ShowMessage("请至少输入标题！"))
                 return@launch

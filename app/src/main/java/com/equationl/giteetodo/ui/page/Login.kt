@@ -1,6 +1,7 @@
 package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -38,6 +39,8 @@ import com.equationl.giteetodo.viewmodel.LoginViewEvent
 import com.equationl.giteetodo.viewmodel.LoginViewModel
 import com.equationl.giteetodo.viewmodel.LoginViewState
 import kotlinx.coroutines.launch
+
+private const val TAG = "el, LoginScreen"
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
@@ -84,6 +87,7 @@ fun LoginScreen(navController: NavHostController) {
                 }}
         )
         {
+            Log.i(TAG, "LoginScreen: padding=$it")
             if (viewState.isLogging) {
                 LoadDataContent(text = "正在登录中…")
             }

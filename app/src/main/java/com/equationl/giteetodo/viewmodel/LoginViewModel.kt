@@ -12,10 +12,12 @@ import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.constants.ClientInfo
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.auth.model.response.Token
+import com.equationl.giteetodo.data.user.model.response.User
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils.isEmail
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -77,7 +79,14 @@ class LoginViewModel: ViewModel() {
 
         viewStates = viewStates.copy(isLogging = true)
 
-        viewModelScope.launch {
+        val exception = CoroutineExceptionHandler { _, throwable ->
+            viewStates = viewStates.copy(isLogging = false)
+            viewModelScope.launch {
+                _viewEvents.send(LoginViewEvent.ShowMessage("请求失败：${throwable.message}"))
+            }
+        }
+
+        viewModelScope.launch(exception) {
             val response = oAuthApi.getTokenByPsw(
                 viewStates.email,
                 viewStates.password,
@@ -97,7 +106,14 @@ class LoginViewModel: ViewModel() {
         viewStates = viewStates.copy(isLogging = true)
 
         viewModelScope.launch {
-            val response = userApi.getUser(viewStates.password)
+            val response: Response<User>
+            try {
+                response = userApi.getUser(viewStates.password)
+            } catch (tr: Throwable) {
+                viewStates = viewStates.copy(isLogging = false, password = if (isClr) "" else viewStates.password)
+                _viewEvents.send(LoginViewEvent.ShowMessage("登录失败：${tr.message}"))
+                return@launch
+            }
 
             if (response.isSuccessful) {
                 DataStoreUtils.saveSyncStringData(DataKey.LoginAccessToken, viewStates.password)
@@ -201,7 +217,14 @@ class LoginViewModel: ViewModel() {
     }
 
     private fun checkLoginState() {
-        viewModelScope.launch {
+        val exception = CoroutineExceptionHandler { _, throwable ->
+            viewStates = viewStates.copy(isLogging = false)
+            viewModelScope.launch {
+                _viewEvents.send(LoginViewEvent.ShowMessage("请求失败：${throwable.message}"))
+            }
+        }
+
+        viewModelScope.launch(exception) {
             val loginMethodString = DataStoreUtils.readStringData(DataKey.LoginMethod)
             if (loginMethodString.isBlank()) {
                 // 从未登录过

@@ -14,6 +14,7 @@ import com.equationl.giteetodo.data.user.model.request.UserRepos
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -31,6 +32,12 @@ class RepoDetailViewModel: ViewModel() {
     private val _viewEvents = Channel<RepoDetailViewEvent>(Channel.BUFFERED)
     val viewEvents = _viewEvents.receiveAsFlow()
 
+    private val exception = CoroutineExceptionHandler { _, throwable ->
+        viewModelScope.launch {
+            _viewEvents.send(RepoDetailViewEvent.ShowMessage("错误："+throwable.message))
+        }
+    }
+
     fun dispatch(action: RepoDetailViewAction) {
         when (action) {
             is RepoDetailViewAction.Create -> create()
@@ -46,7 +53,7 @@ class RepoDetailViewModel: ViewModel() {
     private fun create() {
         viewStates = viewStates.copy(isUnderCreation = true)
 
-        viewModelScope.launch {
+        viewModelScope.launch(exception) {
             if (viewStates.repoName.isBlank()) {
                 _viewEvents.send(RepoDetailViewEvent.ShowMessage("至少需要输入仓库名称！"))
                 viewStates = viewStates.copy(isUnderCreation = false)

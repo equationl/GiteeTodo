@@ -7,6 +7,7 @@ import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -26,7 +27,11 @@ class LoginOauthViewModel : ViewModel() {
     }
 
     private fun requestToken(code: String) {
-        viewModelScope.launch {
+        val exception = CoroutineExceptionHandler { _, throwable ->
+            webViewLoadError("错误："+throwable.message)
+        }
+
+        viewModelScope.launch(exception) {
             val response = oAuthApi.getTokenByCode(
                 code = code,
                 clientId = ClientInfo.ClientId,

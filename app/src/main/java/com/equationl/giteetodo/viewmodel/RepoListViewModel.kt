@@ -6,13 +6,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.repos.model.pagingSource.ReposPagingSource
 import com.equationl.giteetodo.data.user.model.response.Repos
 import com.equationl.giteetodo.ui.common.Route
-import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
@@ -23,7 +28,15 @@ private const val TAG = "el, RepoListViewModel"
 class RepoListViewModel: ViewModel() {
     private val repoApi = RetrofitManger.getReposApi()
 
-    var viewStates by mutableStateOf(RepoListViewState())
+    private val reposData by lazy {
+        Pager(
+            PagingConfig(pageSize = 6, initialLoadSize = 6)
+        ) {
+            ReposPagingSource(repoApi, DataStoreUtils.getSyncData(DataKey.LoginAccessToken, ""))
+        }.flow.cachedIn(viewModelScope)
+    }
+
+    var viewStates by mutableStateOf(RepoListViewState(repoList = reposData))
         private set
 
     private val _viewEvents = Channel<RepoListViewEvent>(Channel.BUFFERED)
@@ -31,30 +44,14 @@ class RepoListViewModel: ViewModel() {
 
     fun dispatch(action: RepoListViewAction) {
         when (action) {
-            is RepoListViewAction.LoadRepos -> loadRepos()
+            is RepoListViewAction.SendMsg -> sendMsg(action.msg)
             is RepoListViewAction.ChoiceARepo -> choiceARepo(action.repoPath)
         }
     }
 
-    private fun loadRepos() {
-        viewStates = viewStates.copy(isLoading = true)
-
+    private fun sendMsg(msg: String) {
         viewModelScope.launch {
-            Log.i(TAG, "loadRepos: 加载仓库数据")
-            val accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
-            val response = repoApi.getRepos(accessToken)
-            if (response.isSuccessful) {
-                viewStates = viewStates.copy(isLoading = false, repoList = resolveRepos(response.body()))
-            }
-            else {
-                viewStates = viewStates.copy(isLoading = false)
-                val result = kotlin.runCatching {
-                    _viewEvents.send(RepoListViewEvent.ShowMessage("加载失败："+response.errorBody()?.string()))
-                }
-                if (result.isFailure) {
-                    _viewEvents.send(RepoListViewEvent.ShowMessage("加载失败，获取失败信息失败：${result.exceptionOrNull()?.message ?: ""}"))
-                }
-            }
+            _viewEvents.send(RepoListViewEvent.ShowMessage(msg))
         }
     }
 
@@ -67,33 +64,13 @@ class RepoListViewModel: ViewModel() {
                 val fullRoute = "${Route.HOME}/$encodeRepoPath"
                 _viewEvents.send(RepoListViewEvent.Goto(fullRoute))
             }
-            println("null=${result.exceptionOrNull()?.stackTraceToString()}")
+            Log.w(TAG, "choiceARepo: ", result.exceptionOrNull())
         }
-    }
-
-    private fun resolveRepos(body: List<Repos>?): List<RepoItemData> {
-        val result = mutableListOf<RepoItemData>()
-        if (body == null) return result
-
-        for (repo in body) {
-            if (repo.namespace.type == "personal") {  // 仅加载类型为个人的仓库
-                result.add(
-                    RepoItemData(
-                        repo.fullName,
-                        repo.openIssuesCount,
-                        repo.name,
-                        Utils.getDateTimeString(repo.createdAt)
-                    )
-                )
-            }
-        }
-        return result
     }
 }
 
 data class RepoListViewState(
-    val repoList: List<RepoItemData> = listOf(),
-    val selectedRepo: String = "",
+    val repoList: Flow<PagingData<Repos>>,
     val isLoading: Boolean = true
 )
 
@@ -103,13 +80,6 @@ sealed class RepoListViewEvent {
 }
 
 sealed class RepoListViewAction {
-    object LoadRepos : RepoListViewAction()
+    data class SendMsg(val msg: String): RepoListViewAction()
     data class ChoiceARepo(val repoPath: String): RepoListViewAction()
 }
-
-data class RepoItemData(
-    val path: String,
-    val notClosedCount: Int,
-    val name: String,
-    val createDate: String
-)

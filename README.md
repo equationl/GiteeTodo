@@ -5,7 +5,7 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 
 ### 主要功能
 - 查看仓库列表（仅获取类型为 *个人* ，且登录账号为 *创建者* 的仓库）
-- 根据仓库查看 ISSUE 列表（支持筛选已完成和未完成）
+- 根据仓库查看 ISSUE 列表（支持筛选）
 - 快速标记 ISSUE 完成状态
 - 查看某个 ISSUE 详情
 - 编辑某个 ISSUE 详情
@@ -26,10 +26,12 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 
 - viewmodel： ViewModel 类旨在以注重生命周期的方式存储和管理界面相关的数据。
 - navigation： 构建和组织应用内界面，处理深层链接以及在屏幕之间导航。
+- paging： 使用 Paging 库，您可以更轻松地在应用的 RecyclerView 中逐步妥善地加载数据。
 - retrofit2：网络请求库。
 - datastore： 以异步、一致的事务方式存储数据，克服了 SharedPreferences 的一些缺点。
 - compose-richtext： 用于在 compose 中显示富文本（包括 markdown）。
 - lottie： 动画库。
+- compose-material-dialogs： A Material Dialog Builder for Jetpack Compose
 
 ## 使用方法
 

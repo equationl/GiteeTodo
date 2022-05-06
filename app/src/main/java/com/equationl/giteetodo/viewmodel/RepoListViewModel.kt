@@ -70,7 +70,7 @@ class RepoListViewModel: ViewModel() {
 }
 
 data class RepoListViewState(
-    val repoFlow: Flow<PagingData<Repos>>,
+    val repoFlow: Flow<PagingData<Repos>>
 )
 
 sealed class RepoListViewEvent {

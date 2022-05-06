@@ -106,6 +106,10 @@ fun RepoListContent(
 
     Log.i(TAG, "RepoListContent: loadState=${repoList.loadState}")
 
+    if (repoList.loadState.refresh is LoadState.Error) {
+        viewModel.dispatch(RepoListViewAction.SendMsg("加载错误："+ (repoList.loadState.refresh as LoadState.Error).error.message))
+    }
+
     if (repoList.itemCount < 1) {
         if (repoList.loadState.refresh == LoadState.Loading) {
             LoadDataContent("正在加载仓库列表中…")
@@ -113,9 +117,6 @@ fun RepoListContent(
         else {
             ListEmptyContent("没有找到仓库数据，点击刷新或点击右上角创建一个仓库") {
                 repoList.refresh()
-            }
-            if (repoList.loadState.refresh is LoadState.Error) {
-                viewModel.dispatch(RepoListViewAction.SendMsg("加载错误："+ (repoList.loadState.refresh as LoadState.Error).error.message))
             }
         }
     }

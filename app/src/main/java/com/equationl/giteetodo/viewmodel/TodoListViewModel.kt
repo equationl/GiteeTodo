@@ -13,9 +13,11 @@ import androidx.paging.cachedIn
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.repos.model.pagingSource.IssuesPagingSource
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
+import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -23,16 +25,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 private const val TAG = "el, TodoListViewModel"
 
 class TodoListViewModel: ViewModel() {
+    private var filterDate = ""
     private val reposApi = RetrofitManger.getReposApi()
     private val queryFlow = MutableStateFlow(QueryParameter())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val issueData = queryFlow.flatMapLatest {
-        Log.i(TAG, "更新: $it")
         Pager(
             PagingConfig(pageSize = 50, initialLoadSize = 50)
         ) {
@@ -46,12 +51,125 @@ class TodoListViewModel: ViewModel() {
     private val _viewEvents = Channel<TodoListViewEvent>(Channel.BUFFERED)
     val viewEvents = _viewEvents.receiveAsFlow()
 
+    private val exception = CoroutineExceptionHandler { _, throwable ->
+        viewModelScope.launch {
+            _viewEvents.send(TodoListViewEvent.ShowMessage("错误："+throwable.message))
+        }
+    }
+
     fun dispatch(action: TodoListViewAction) {
         when (action) {
             is TodoListViewAction.SetRepoPath -> setRepoPath(action.repoPath)
-            is TodoListViewAction.CheckFitterOnlyOpen -> checkFitterOnlyOpen(action.checked)
             is TodoListViewAction.UpdateIssueState -> updateIssueState(action.issueNum, action.isClose, action.repoPath)
             is TodoListViewAction.SendMsg -> sendMsg(action.msg)
+            is TodoListViewAction.FilterLabels -> filterLabels(action.labels)
+            is TodoListViewAction.ChangeLabelsDropMenuShowState -> changeLabelsDropMenuShowState(action.isShow)
+            is TodoListViewAction.ChangeStateDropMenuShowState -> changeStateDropMenuShowState(action.isShow)
+            is TodoListViewAction.FilterState -> filterState(action.state)
+            is TodoListViewAction.ChangeDirectionDropMenuShowState -> changeDirectionDropMenuShowState(action.isShow)
+            is TodoListViewAction.FilterDirection -> filterDirection(action.direction)
+            is TodoListViewAction.FilterDate -> filterDate(action.date, action.isStart)
+        }
+    }
+
+    private fun filterDate(date: LocalDate, isStart: Boolean) {
+        Log.i(TAG, "filterDate: date=$date, isStart=$isStart")
+        if (isStart) {
+            filterDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd", Locale.CHINA))
+            filterDate += "T000000+8-"
+        }
+        else {
+            filterDate += date.format(DateTimeFormatter.ofPattern("yyyyMMdd", Locale.CHINA))
+            filterDate += "T235959+8"
+
+            viewModelScope.launch {
+                queryFlow.emit(queryFlow.value.copy(createdAt = filterDate))
+            }
+        }
+    }
+
+    private fun filterState(state: IssueState) {
+        viewModelScope.launch {
+            viewStates = viewStates.copy(isShowStateDropMenu = false)
+            queryFlow.emit(queryFlow.value.copy(state = state.des))
+        }
+    }
+
+    private fun filterDirection(state: Direction) {
+        viewModelScope.launch {
+            viewStates = viewStates.copy(isShowDirectionDropMenu = false)
+            queryFlow.emit(queryFlow.value.copy(direction = state.des))
+        }
+    }
+
+    private fun filterLabels(labelMap: MutableMap<String, Boolean>) {
+        viewStates = viewStates.copy(isShowLabelsDropMenu = false)
+
+        var labels = ""
+        labelMap.forEach { (name, checked) ->
+            if (checked) labels += "$name,"
+        }
+
+        labels = if (labels.isBlank()) {
+            ""
+        } else {
+            labels.substring(0, labels.length-1)
+        }
+
+        viewModelScope.launch {
+            queryFlow.emit(queryFlow.value.copy(labels = labels.ifBlank { null }))
+        }
+    }
+
+    private fun changeStateDropMenuShowState(isShow: Boolean) {
+        viewStates = viewStates.copy(isShowStateDropMenu = isShow)
+    }
+
+    private fun changeDirectionDropMenuShowState(isShow: Boolean) {
+        viewStates = viewStates.copy(isShowDirectionDropMenu = isShow)
+    }
+
+    private fun changeLabelsDropMenuShowState(isShow: Boolean) {
+        if (isShow) {
+            viewModelScope.launch(exception) {
+                val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
+                val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+                val response = reposApi.getExistLabels(
+                    repoPath.split("/")[0],
+                    repoPath.split("/")[1],
+                    token
+                )
+                if (response.isSuccessful) {
+                    val selectedLabels = queryFlow.value.labels
+
+                    val showLabelMap = mutableMapOf<String, Boolean>()
+                    for (label in response.body() ?: listOf()) {
+                        showLabelMap[label.name] = false
+                    }
+
+                    if (selectedLabels != null) {
+                        val currentLabelList = selectedLabels.split(",")
+                        for (currentLabel in currentLabelList) {
+                            showLabelMap[currentLabel] = true
+                        }
+                    }
+
+                    viewStates = viewStates.copy(isShowLabelsDropMenu = isShow, availableLabels = showLabelMap)
+                }
+                else {
+                    viewStates = viewStates.copy(isShowLabelsDropMenu = false)
+
+                    val result = kotlin.runCatching {
+                        _viewEvents.send(TodoListViewEvent.ShowMessage("加载标签失败："+response.errorBody()?.string()))
+                    }
+                    if (result.isFailure) {
+                        _viewEvents.send(TodoListViewEvent.ShowMessage("加载标签失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
+                    }
+                }
+            }
+        }
+        else {
+            viewStates = viewStates.copy(isShowLabelsDropMenu = isShow)
         }
     }
 
@@ -64,15 +182,6 @@ class TodoListViewModel: ViewModel() {
     private fun setRepoPath(repoPath: String) {
         viewModelScope.launch {
             queryFlow.emit(queryFlow.value.copy(repoPath = repoPath))
-        }
-    }
-
-    private fun checkFitterOnlyOpen(checked: Boolean) {
-        viewStates = viewStates.copy(isFitterOnlyOpen = checked)
-        DataStoreUtils.putSyncData(DataKey.FilterOnlyOpenIssue, checked)
-        val state = if (checked) "open" else "all"
-        viewModelScope.launch {
-            queryFlow.emit(queryFlow.value.copy(state = state))
         }
     }
 
@@ -104,7 +213,10 @@ class TodoListViewModel: ViewModel() {
 
 data class TodoListViewState(
     val todoFlow: Flow<PagingData<TodoCardData>>,
-    val isFitterOnlyOpen: Boolean = DataStoreUtils.getSyncData(DataKey.FilterOnlyOpenIssue, true),
+    val availableLabels: MutableMap<String, Boolean> = mutableMapOf(),
+    val isShowLabelsDropMenu: Boolean = false,
+    val isShowStateDropMenu: Boolean = false,
+    val isShowDirectionDropMenu: Boolean = false
 )
 
 sealed class TodoListViewEvent {
@@ -112,10 +224,16 @@ sealed class TodoListViewEvent {
 }
 
 sealed class TodoListViewAction {
-    data class CheckFitterOnlyOpen(val checked: Boolean) : TodoListViewAction()
     data class SetRepoPath(val repoPath: String): TodoListViewAction()
     data class UpdateIssueState(val issueNum: String, val isClose: Boolean, val repoPath: String): TodoListViewAction()
     data class SendMsg(val msg: String): TodoListViewAction()
+    data class FilterLabels(val labels: MutableMap<String, Boolean>): TodoListViewAction()
+    data class ChangeLabelsDropMenuShowState(val isShow: Boolean): TodoListViewAction()
+    data class FilterState(val state: IssueState): TodoListViewAction()
+    data class ChangeStateDropMenuShowState(val isShow: Boolean): TodoListViewAction()
+    data class FilterDirection(val direction: Direction): TodoListViewAction()
+    data class ChangeDirectionDropMenuShowState(val isShow: Boolean): TodoListViewAction()
+    data class FilterDate(val date: LocalDate, val isStart: Boolean): TodoListViewAction()
 }
 
 
@@ -132,6 +250,9 @@ data class TodoCardItemData(
 
 data class QueryParameter(
     val repoPath: String = "null/null",
-    val state: String = if (DataStoreUtils.getSyncData(DataKey.FilterOnlyOpenIssue, true)) "open" else "all",
-    val accessToken: String = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+    val state: String? = null,
+    val accessToken: String = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, ""),
+    val labels: String? = null,
+    val direction: String = "desc",
+    val createdAt: String? = null
 )

@@ -58,10 +58,13 @@ interface ReposApi {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Query("access_token") accessToken: String,
-        @Query("state") state: String = "all",
+        @Query("state") state: String? = null,
         @Query("sort") sort: String = "created",
+        @Query("direction") direction: String? = null,
+        @Query("created_at") createdAt: String? = null,
         @Query("page") page: Int = 1,
         @Query("per_page") perPage: Int = 100,
+        @Query("labels") labels: String? = null,
         @QueryMap filters: Map<String, String> = mapOf()): Response<List<Issues>>
 
 

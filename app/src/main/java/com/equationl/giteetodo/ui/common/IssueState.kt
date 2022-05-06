@@ -5,6 +5,7 @@ enum class IssueState(val des: String, val humanName: String) {
     PROGRESSING("progressing", "进行中"),
     CLOSED("closed", "已关闭"),
     REJECTED("rejected", "已拒绝"),
+    ALL("all", "全部"),
     UNKNOWN("unknown", "未知的")
 }
 

@@ -35,7 +35,10 @@ class IssuesPagingSource(
                 repoPath.split("/")[0],
                 repoPath.split("/")[1],
                 queryParameter.accessToken,
+                labels = queryParameter.labels,
                 state = queryParameter.state,
+                direction = queryParameter.direction,
+                createdAt = queryParameter.createdAt,
                 page = nextPageNumber,
                 perPage = params.loadSize
             )

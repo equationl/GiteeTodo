@@ -30,7 +30,7 @@ import androidx.navigation.NavHostController
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
-import com.equationl.giteetodo.ui.widgets.BaseAlertDialog
+import com.equationl.giteetodo.ui.widgets.BaseMsgDialog
 import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.ui.widgets.TopBar
@@ -325,7 +325,7 @@ fun LoginHelpDialog(loginViewModel: LoginViewModel, viewState: LoginViewState) {
         如果不放心，欢迎查看源码或自行使用源码编译使用。
     """.trimIndent()
     if (viewState.isShowLoginHelpDialog) {
-        BaseAlertDialog(message = message, confirmText = "知道了") {
+        BaseMsgDialog(message = message, confirmText = "知道了") {
             loginViewModel.dispatch(LoginViewAction.ToggleLoginHelpDialogShow(false))
         }
     }

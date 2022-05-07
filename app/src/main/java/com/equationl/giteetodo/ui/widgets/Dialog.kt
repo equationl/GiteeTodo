@@ -14,7 +14,7 @@ import com.halilibo.richtext.markdown.Markdown
 import com.halilibo.richtext.ui.material.MaterialRichText
 
 @Composable
-fun BaseAlertDialog(
+fun BaseMsgDialog(
     message: String,
     title: String? = null,
     confirmText: String = "Ok",
@@ -34,7 +34,9 @@ fun BaseAlertDialog(
             }
         },
         text = {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)) {
                 MaterialRichText {
                     Markdown(
                         message

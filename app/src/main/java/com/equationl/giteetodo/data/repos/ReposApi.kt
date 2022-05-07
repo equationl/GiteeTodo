@@ -1,9 +1,6 @@
 package com.equationl.giteetodo.data.repos
 
-import com.equationl.giteetodo.data.repos.model.request.CreateComments
-import com.equationl.giteetodo.data.repos.model.request.CreateIssues
-import com.equationl.giteetodo.data.repos.model.request.UpdateContent
-import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
+import com.equationl.giteetodo.data.repos.model.request.*
 import com.equationl.giteetodo.data.repos.model.response.*
 import com.equationl.giteetodo.data.user.model.request.UserRepos
 import com.equationl.giteetodo.data.user.model.response.Repos
@@ -142,6 +139,32 @@ interface ReposApi {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Path("number") number: String,
+        @Query("access_token") accessToken: String
+    ): Response<Any?>
+
+    @POST("repos/{owner}/{repo}/labels")
+    suspend fun createLabel(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Body createLabel: CreateLabel
+    ): Response<Label>
+
+    @PATCH("repos/{owner}/{repo}/labels/{original_name}")
+    suspend fun updateLabel(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("original_name") originalName: String,
+        @Body createLabel: CreateLabel
+    ): Response<Label>
+
+    /**
+     * 删除指定标签
+     * */
+    @DELETE("repos/{owner}/{repo}/labels/{name}")
+    suspend fun deleteLabel(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("name") name: String,
         @Query("access_token") accessToken: String
     ): Response<Any?>
 

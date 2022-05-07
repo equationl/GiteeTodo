@@ -52,5 +52,17 @@ fun HomeNavHost() {
         composable(Route.REPO_LIST) {
             RepoListScreen(navController)
         }
+
+        composable("${Route.LABEL_MG}/{${RouteParams.PAR_REPO_PATH}}",
+            arguments = listOf(
+                navArgument(RouteParams.PAR_REPO_PATH) {
+                    type = NavType.StringType
+                    nullable = false}
+            )) {
+            val argument = requireNotNull(it.arguments)
+            val repoPath = argument.getString(RouteParams.PAR_REPO_PATH) ?: "null/null"
+            LabelManagerScreen(repoPath = repoPath, navController = navController)
+        }
+
     }
 }

@@ -76,6 +76,7 @@ dependencies {
     implementation "androidx.datastore:datastore-core:1.0.0"
     implementation "androidx.paging:paging-runtime:3.1.1"
     implementation "androidx.paging:paging-compose:1.0.0-alpha14"
+    implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0"
 
     implementation "com.halilibo.compose-richtext:richtext-commonmark:0.11.0"
     implementation "com.halilibo.compose-richtext:richtext-ui-material:0.11.0"
@@ -84,6 +85,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
     implementation "com.airbnb.android:lottie-compose:5.0.3"
     implementation "io.github.vanpra.compose-material-dialogs:datetime:0.7.0"
+    implementation "io.github.vanpra.compose-material-dialogs:color:0.7.0"
 
     // see: https://developer.android.com/studio/write/java8-support#library-desugaring
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'

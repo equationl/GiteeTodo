@@ -10,13 +10,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
@@ -70,18 +67,18 @@ fun RepoDetailScreen(navController: NavHostController) {
 fun RepoDetailContent(viewModel: RepoDetailViewModel, viewState: RepoDetailViewState) {
     Column(modifier = Modifier
         .fillMaxSize()
-        .background(baseBackground)
+        .background(MaterialTheme.colors.baseBackground)
         .verticalScroll(rememberScrollState())) {
 
         OutlinedTextField(
             value = viewState.repoName,
             onValueChange = { viewModel.dispatch(RepoDetailViewAction.ChangeName(it)) },
             label = { Text("仓库名称")},
-            placeholder = { Text("仓库名只允许包含中文、字母、数字或者下划线(_)、中划线(-)、英文句号(.)、加号(+)，必须以字母或数字开头，不能以下划线/中划线结尾，且长度为2~191个字符")},
+            //placeholder = { Text("仓库名只允许包含中文、字母、数字或者下划线(_)、中划线(-)、英文句号(.)、加号(+)，必须以字母或数字开头，不能以下划线/中划线结尾，且长度为2~191个字符")},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(2.dp)
-                .background(Color.White))
+                .background(MaterialTheme.colors.background))
 
         OutlinedTextField(
             value = viewState.repoDescribe,
@@ -91,18 +88,18 @@ fun RepoDetailContent(viewModel: RepoDetailViewModel, viewState: RepoDetailViewS
                 .fillMaxWidth()
                 .padding(2.dp)
                 .padding(top = 32.dp)
-                .background(Color.White))
+                .background(MaterialTheme.colors.background))
 
 
         OutlinedTextField(
             value = viewState.repoPath,
             onValueChange = { viewModel.dispatch(RepoDetailViewAction.ChangePath(it)) },
             label = { Text("仓库路径")},
-            placeholder = { Text("路径只允许包含字母、数字或者下划线(_)、中划线(-)、英文句号(.)，必须以字母开头，且长度为2~191个字符")},
+            //placeholder = { Text("路径只允许包含字母、数字或者下划线(_)、中划线(-)、英文句号(.)，必须以字母开头，且长度为2~191个字符")},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(2.dp)
-                .background(Color.White))
+                .background(MaterialTheme.colors.background))
 
         Row(
             Modifier
@@ -128,7 +125,7 @@ fun RepoDetailContent(viewModel: RepoDetailViewModel, viewState: RepoDetailViewS
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp)
-                    .background(Color.White))
+                    .background(MaterialTheme.colors.background))
         }
 
 
@@ -152,10 +149,4 @@ fun RepoDetailContent(viewModel: RepoDetailViewModel, viewState: RepoDetailViewS
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun RepoDetailPreview() {
-    RepoDetailScreen(rememberNavController())
 }

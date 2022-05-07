@@ -9,10 +9,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.halilibo.richtext.markdown.Markdown
-import com.halilibo.richtext.ui.RichText
+import com.halilibo.richtext.ui.material.MaterialRichText
 
 @Composable
 fun BaseAlertDialog(
@@ -36,7 +35,7 @@ fun BaseAlertDialog(
         },
         text = {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-                RichText {
+                MaterialRichText {
                     Markdown(
                         message
                     )
@@ -60,10 +59,4 @@ fun BaseAlertDialog(
             .fillMaxWidth()
             .wrapContentHeight()
     )
-}
-
-@Preview
-@Composable
-fun Preview() {
-    BaseAlertDialog("我是标题", "我是内容") {}
 }

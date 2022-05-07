@@ -106,7 +106,7 @@ fun LoginContent() {
     val viewState = loginViewModel.viewStates
     val context = LocalContext.current
 
-    Column(Modifier.background(baseBackground)) {
+    Column(Modifier.background(MaterialTheme.colors.baseBackground)) {
 
         Column(Modifier.weight(9f)) {
             Row(
@@ -291,30 +291,38 @@ fun PasswordEditWidget(loginViewModel: LoginViewModel, viewState: LoginViewState
 fun LoginHelpDialog(loginViewModel: LoginViewModel, viewState: LoginViewState) {
     val message = """
         ### 登录方式
-        我们推荐使用第 2 或 第 3 种登录方式，非必要不推荐使用第 1 种方式。
-
-        本程序绝对不会滥用用户授权的权限，仅使用本程序提到的功能，也不会读取或修改用户的其他任何信息。
-
-        如果不放心，欢迎查看源码或自行使用源码编译使用。
-
+        本程序支持以下三种登录方式：
+        
         1. 账号密码登录
+        2. 私人令牌登录
+        3. OAuth2 授权登录
+                
+        我们推荐使用第 2 或 第 3 种方式登录，不建议使用第 1 种方式登录。
+        
+        #### 账号密码登录
         直接使用码云账号密码登录，我们不会储存你的账号密码，该账号密码仅用于当前获取 token 这一过程，使用完毕会立即销毁。  
+        
         **我们不推荐使用该登录方式**
 
-        2. 私人令牌登录
+        #### 私人令牌登录
+        
         登录码云（必须是桌面版）后，依次点击 右上角头像 - 设置 - 安全设置 - 私人令牌 - 生成新令牌 - 勾选所需要的权限（`user_info projects issues notes`） - 提交即可。
            
-        使用私人令牌的优势： 不会暴露账号密码、权限可以自己控制、随时可以修改或删除授权。
+        *使用私人令牌的优势： 不会暴露账号密码、权限可以自己控制、随时可以修改或删除授权。*
 
-
-        3. OAuth2 授权登录
+        #### OAuth2 授权登录
+        
         使用码云官方 OAuth2 认证授权。
            
-        使用 OAuth2 的优势：不会暴露账号密码、权限可以自己控制、随时可以修改或删除授权、token有效期只有一天。
+        *使用 OAuth2 的优势：不会暴露账号密码、权限可以自己控制、随时可以修改或删除授权、token有效期只有一天。*
         
         **注意**：无论使用什么方式登录，我们都会储存你的授权 Token ， 便于下次直接登录。
         
         该 Token 你随时可以在 Gitee（码云）个人设置中查看并取消授权或删除、修改。
+        
+        本程序绝对不会滥用用户授权的权限，仅使用本程序提到的功能，也不会读取或修改用户的其他任何信息。
+
+        如果不放心，欢迎查看源码或自行使用源码编译使用。
     """.trimIndent()
     if (viewState.isShowLoginHelpDialog) {
         BaseAlertDialog(message = message, confirmText = "知道了") {

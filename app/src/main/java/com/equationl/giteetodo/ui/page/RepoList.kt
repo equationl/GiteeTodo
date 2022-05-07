@@ -125,7 +125,7 @@ fun RepoListContent(
             Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(baseBackground)) {
+                .background(MaterialTheme.colors.baseBackground)) {
             LazyColumn {
                 itemsIndexed(repoList, key = {_, item -> item.fullName}) { _, item ->
                     if (item != null && item.namespace.type == "personal") {  // 仅加载类型为个人的仓库

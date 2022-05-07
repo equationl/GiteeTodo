@@ -23,7 +23,7 @@ import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.*
 import com.halilibo.richtext.markdown.Markdown
-import com.halilibo.richtext.ui.RichText
+import com.halilibo.richtext.ui.material.MaterialRichText
 import kotlinx.coroutines.launch
 
 private const val TAG = "el, TodoDetailScreen"
@@ -98,7 +98,7 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(top = topPadding)
-        .background(baseBackground)
+        .background(MaterialTheme.colors.baseBackground)
         .verticalScroll(rememberScrollState())) {
         OutlinedTextField(
             value = viewState.title,
@@ -108,7 +108,7 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(2.dp)
-                .background(Color.White)
+                .background(MaterialTheme.colors.background)
         )
         Column(
             Modifier
@@ -158,21 +158,23 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
                 .fillMaxWidth()
                 .padding(2.dp)
                 .padding(top = 32.dp)
-                .background(Color.White)
+                .background(MaterialTheme.colors.background)
         )
     }
     else {
-        Text("描述：", modifier = Modifier.padding(top = 32.dp, start = 2.dp))
-        Card(
-            border = BorderStroke(1.dp, Color.Gray),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(2.dp)
-                .background(Color.White)) {
-            RichText(modifier = Modifier.padding(4.dp)) {
-                Markdown(
-                    viewState.content
-                )
+        if (viewState.content.isNotBlank()) {
+            Text("描述：", modifier = Modifier.padding(top = 32.dp, start = 2.dp))
+            Card(
+                border = BorderStroke(1.dp, Color.Gray),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(2.dp)
+                    .background(MaterialTheme.colors.background)) {
+                MaterialRichText(modifier = Modifier.padding(4.dp)) {
+                    Markdown(
+                        viewState.content
+                    )
+                }
             }
         }
     }
@@ -186,9 +188,9 @@ fun TodoDetailSateItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
             .fillMaxWidth()
             .padding(2.dp)
             .padding(top = 8.dp)
-            .background(Color.White)) {
+            .background(MaterialTheme.colors.background)) {
         Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = "状态")
+            Text(text = "状态：")
             Box {
                 Text(text = viewState.state.humanName, modifier = Modifier
                     .clickable(onClick = {
@@ -208,9 +210,9 @@ fun TodoDetailLabelsItem(viewModel: TodoDetailViewModel, viewState: TodoDetailVi
             .fillMaxWidth()
             .padding(2.dp)
             .padding(top = 8.dp)
-            .background(Color.White)) {
+            .background(MaterialTheme.colors.background)) {
         Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = "标签")
+            Text(text = "标签：")
             Box {
                 Text(text = viewState.labels, modifier = Modifier
                     .clickable(onClick = {
@@ -231,7 +233,7 @@ fun TodoDetailCommonItem(title: String, content: String) {
             .fillMaxWidth()
             .padding(2.dp)
             .padding(top = 8.dp)
-            .background(Color.White)) {
+            .background(MaterialTheme.colors.background)) {
         Row(
             Modifier
                 .padding(8.dp),

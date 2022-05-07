@@ -76,7 +76,7 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
         {
             Column(
                 Modifier
-                    .background(baseBackground)
+                    .background(MaterialTheme.colors.baseBackground)
                     .fillMaxSize()
                     .padding(bottom = it.calculateBottomPadding())) {
                 HomeContent(viewState.currentPage, viewModel, navController, repoPath, scaffoldState)

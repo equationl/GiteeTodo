@@ -59,6 +59,7 @@ class TodoListViewModel: ViewModel() {
 
     fun dispatch(action: TodoListViewAction) {
         when (action) {
+            is TodoListViewAction.ClearFilter -> clearFilter()
             is TodoListViewAction.SetRepoPath -> setRepoPath(action.repoPath)
             is TodoListViewAction.UpdateIssueState -> updateIssueState(action.issueNum, action.isClose, action.repoPath)
             is TodoListViewAction.SendMsg -> sendMsg(action.msg)
@@ -69,6 +70,18 @@ class TodoListViewModel: ViewModel() {
             is TodoListViewAction.ChangeDirectionDropMenuShowState -> changeDirectionDropMenuShowState(action.isShow)
             is TodoListViewAction.FilterDirection -> filterDirection(action.direction)
             is TodoListViewAction.FilterDate -> filterDate(action.date, action.isStart)
+        }
+    }
+
+    private fun clearFilter() {
+        viewModelScope.launch {
+            viewStates.filteredOptionList.clear()
+            queryFlow.emit(queryFlow.value.copy(
+                state = null,
+                labels = null,
+                direction = "desc",
+                createdAt = null
+            ))
         }
     }
 
@@ -85,6 +98,9 @@ class TodoListViewModel: ViewModel() {
             viewModelScope.launch {
                 queryFlow.emit(queryFlow.value.copy(createdAt = filterDate))
             }
+            if (!viewStates.filteredOptionList.contains(FilteredOption.DateTime)) {
+                viewStates.filteredOptionList.add(FilteredOption.DateTime)
+            }
         }
     }
 
@@ -92,6 +108,9 @@ class TodoListViewModel: ViewModel() {
         viewModelScope.launch {
             viewStates = viewStates.copy(isShowStateDropMenu = false)
             queryFlow.emit(queryFlow.value.copy(state = state.des))
+            if (!viewStates.filteredOptionList.contains(FilteredOption.States)) {
+                viewStates.filteredOptionList.add(FilteredOption.States)
+            }
         }
     }
 
@@ -99,6 +118,9 @@ class TodoListViewModel: ViewModel() {
         viewModelScope.launch {
             viewStates = viewStates.copy(isShowDirectionDropMenu = false)
             queryFlow.emit(queryFlow.value.copy(direction = state.des))
+            if (!viewStates.filteredOptionList.contains(FilteredOption.Direction)) {
+                viewStates.filteredOptionList.add(FilteredOption.Direction)
+            }
         }
     }
 
@@ -118,6 +140,12 @@ class TodoListViewModel: ViewModel() {
 
         viewModelScope.launch {
             queryFlow.emit(queryFlow.value.copy(labels = labels.ifBlank { null }))
+            if (labels.isBlank()) {
+                viewStates.filteredOptionList.remove(FilteredOption.Labels)
+            }
+            else if (!viewStates.filteredOptionList.contains(FilteredOption.Labels)) {
+                viewStates.filteredOptionList.add(FilteredOption.Labels)
+            }
         }
     }
 
@@ -216,7 +244,8 @@ data class TodoListViewState(
     val availableLabels: MutableMap<String, Boolean> = mutableMapOf(),
     val isShowLabelsDropMenu: Boolean = false,
     val isShowStateDropMenu: Boolean = false,
-    val isShowDirectionDropMenu: Boolean = false
+    val isShowDirectionDropMenu: Boolean = false,
+    val filteredOptionList: ArrayList<FilteredOption> = arrayListOf()
 )
 
 sealed class TodoListViewEvent {
@@ -224,6 +253,7 @@ sealed class TodoListViewEvent {
 }
 
 sealed class TodoListViewAction {
+    object ClearFilter: TodoListViewAction()
     data class SetRepoPath(val repoPath: String): TodoListViewAction()
     data class UpdateIssueState(val issueNum: String, val isClose: Boolean, val repoPath: String): TodoListViewAction()
     data class SendMsg(val msg: String): TodoListViewAction()
@@ -256,3 +286,10 @@ data class QueryParameter(
     val direction: String = "desc",
     val createdAt: String? = null
 )
+
+enum class FilteredOption {
+    Labels,
+    States,
+    DateTime,
+    Direction
+}

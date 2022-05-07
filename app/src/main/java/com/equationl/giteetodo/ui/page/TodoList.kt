@@ -12,6 +12,8 @@ import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -19,6 +21,7 @@ import androidx.navigation.NavHostController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
+import com.equationl.giteetodo.R
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.Route
@@ -166,8 +169,6 @@ fun TodoItem(navController: NavHostController, itemData: TodoCardItemData, viewM
 
 @Composable
 fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel) {
-    // TODO 增加已选中筛选的视觉效果和展开 DropMenu 后的视觉效果
-
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
         .fillMaxWidth()
         .padding(end = 32.dp, start = 32.dp)) {
@@ -175,16 +176,16 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
             viewModel.dispatch(TodoListViewAction.ChangeLabelsDropMenuShowState(true))
         }) {
-            Text("标签")
-            Icon(Icons.Filled.ArrowDropUp, contentDescription = "标签")
+            Text("标签", color = if (viewState.filteredOptionList.contains(FilteredOption.Labels)) MaterialTheme.colors.primary else Color.Unspecified)
+            Icon(if (viewState.isShowLabelsDropMenu) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown, contentDescription = "标签")
             TodoListLabelDropMenu(viewState.availableLabels, viewModel, viewState)
         }
 
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
             viewModel.dispatch(TodoListViewAction.ChangeStateDropMenuShowState(true))
         }) {
-            Text("状态")
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = "状态")
+            Text("状态", color = if (viewState.filteredOptionList.contains(FilteredOption.States)) MaterialTheme.colors.primary else Color.Unspecified)
+            Icon(if (viewState.isShowStateDropMenu) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown, contentDescription = "状态")
             TodoListStateDropMenu(viewModel = viewModel, isShow = viewState.isShowStateDropMenu)
         }
 
@@ -192,7 +193,7 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
             dialogState.show()
         }) {
-            Text("时间")
+            Text("时间", color = if (viewState.filteredOptionList.contains(FilteredOption.DateTime)) MaterialTheme.colors.primary else Color.Unspecified)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "时间")
             TodoListDateTimePicker(dialogState, viewModel)
         }
@@ -200,9 +201,17 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
             viewModel.dispatch(TodoListViewAction.ChangeDirectionDropMenuShowState(true))
         }) {
-            Text("排序")
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = "排序")
+            Text("排序", color = if (viewState.filteredOptionList.contains(FilteredOption.Direction)) MaterialTheme.colors.primary else Color.Unspecified)
+            Icon(if (viewState.isShowDirectionDropMenu) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown, contentDescription = "排序")
             TodoListDirecDropMenu(viewModel = viewModel, isShow = viewState.isShowDirectionDropMenu)
+        }
+
+        if (viewState.filteredOptionList.isNotEmpty()) {
+            Icon(painter = painterResource(id = R.drawable.filter_alt_off) , contentDescription = "清除",
+                modifier = Modifier.clickable {
+                    viewModel.dispatch(TodoListViewAction.ClearFilter)
+                }
+            )
         }
     }
 }

@@ -35,6 +35,11 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 - lottie： 动画库。
 - compose-material-dialogs： A Material Dialog Builder for Jetpack Compose
 
+### 下载
+APK： *待补充*
+
+国内源码镜像：[https://gitee.com/equation/GiteeTodo](https://gitee.com/equation/GiteeTodo)
+
 ## 使用方法
 
 ### 编译运行

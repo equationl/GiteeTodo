@@ -28,6 +28,7 @@ import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
+import com.equationl.giteetodo.ui.widgets.noRippleClickable
 import com.equationl.giteetodo.viewmodel.*
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.MaterialDialogState
@@ -161,7 +162,7 @@ fun TodoItem(navController: NavHostController, itemData: TodoCardItemData, viewM
         Text(
             text = itemData.title,
             textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
-        modifier = Modifier.clickable {
+        modifier = Modifier.noRippleClickable {
             navController.navigate("${Route.TODO_DETAIL}/${itemData.number}")
         })
     }
@@ -173,7 +174,7 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
         .fillMaxWidth()
         .padding(end = 32.dp, start = 32.dp)) {
 
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeLabelsDropMenuShowState(true))
         }) {
             Text("标签", color = if (viewState.filteredOptionList.contains(FilteredOption.Labels)) MaterialTheme.colors.primary else Color.Unspecified)
@@ -181,7 +182,7 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
             TodoListLabelDropMenu(viewState.availableLabels, viewModel, viewState)
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeStateDropMenuShowState(true))
         }) {
             Text("状态", color = if (viewState.filteredOptionList.contains(FilteredOption.States)) MaterialTheme.colors.primary else Color.Unspecified)
@@ -190,7 +191,7 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
         }
 
         val dialogState = rememberMaterialDialogState()
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             dialogState.show()
         }) {
             Text("时间", color = if (viewState.filteredOptionList.contains(FilteredOption.DateTime)) MaterialTheme.colors.primary else Color.Unspecified)
@@ -198,7 +199,7 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
             TodoListDateTimePicker(dialogState, viewModel)
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeDirectionDropMenuShowState(true))
         }) {
             Text("排序", color = if (viewState.filteredOptionList.contains(FilteredOption.Direction)) MaterialTheme.colors.primary else Color.Unspecified)
@@ -208,7 +209,7 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
 
         if (viewState.filteredOptionList.isNotEmpty()) {
             Icon(painter = painterResource(id = R.drawable.filter_alt_off) , contentDescription = "清除",
-                modifier = Modifier.clickable {
+                modifier = Modifier.noRippleClickable {
                     viewModel.dispatch(TodoListViewAction.ClearFilter)
                 }
             )
@@ -225,7 +226,8 @@ fun TodoListLabelDropMenu(options: MutableMap<String, Boolean>, viewModel: TodoL
             var isChecked by remember { mutableStateOf(checked) }
             DropdownMenuItem(
                 onClick = {
-
+                    isChecked = !isChecked
+                    options[name] = isChecked
                 },
             ) {
                 Checkbox(checked = isChecked, onCheckedChange = {

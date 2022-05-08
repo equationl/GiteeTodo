@@ -20,5 +20,5 @@ fun LinkText(
         text = text,
         color = color,
         fontSize = fontSize,
-        modifier = Modifier.clickable(onClick = onClick) )
+        modifier = Modifier.noRippleClickable(onClick = onClick) )
 }

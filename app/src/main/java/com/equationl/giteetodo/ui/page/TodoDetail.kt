@@ -254,7 +254,8 @@ fun LabelsDropMenu(options: MutableMap<String, Boolean>, viewModel: TodoDetailVi
             var isChecked by remember { mutableStateOf(checked) }
             DropdownMenuItem(
                 onClick = {
-
+                    isChecked = !isChecked
+                    options[name] = isChecked
                 },
             ) {
                 Checkbox(checked = isChecked, onCheckedChange = {

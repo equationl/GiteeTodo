@@ -6,13 +6,13 @@ data class User(
     @SerializedName("avatar_url")
     val avatarUrl: String,
     @SerializedName("bio")
-    val bio: String,
+    val bio: String?,
     @SerializedName("blog")
     val blog: String,
     @SerializedName("created_at")
     val createdAt: String,
     @SerializedName("email")
-    val email: String,
+    val email: String?,
     @SerializedName("events_url")
     val eventsUrl: String,
     @SerializedName("followers")

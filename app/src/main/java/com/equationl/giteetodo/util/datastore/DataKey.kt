@@ -9,5 +9,5 @@ object DataKey {
 
     const val UsingRepo = "using_repo"
 
-    const val FilterOnlyOpenIssue = "filter_only_open_issue"
+    const val UserInfo = "user_info_string"
 }

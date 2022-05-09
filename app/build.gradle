@@ -77,6 +77,7 @@ dependencies {
     implementation "androidx.paging:paging-runtime:3.1.1"
     implementation "androidx.paging:paging-compose:1.0.0-alpha14"
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0"
+    implementation "io.coil-kt:coil-compose:2.0.0-rc03"
 
     implementation "com.halilibo.compose-richtext:richtext-commonmark:0.11.0"
     implementation "com.halilibo.compose-richtext:richtext-ui-material:0.11.0"

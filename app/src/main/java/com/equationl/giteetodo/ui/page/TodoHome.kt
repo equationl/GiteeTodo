@@ -17,17 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.*
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @Composable
 fun HomeScreen(navController: NavHostController, repoPath: String) {
@@ -97,12 +93,7 @@ fun HomeContent(currentPager: CurrentPager, viewModel: TodoHomeViewModel, navCon
     }
     else if (currentPager == CurrentPager.HOME_ME) {
         viewModel.dispatch(TodoHomeViewAction.ChangeTitle(repoPath.split("/")[0]))
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("你好，${repoPath.split("/")[0]}", style = Typography().h3)
-            Text("管理标签", modifier = Modifier.padding(8.dp).clickable {  // fixme just for test
-                navController.navigate("${Route.LABEL_MG}/${URLEncoder.encode(repoPath, StandardCharsets.UTF_8.toString())}")
-            })
-        }
+        ProfileScreen(navController, scaffoldState, repoPath)
     }
 }
 

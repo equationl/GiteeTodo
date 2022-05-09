@@ -17,6 +17,7 @@ import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils.isEmail
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import com.equationl.giteetodo.util.toJson
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -116,6 +117,7 @@ class LoginViewModel: ViewModel() {
             }
 
             if (response.isSuccessful) {
+                DataStoreUtils.putSyncData(DataKey.UserInfo, response.body()?.toJson() ?: "")
                 DataStoreUtils.saveSyncStringData(DataKey.LoginAccessToken, viewStates.password)
                 DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, LoginMethod.AccessToken.name)
 

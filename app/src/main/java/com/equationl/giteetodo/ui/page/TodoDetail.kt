@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.EditOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +39,7 @@ fun TodoDetailScreen(navController: NavHostController, issueNum: String) {
 
     DisposableEffect(Unit) {
         if (issueNum == "null") {
-            viewModel.dispatch(TodoDetailViewAction.EnterEditModel)
+            viewModel.dispatch(TodoDetailViewAction.ToggleEditModel(true))
         }
         else {
             viewModel.dispatch(TodoDetailViewAction.LoadIssue(issueNum))
@@ -62,11 +63,12 @@ fun TodoDetailScreen(navController: NavHostController, issueNum: String) {
         Scaffold(
             topBar = {
                 TopBar(viewState.title, actions = {
-                    if (!viewState.isEditAble) {
+                    if (issueNum != "null") {
+                        val icon = if (viewState.isEditAble) Icons.Outlined.EditOff else Icons.Outlined.EditNote
                         IconButton(onClick = {
-                            viewModel.dispatch(TodoDetailViewAction.EnterEditModel)
+                            viewModel.dispatch(TodoDetailViewAction.ToggleEditModel(!viewState.isEditAble))
                         }) {
-                            Icon(Icons.Outlined.EditNote, contentDescription = "编辑")
+                            Icon(icon, contentDescription = "编辑")
                         }
                     }
                 }) {

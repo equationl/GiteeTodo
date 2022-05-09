@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
+import com.equationl.giteetodo.data.repos.model.response.Issues
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.getIssueState
 import com.equationl.giteetodo.util.Utils
@@ -35,7 +36,7 @@ class TodoDetailViewModel: ViewModel() {
 
     fun dispatch(action: TodoDetailViewAction) {
         when (action) {
-            is TodoDetailViewAction.EnterEditModel -> enterEditModel()
+            is TodoDetailViewAction.ToggleEditModel -> toggleEditModel(action.isEditAble)
             is TodoDetailViewAction.LoadIssue -> loadIssue(action.issueNum)
             is TodoDetailViewAction.OnContentChange -> onContentChange(action.text)
             is TodoDetailViewAction.OnTitleChange -> onTitleChange(action.text)
@@ -47,8 +48,8 @@ class TodoDetailViewModel: ViewModel() {
         }
     }
 
-    private fun enterEditModel() {
-        viewStates = viewStates.copy(isEditAble = true, isLoading = false)
+    private fun toggleEditModel(isEditAble: Boolean) {
+        viewStates = viewStates.copy(isEditAble = isEditAble, isLoading = false)
     }
 
     private fun onTitleChange(text: String) {
@@ -123,58 +124,65 @@ class TodoDetailViewModel: ViewModel() {
         viewStates = viewStates.copy(isShowLabelsDropMenu = false, labels = labels)
     }
 
-    private fun loadIssue(issueNum: String) {
+    private fun loadIssue(issueNum: String, issue: Issues? = null) {
         viewModelScope.launch(exception) {
-            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val issueDetail = issue ?: requestIssue(issueNum)
 
-            val response = repoApi.getIssue(
-                repoPath.split("/")[0],
-                repoPath.split("/")[1],
-                issueNum,
-                token)
-
-            if (response.isSuccessful) {
-                val issueDetail = response.body()
-                if (issueDetail == null) {
-                    viewStates = viewStates.copy(isLoading = false, title = "加载失败", content = "加载失败", createdDateTime = "加载失败", updateDateTime = "加载失败")
-                }
-                else {
-                    var labels = ""
-                    for (label in issueDetail.labels) {
-                        labels += label.name + ", "
-                    }
-                    labels = if (labels.isBlank()) {
-                        "未设置"
-                    } else {
-                        labels.substring(0, labels.length-2)
-                    }
-                    viewStates = viewStates.copy(
-                        isEditAble = false,
-                        isLoading = false,
-                        title = issueDetail.title,
-                        createdDateTime = Utils.getDateTimeString(issueDetail.createdAt, "yyyy年 M月dd日 HH:mm:ss"),
-                        updateDateTime = Utils.getDateTimeString(issueDetail.updatedAt, "yyyy年 M月dd日 HH:mm:ss"),
-                        content = issueDetail.body ?: "",
-                        state = getIssueState(issueDetail.state),
-                        priority = issueDetail.priority,
-                        labels = labels.ifBlank { "未设置" },
-                        startDateTime = if (issueDetail.planStartedAt == null) "未设置" else Utils.getDateTimeString(issueDetail.planStartedAt, "yyyy年 M月dd日 HH:mm:ss"),
-                        stopDateTime = if (issueDetail.deadline == null ) "未设置" else Utils.getDateTimeString(issueDetail.deadline, "yyyy年 M月dd日 HH:mm:ss")
-                    )
-                }
+            if (issueDetail == null) {
+                viewStates = viewStates.copy(isLoading = false, title = "加载失败", content = "加载失败", createdDateTime = "加载失败", updateDateTime = "加载失败")
             }
             else {
-                viewStates = viewStates.copy(isLoading = false)
-
-                val result = kotlin.runCatching {
-                    _viewEvents.send(TodoDetailViewEvent.ShowMessage(response.errorBody()?.string() ?: ""))
+                var labels = ""
+                for (label in issueDetail.labels) {
+                    labels += label.name + ", "
                 }
-                if (result.isFailure) {
-                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("加载失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
+                labels = if (labels.isBlank()) {
+                    "未设置"
+                } else {
+                    labels.substring(0, labels.length-2)
                 }
+                viewStates = viewStates.copy(
+                    isEditAble = false,
+                    isLoading = false,
+                    title = issueDetail.title,
+                    createdDateTime = Utils.getDateTimeString(issueDetail.createdAt, "yyyy年 M月dd日 HH:mm:ss"),
+                    updateDateTime = Utils.getDateTimeString(issueDetail.updatedAt, "yyyy年 M月dd日 HH:mm:ss"),
+                    content = issueDetail.body ?: "",
+                    state = getIssueState(issueDetail.state),
+                    priority = issueDetail.priority,
+                    labels = labels.ifBlank { "未设置" },
+                    startDateTime = if (issueDetail.planStartedAt == null) "未设置" else Utils.getDateTimeString(issueDetail.planStartedAt, "yyyy年 M月dd日 HH:mm:ss"),
+                    stopDateTime = if (issueDetail.deadline == null ) "未设置" else Utils.getDateTimeString(issueDetail.deadline, "yyyy年 M月dd日 HH:mm:ss")
+                )
             }
         }
+    }
+
+    private suspend fun requestIssue(issueNum: String): Issues? {
+        val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
+        val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+
+        val response = repoApi.getIssue(
+            repoPath.split("/")[0],
+            repoPath.split("/")[1],
+            issueNum,
+            token)
+
+        if (response.isSuccessful) {
+            return response.body()
+        }
+        else {
+            viewStates = viewStates.copy(isLoading = false)
+
+            val result = kotlin.runCatching {
+                _viewEvents.send(TodoDetailViewEvent.ShowMessage("获取Issue失败："+response.errorBody()?.string()))
+            }
+            if (result.isFailure) {
+                _viewEvents.send(TodoDetailViewEvent.ShowMessage("加载失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
+            }
+        }
+
+        return null
     }
 
     private fun clickSave(issueNum: String) {
@@ -216,6 +224,7 @@ class TodoDetailViewModel: ViewModel() {
 
             if (response.isSuccessful) {
                 _viewEvents.send(TodoDetailViewEvent.ShowMessage("保存成功"))
+                loadIssue(response.body()?.number ?: "null", response.body())
             }
             else {
                 viewStates = viewStates.copy(isEditAble = true)
@@ -263,7 +272,7 @@ sealed class TodoDetailViewEvent {
 }
 
 sealed class TodoDetailViewAction {
-    object EnterEditModel : TodoDetailViewAction()
+    data class ToggleEditModel(val isEditAble: Boolean) : TodoDetailViewAction()
     data class StateDropMenuShowState(val isShow: Boolean): TodoDetailViewAction()
     data class LabelsDropMenuShowState(val isShow: Boolean): TodoDetailViewAction()
     data class ClickSave(val issueNum: String): TodoDetailViewAction()

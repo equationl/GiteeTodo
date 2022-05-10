@@ -190,10 +190,10 @@ interface ReposApi {
         @Path("number") number: String,
         @Query("access_token") accessToken: String,
         @Query("since") since: String? = null,
-        @Query("page") page: Int? = null,
-        @Query("per_page") perPage: Int? = null,
+        @Query("page") page: Int? = 1,
+        @Query("per_page") perPage: Int? = 100,
         @Query("order") sort: String? = null,
-    ): List<Comment>
+    ): Response<List<Comment>>
 
     /**
      * 创建某个 issue 的评论

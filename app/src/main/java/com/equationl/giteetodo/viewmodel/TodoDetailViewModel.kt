@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
+import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.data.repos.model.response.Issues
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.getIssueState
@@ -45,6 +46,34 @@ class TodoDetailViewModel: ViewModel() {
             is TodoDetailViewAction.StateDropMenuShowState -> stateDropMenuShowState(action.isShow)
             is TodoDetailViewAction.UpdateLabels -> updateLabels(action.labels)
             is TodoDetailViewAction.UpdateState -> updateState(action.state)
+            is TodoDetailViewAction.LoadComment -> loadComment(action.issueNum)
+        }
+    }
+
+    private fun loadComment(issueNum: String) {
+        viewModelScope.launch(exception) {
+            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+
+            val response = repoApi.getAllComments(
+                repoPath.split("/")[0],
+                repoPath.split("/")[1],
+                issueNum,
+                token)
+
+            if (response.isSuccessful) {
+                viewStates = viewStates.copy(commentList = response.body() ?: listOf())
+            }
+            else {
+                viewStates = viewStates.copy(isLoading = false)
+
+                val result = kotlin.runCatching {
+                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("获取评论失败："+response.errorBody()?.string()))
+                }
+                if (result.isFailure) {
+                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("加载失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
+                }
+            }
         }
     }
 
@@ -264,7 +293,8 @@ data class TodoDetailViewState(
     val isLoading: Boolean = true,
     val isShowLabelsDropMenu: Boolean = false,
     val isShowStateDropMenu: Boolean = false,
-    val availableLabels: MutableMap<String, Boolean> = mutableMapOf()
+    val availableLabels: MutableMap<String, Boolean> = mutableMapOf(),
+    val commentList: List<Comment> = listOf()
 )
 
 sealed class TodoDetailViewEvent {
@@ -277,6 +307,7 @@ sealed class TodoDetailViewAction {
     data class LabelsDropMenuShowState(val isShow: Boolean): TodoDetailViewAction()
     data class ClickSave(val issueNum: String): TodoDetailViewAction()
     data class LoadIssue(val issueNum: String): TodoDetailViewAction()
+    data class LoadComment(val issueNum: String): TodoDetailViewAction()
     data class OnTitleChange(val text: String): TodoDetailViewAction()
     data class OnContentChange(val text: String): TodoDetailViewAction()
     data class UpdateState(val state: IssueState): TodoDetailViewAction()

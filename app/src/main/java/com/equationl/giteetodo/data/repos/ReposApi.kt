@@ -203,8 +203,8 @@ interface ReposApi {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Path("number") number: String,
-        @Body createComments: CreateComments
-    ): Comment
+        @Body createComment: CreateComment
+    ): Response<Comment>
 
     /**
      * 获取仓库的某条评论
@@ -215,7 +215,7 @@ interface ReposApi {
         @Path("repo") repo: String,
         @Path("id") id: Int,
         @Query("access_token") accessToken: String
-    ): Comment
+    ): Response<Comment>
 
     /**
      * 更新 issue 某条评论
@@ -225,8 +225,8 @@ interface ReposApi {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Path("id") id: Int,
-        @Body createComments: CreateComments
-    ): Comment
+        @Body createComment: CreateComment
+    ): Response<Comment>
 
     /**
      * 删除 issue 某条评论
@@ -237,7 +237,7 @@ interface ReposApi {
         @Path("repo") repo: String,
         @Path("id") id: Int,
         @Query("access_token") accessToken: String
-    )
+    ): Response<Any?>
 
     /**
      * 获取仓库具体路径下的内容

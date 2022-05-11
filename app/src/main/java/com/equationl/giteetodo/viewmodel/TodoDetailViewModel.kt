@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.repos.model.request.CreateComment
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
 import com.equationl.giteetodo.data.repos.model.response.Comment
@@ -47,7 +48,52 @@ class TodoDetailViewModel: ViewModel() {
             is TodoDetailViewAction.UpdateLabels -> updateLabels(action.labels)
             is TodoDetailViewAction.UpdateState -> updateState(action.state)
             is TodoDetailViewAction.LoadComment -> loadComment(action.issueNum)
+            is TodoDetailViewAction.ClickSaveComment -> clickSaveComment(action.issueNum)
+            is TodoDetailViewAction.OnNewCommentChange -> onNewCommentChange(action.value)
         }
+    }
+
+    private fun clickSaveComment(issueNum: String) {
+        viewModelScope.launch(exception) {
+            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+
+            val response = repoApi.createComment(
+                repoPath.split("/")[0],
+                repoPath.split("/")[1],
+                issueNum,
+                CreateComment(token, viewStates.newComment)
+            )
+
+            if (response.isSuccessful) {
+                val newComment = response.body()
+                if (newComment != null) {
+                    val newCommentList = arrayListOf<Comment>()
+                    newCommentList.addAll(viewStates.commentList)
+                    newCommentList.add(newComment)
+
+                    viewStates = viewStates.copy(commentList = newCommentList, newComment = "")
+                }
+                else {
+                    loadComment(issueNum)
+                }
+                _viewEvents.send(TodoDetailViewEvent.ShowMessage("创建评论成功"))
+            }
+            else {
+                viewStates = viewStates.copy(isLoading = false)
+
+                val result = kotlin.runCatching {
+                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("创建评论失败："+response.errorBody()?.string()))
+                }
+                if (result.isFailure) {
+                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("创建评论失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
+                }
+            }
+        }
+    }
+
+    private fun onNewCommentChange(value: String) {
+        viewStates = viewStates.copy(newComment = value)
     }
 
     private fun loadComment(issueNum: String) {
@@ -290,6 +336,7 @@ data class TodoDetailViewState(
     val labels: String = "未设置",
     val startDateTime: String = "",
     val stopDateTime: String = "",
+    val newComment: String = "",
     val isLoading: Boolean = true,
     val isShowLabelsDropMenu: Boolean = false,
     val isShowStateDropMenu: Boolean = false,
@@ -312,4 +359,6 @@ sealed class TodoDetailViewAction {
     data class OnContentChange(val text: String): TodoDetailViewAction()
     data class UpdateState(val state: IssueState): TodoDetailViewAction()
     data class UpdateLabels(val labels: MutableMap<String, Boolean>): TodoDetailViewAction()
+    data class OnNewCommentChange(val value: String): TodoDetailViewAction()
+    data class ClickSaveComment(val issueNum: String): TodoDetailViewAction()
 }

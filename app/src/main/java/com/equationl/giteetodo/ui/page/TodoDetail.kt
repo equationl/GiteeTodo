@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EditNote
@@ -12,12 +13,18 @@ import androidx.compose.material.icons.outlined.EditOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.equationl.giteetodo.R
 import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
@@ -151,8 +158,8 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
         }
 
         item {
-            if (viewState.commentList.isNotEmpty() && !viewState.isEditAble) {
-                TodoCommentContent(commentList = viewState.commentList)
+            if (!viewState.isEditAble && issueNum != "null") {
+                TodoCommentContent(viewState.commentList, issueNum, viewModel, viewState)
             }
         }
     }
@@ -302,9 +309,12 @@ fun StateDropMenu(viewModel: TodoDetailViewModel, isShow: Boolean) {
 }
 
 @Composable
-fun TodoCommentContent(commentList: List<Comment>) {
-    Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-        Text("评论： ", Modifier.padding(start = 8.dp, end = 8.dp))
+fun TodoCommentContent(commentList: List<Comment>, issueNum: String, viewModel: TodoDetailViewModel, viewState: TodoDetailViewState) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp, top = 16.dp)) {
+        Text("评论（${commentList.size}）", Modifier.padding(start = 8.dp, end = 8.dp))
 
         Card(border = BorderStroke(1.dp, Color.Gray),
             modifier = Modifier
@@ -313,9 +323,34 @@ fun TodoCommentContent(commentList: List<Comment>) {
                 .background(MaterialTheme.colors.background)
         ) {
             Column {  // 不知道为什么，这里如果再嵌套一个 LazyColumn 的话会闪退
-                commentList.forEach { item ->
-                    Row(modifier = Modifier.padding(2.dp)) {
-                        TodoCommentItem(item)
+
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+
+                    OutlinedTextField(value = viewState.newComment,
+                        onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnNewCommentChange(it)) },
+                        label = { Text("评论(支持Markdown)") },
+                        modifier = Modifier
+                            .weight(8f)
+                            .padding(end = 4.dp)
+                            .scale(1f, 0.8f)
+                    )
+
+                    Button(onClick = { viewModel.dispatch(TodoDetailViewAction.ClickSaveComment(issueNum)) }, modifier = Modifier.weight(2f)) {
+                        Text(text = "添加", fontSize = 12.sp)
+                    }
+                }
+
+                Divider(Modifier.padding(bottom = 8.dp))
+
+                if (commentList.isEmpty()) {
+                    Text(text = "暂无评论", Modifier.padding(8.dp))
+                }
+                else {
+                    commentList.forEachIndexed { index, comment ->
+                        TodoCommentItem(comment, index != commentList.lastIndex)
                     }
                 }
             }
@@ -324,26 +359,35 @@ fun TodoCommentContent(commentList: List<Comment>) {
 }
 
 @Composable
-fun TodoCommentItem(comment: Comment) {
-    Card(border = BorderStroke(1.dp, Color.Gray),
-        modifier = Modifier
+fun TodoCommentItem(comment: Comment, hasDivider: Boolean = true) {
+    Column(Modifier.padding(4.dp)) {
+        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp, 2.dp)
-            .background(MaterialTheme.colors.background)
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            RichText {
-                Markdown(content = comment.body)
+            .padding(bottom = 8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(comment.user.avatarUrl)
+                        .placeholder(R.drawable.ic_unknown_user)
+                        .build(),
+                    contentDescription = "头像",
+                    modifier = Modifier
+                        .width(25.dp)
+                        .height(25.dp)
+                        .clip(CircleShape)
+                )
+                Column(modifier = Modifier.padding(start = 2.dp)) {
+                    Text(text = comment.user.name, fontSize = 14.sp)
+                    Text(text = Utils.getDateTimeString(comment.createdAt, "M.dd hh:mm:ss"), fontSize = 10.sp)
+                }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Text("by ${comment.user.name}")
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Text("- 创建于 ${Utils.getDateTimeString(comment.createdAt, "M.dd hh:mm:ss")}", fontSize = 8.sp)
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Text("- 更新于 ${Utils.getDateTimeString(comment.updatedAt, "M.dd hh:mm:ss")}", fontSize = 8.sp)
-            }
+            Text(text = "更新于 ${Utils.getDateTimeString(comment.updatedAt, "M.dd hh:mm:ss")}", fontSize = 8.sp)
+        }
+        RichText(Modifier.padding(bottom = 8.dp, start = 4.dp)) {
+            Markdown(content = comment.body)
+        }
+        if (hasDivider) {
+            Divider()
         }
     }
 }

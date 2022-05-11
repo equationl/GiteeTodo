@@ -1,6 +1,5 @@
 package com.equationl.giteetodo.ui.widgets
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.Orientation
@@ -40,7 +39,7 @@ import kotlin.math.roundToInt
  * @param velocityThreshold velocity threshold in dp per second
  */
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SwipeableActionCard(
     mainCard: @Composable () -> Unit,

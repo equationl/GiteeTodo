@@ -3,7 +3,7 @@ package com.equationl.giteetodo.data.repos
 import com.equationl.giteetodo.data.repos.model.request.*
 import com.equationl.giteetodo.data.repos.model.response.*
 import com.equationl.giteetodo.data.user.model.request.UserRepos
-import com.equationl.giteetodo.data.user.model.response.Repos
+import com.equationl.giteetodo.data.user.model.response.Repo
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -12,7 +12,7 @@ interface ReposApi {
      * 创建一个仓库
      * */
     @POST("user/repos")
-    suspend fun createRepos(@Body createRepos: UserRepos): Response<Repos>
+    suspend fun createRepos(@Body createRepos: UserRepos): Response<Repo>
 
     /**
      * 获取所有仓库
@@ -28,7 +28,7 @@ interface ReposApi {
         @Query("q") q: String? = null,
         @Query("page") page: Int = 1,
         @Query("per_page")perPage: Int = 100
-    ): Response<List<Repos>>
+    ): Response<List<Repo>>
 
     /**
      * 删除一个 仓库

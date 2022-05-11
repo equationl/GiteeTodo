@@ -12,7 +12,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.repos.model.pagingSource.ReposPagingSource
-import com.equationl.giteetodo.data.user.model.response.Repos
+import com.equationl.giteetodo.data.user.model.response.Repo
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
@@ -46,6 +46,13 @@ class RepoListViewModel: ViewModel() {
         when (action) {
             is RepoListViewAction.SendMsg -> sendMsg(action.msg)
             is RepoListViewAction.ChoiceARepo -> choiceARepo(action.repoPath)
+            is RepoListViewAction.DeleteRepo -> deleteRepo(action.repoPath)
+        }
+    }
+
+    private fun deleteRepo(repoPath: String) {
+        viewModelScope.launch {
+            _viewEvents.send(RepoListViewEvent.ShowDeleteRepoMsg("请自行前往 Gitee 官网删除", "https://gitee.com/$repoPath/settings#remove"))
         }
     }
 
@@ -70,15 +77,17 @@ class RepoListViewModel: ViewModel() {
 }
 
 data class RepoListViewState(
-    val repoFlow: Flow<PagingData<Repos>>
+    val repoFlow: Flow<PagingData<Repo>>
 )
 
 sealed class RepoListViewEvent {
     data class Goto(val route: String): RepoListViewEvent()
     data class ShowMessage(val message: String) : RepoListViewEvent()
+    data class ShowDeleteRepoMsg(val message: String, val deleteUrl: String): RepoListViewEvent()
 }
 
 sealed class RepoListViewAction {
     data class SendMsg(val msg: String): RepoListViewAction()
     data class ChoiceARepo(val repoPath: String): RepoListViewAction()
+    data class DeleteRepo(val repoPath: String): RepoListViewAction()
 }

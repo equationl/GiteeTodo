@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.LibraryAdd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,21 +18,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.equationl.giteetodo.R
-import com.equationl.giteetodo.data.user.model.response.Repos
+import com.equationl.giteetodo.data.user.model.response.Repo
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.*
@@ -51,18 +51,29 @@ fun RepoListScreen(navController: NavHostController) {
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()
+    val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
-            if (it is RepoListViewEvent.ShowMessage) {
-                println("收到错误消息：${it.message}")
-                coroutineState.launch {
-                    scaffoldState.snackbarHostState.showSnackbar(message = it.message)
+            when (it) {
+                is RepoListViewEvent.ShowMessage -> {
+                    coroutineState.launch {
+                        scaffoldState.snackbarHostState.showSnackbar(message = it.message)
+                    }
                 }
-            }
-            else if (it is RepoListViewEvent.Goto) {
-                println("Goto route=${it.route}")
-                navController.navigate(it.route)
+                is RepoListViewEvent.Goto -> {
+                    navController.navigate(it.route)
+                }
+                is RepoListViewEvent.ShowDeleteRepoMsg -> {
+                    coroutineState.launch {
+                        when (scaffoldState.snackbarHostState.showSnackbar(message = it.message, actionLabel = "前往删除")) {
+                            SnackbarResult.Dismissed -> {  }
+                            SnackbarResult.ActionPerformed -> {
+                                uriHandler.openUri(it.deleteUrl)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -96,9 +107,10 @@ fun RepoListScreen(navController: NavHostController) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun RepoListContent(
-    repoFlow: Flow<PagingData<Repos>>,
+    repoFlow: Flow<PagingData<Repo>>,
     viewModel: RepoListViewModel,
     paddingValues: PaddingValues
 ) {
@@ -129,9 +141,31 @@ fun RepoListContent(
             LazyColumn {
                 itemsIndexed(repoList, key = {_, item -> item.fullName}) { _, item ->
                     if (item != null && item.namespace.type == "personal") {  // 仅加载类型为个人的仓库
-                        RepoItem(item) {
-                            viewModel.dispatch(RepoListViewAction.ChoiceARepo(it))
-                        }
+                        SwipeableActionCard(
+                            mainCard = {
+                                RepoItem(item) {
+                                    viewModel.dispatch(RepoListViewAction.ChoiceARepo(it))
+                                }
+                            },
+                            leftSwipeCard = {
+                                Card(Modifier.padding(32.dp),
+                                    shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
+                                    Row(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height(100.dp)
+                                            .background(MaterialTheme.colors.error),
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.CenterVertically) {
+                                        Text("继续滑动删除", color = MaterialTheme.colors.background)
+                                        Icon(Icons.Filled.Delete, contentDescription = "删除", tint = MaterialTheme.colors.background)
+                                    }
+                                }
+                            },
+                            leftSwiped = {
+                                viewModel.dispatch(RepoListViewAction.DeleteRepo(item.fullName))
+                            }
+                        )
                     }
                 }
 
@@ -160,7 +194,7 @@ fun RepoListContent(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun RepoItem(itemData: Repos, onClick: (path: String) -> Unit) {
+fun RepoItem(itemData: Repo, onClick: (path: String) -> Unit) {
     Card(onClick = { onClick.invoke(itemData.fullName) },
         modifier = Modifier.padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column {
@@ -212,10 +246,4 @@ fun RepoItem(itemData: Repos, onClick: (path: String) -> Unit) {
 
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewRepoList() {
-    RepoListScreen(rememberNavController())
 }

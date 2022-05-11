@@ -2,7 +2,7 @@ package com.equationl.giteetodo.data.user.model.response
 import com.google.gson.annotations.SerializedName
 
 
-data class Repos(
+data class Repo(
     @SerializedName("assignee")
     val assignee: List<Assignee>,
     @SerializedName("assignees_number")

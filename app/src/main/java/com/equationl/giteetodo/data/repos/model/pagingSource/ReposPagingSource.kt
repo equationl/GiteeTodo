@@ -3,7 +3,7 @@ package com.equationl.giteetodo.data.repos.model.pagingSource
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.equationl.giteetodo.data.repos.ReposApi
-import com.equationl.giteetodo.data.user.model.response.Repos
+import com.equationl.giteetodo.data.user.model.response.Repo
 import retrofit2.HttpException
 
 private const val TAG = "el, ReposPagingSource"
@@ -11,10 +11,10 @@ private const val TAG = "el, ReposPagingSource"
 class ReposPagingSource(
     private val reposApi: ReposApi,
     private val accessToken: String
-) : PagingSource<Int, Repos>() {
+) : PagingSource<Int, Repo>() {
     override suspend fun load(
         params: LoadParams<Int>
-    ): LoadResult<Int, Repos> {
+    ): LoadResult<Int, Repo> {
         try {
             val nextPageNumber = params.key ?: 1  // 从第 1 页开始加载
             val response = reposApi.getRepos(accessToken, page = nextPageNumber, perPage = params.loadSize)
@@ -32,7 +32,7 @@ class ReposPagingSource(
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Int, Repos>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, Repo>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
             val anchorPage = state.closestPageToPosition(anchorPosition)
             anchorPage?.prevKey?.plus(1) ?: anchorPage?.nextKey?.minus(1)

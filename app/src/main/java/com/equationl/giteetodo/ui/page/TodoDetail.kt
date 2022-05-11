@@ -5,9 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.EditOff
 import androidx.compose.runtime.*
@@ -63,7 +66,6 @@ fun TodoDetailScreen(navController: NavHostController, issueNum: String) {
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
             if (it is TodoDetailViewEvent.ShowMessage) {
-                println("收到错误消息：${it.message}")
                 coroutineState.launch {
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }
@@ -109,10 +111,13 @@ fun TodoDetailLoad() {
 
 @Composable
 fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState: TodoDetailViewState, issueNum: String) {
-    LazyColumn(modifier = Modifier
-        .fillMaxSize()
-        .padding(top = topPadding)
-        .background(MaterialTheme.colors.baseBackground)) {
+    val listState = rememberLazyListState()
+    LazyColumn(state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = topPadding)
+            .background(MaterialTheme.colors.baseBackground)
+    ) {
         item {
             OutlinedTextField(
                 value = viewState.title,
@@ -160,6 +165,12 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
         item {
             if (!viewState.isEditAble && issueNum != "null") {
                 TodoCommentContent(viewState.commentList, issueNum, viewModel, viewState)
+            }
+            if (viewState.editCommentId != -1) {
+                val scope = rememberCoroutineScope()
+                scope.launch {
+                    listState.animateScrollToItem(1)
+                }
             }
         }
     }
@@ -309,7 +320,12 @@ fun StateDropMenu(viewModel: TodoDetailViewModel, isShow: Boolean) {
 }
 
 @Composable
-fun TodoCommentContent(commentList: List<Comment>, issueNum: String, viewModel: TodoDetailViewModel, viewState: TodoDetailViewState) {
+fun TodoCommentContent(
+    commentList: List<Comment>,
+    issueNum: String,
+    viewModel: TodoDetailViewModel,
+    viewState: TodoDetailViewState
+) {
     Column(
         Modifier
             .fillMaxWidth()
@@ -331,7 +347,7 @@ fun TodoCommentContent(commentList: List<Comment>, issueNum: String, viewModel: 
 
                     OutlinedTextField(value = viewState.newComment,
                         onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnNewCommentChange(it)) },
-                        label = { Text("评论(支持Markdown)") },
+                        label = { Text(viewState.editCommentLabel) },
                         modifier = Modifier
                             .weight(8f)
                             .padding(end = 4.dp)
@@ -339,7 +355,7 @@ fun TodoCommentContent(commentList: List<Comment>, issueNum: String, viewModel: 
                     )
 
                     Button(onClick = { viewModel.dispatch(TodoDetailViewAction.ClickSaveComment(issueNum)) }, modifier = Modifier.weight(2f)) {
-                        Text(text = "添加", fontSize = 12.sp)
+                        Text(text = viewState.editCommentSaveBtn, fontSize = 12.sp)
                     }
                 }
 
@@ -350,7 +366,7 @@ fun TodoCommentContent(commentList: List<Comment>, issueNum: String, viewModel: 
                 }
                 else {
                     commentList.forEachIndexed { index, comment ->
-                        TodoCommentItem(comment, index != commentList.lastIndex)
+                        TodoCommentItem(comment, viewModel, index != commentList.lastIndex)
                     }
                 }
             }
@@ -359,7 +375,11 @@ fun TodoCommentContent(commentList: List<Comment>, issueNum: String, viewModel: 
 }
 
 @Composable
-fun TodoCommentItem(comment: Comment, hasDivider: Boolean = true) {
+fun TodoCommentItem(
+    comment: Comment,
+    viewModel: TodoDetailViewModel,
+    hasDivider: Boolean = true
+) {
     Column(Modifier.padding(4.dp)) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
             .fillMaxWidth()
@@ -378,10 +398,28 @@ fun TodoCommentItem(comment: Comment, hasDivider: Boolean = true) {
                 )
                 Column(modifier = Modifier.padding(start = 2.dp)) {
                     Text(text = comment.user.name, fontSize = 14.sp)
-                    Text(text = Utils.getDateTimeString(comment.createdAt, "M.dd hh:mm:ss"), fontSize = 10.sp)
+                    Text(text = Utils.getDateTimeString(comment.createdAt, "M月dd日 hh:mm:ss"), fontSize = 10.sp)
                 }
             }
-            Text(text = "更新于 ${Utils.getDateTimeString(comment.updatedAt, "M.dd hh:mm:ss")}", fontSize = 8.sp)
+            Column(verticalArrangement = Arrangement.SpaceBetween) {
+                Row(horizontalArrangement = Arrangement.End) {
+                    Icon(Icons.Outlined.Edit,
+                        contentDescription = "编辑",
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable {
+                                viewModel.dispatch(TodoDetailViewAction.ClickEditComment(comment))
+                            })
+
+                    Icon(Icons.Outlined.Delete,
+                        contentDescription = "删除",
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(16.dp)
+                            .clickable { viewModel.dispatch(TodoDetailViewAction.ClickDeleteComment(comment.id)) })
+                }
+                //Text(text = "更新于 ${Utils.getDateTimeString(comment.updatedAt, "M月dd日 hh:mm:ss")}", fontSize = 8.sp)
+            }
         }
         RichText(Modifier.padding(bottom = 8.dp, start = 4.dp)) {
             Markdown(content = comment.body)

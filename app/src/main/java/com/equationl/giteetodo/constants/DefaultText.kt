@@ -26,7 +26,7 @@ object DefaultText {
         - 查看某个 ISSUE 详情
         - 编辑某个 ISSUE 详情
         - 支持标签（label）管理
-        - 支持查看、新建 ISSUE 评论
+        - 支持查看、新建、编辑、删除 ISSUE 评论
         - 适配深色模式
         
         ### 源码地址

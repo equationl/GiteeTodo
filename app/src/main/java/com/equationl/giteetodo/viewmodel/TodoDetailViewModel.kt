@@ -50,43 +50,115 @@ class TodoDetailViewModel: ViewModel() {
             is TodoDetailViewAction.LoadComment -> loadComment(action.issueNum)
             is TodoDetailViewAction.ClickSaveComment -> clickSaveComment(action.issueNum)
             is TodoDetailViewAction.OnNewCommentChange -> onNewCommentChange(action.value)
+            is TodoDetailViewAction.ClickDeleteComment -> clickDeleteComment(action.id)
+            is TodoDetailViewAction.ClickEditComment -> clickEditComment(action.comment)
         }
     }
 
-    private fun clickSaveComment(issueNum: String) {
+    private fun clickDeleteComment(id: Int) {
         viewModelScope.launch(exception) {
             val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
             val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
 
-            val response = repoApi.createComment(
+            val response = repoApi.deleteComment(
                 repoPath.split("/")[0],
                 repoPath.split("/")[1],
-                issueNum,
-                CreateComment(token, viewStates.newComment)
+                id,
+                token
             )
+
+            if (response.isSuccessful) {
+                val newCommentList = arrayListOf<Comment>()
+                newCommentList.addAll(viewStates.commentList)
+                newCommentList.removeIf {
+                    it.id == id
+                }
+
+                viewStates = viewStates.copy(commentList = newCommentList)
+                _viewEvents.send(TodoDetailViewEvent.ShowMessage("删除成功!"))
+            }
+            else {
+                val result = kotlin.runCatching {
+                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("删除失败："+response.errorBody()?.string()))
+                }
+                if (result.isFailure) {
+                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("创建失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
+                }
+            }
+        }
+    }
+
+    private fun clickEditComment(comment: Comment) {
+        viewStates = viewStates.copy(newComment = comment.body, editCommentId = comment.id, editCommentLabel = "编辑 ${comment.id}", editCommentSaveBtn = "更新")
+    }
+
+    private fun clickSaveComment(issueNum: String) {
+        viewModelScope.launch(exception) {
+            val tipText = if (viewStates.editCommentId == -1) "创建评论" else "更新评论"
+
+            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+
+            val response = if (viewStates.editCommentId == -1) {
+                repoApi.createComment(
+                    repoPath.split("/")[0],
+                    repoPath.split("/")[1],
+                    issueNum,
+                    CreateComment(token, viewStates.newComment)
+                )
+            }
+            else {
+                repoApi.updateComment(
+                    repoPath.split("/")[0],
+                    repoPath.split("/")[1],
+                    viewStates.editCommentId,
+                    CreateComment(
+                        token,
+                        viewStates.newComment
+                    )
+                )
+            }
 
             if (response.isSuccessful) {
                 val newComment = response.body()
                 if (newComment != null) {
                     val newCommentList = arrayListOf<Comment>()
                     newCommentList.addAll(viewStates.commentList)
-                    newCommentList.add(newComment)
+                    if (viewStates.editCommentId == -1) {
+                        newCommentList.add(newComment)
+                    }
+                    else {
+                        val index = newCommentList.indexOfFirst { it.id == newComment.id }
+                        if (index == -1) {
+                            loadComment(issueNum)
+                            return@launch
+                        }
+                        else {
+                            newCommentList[index] = newComment
+                        }
+                    }
 
-                    viewStates = viewStates.copy(commentList = newCommentList, newComment = "")
+                    viewStates = viewStates.copy(
+                        commentList = newCommentList,
+                        newComment = "",
+                        editCommentSaveBtn = "发送",
+                        editCommentLabel = "评论(支持Markdown)",
+                        editCommentId = -1
+                    )
                 }
                 else {
                     loadComment(issueNum)
                 }
-                _viewEvents.send(TodoDetailViewEvent.ShowMessage("创建评论成功"))
+                _viewEvents.send(TodoDetailViewEvent.ShowMessage("${tipText}成功"))
             }
             else {
                 viewStates = viewStates.copy(isLoading = false)
 
                 val result = kotlin.runCatching {
-                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("创建评论失败："+response.errorBody()?.string()))
+                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("${tipText}失败："+response.errorBody()?.string()))
                 }
                 if (result.isFailure) {
-                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("创建评论失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
+                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("${tipText}失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
                 }
             }
         }
@@ -340,6 +412,9 @@ data class TodoDetailViewState(
     val isLoading: Boolean = true,
     val isShowLabelsDropMenu: Boolean = false,
     val isShowStateDropMenu: Boolean = false,
+    val editCommentId: Int = -1,
+    val editCommentLabel: String = "评论(支持Markdown)",
+    val editCommentSaveBtn: String = "发送",
     val availableLabels: MutableMap<String, Boolean> = mutableMapOf(),
     val commentList: List<Comment> = listOf()
 )
@@ -361,4 +436,6 @@ sealed class TodoDetailViewAction {
     data class UpdateLabels(val labels: MutableMap<String, Boolean>): TodoDetailViewAction()
     data class OnNewCommentChange(val value: String): TodoDetailViewAction()
     data class ClickSaveComment(val issueNum: String): TodoDetailViewAction()
+    data class ClickDeleteComment(val id: Int): TodoDetailViewAction()
+    data class ClickEditComment(val comment: Comment): TodoDetailViewAction()
 }

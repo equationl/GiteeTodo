@@ -13,23 +13,28 @@ import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.*
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.PagerState
+import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun HomeScreen(navController: NavHostController, repoPath: String) {
     val viewModel: TodoHomeViewModel = viewModel()
     val viewState = viewModel.viewStates
     val activity = (LocalContext.current as? Activity)
+    val pagerState = rememberPagerState()
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()
 
@@ -61,7 +66,7 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
                 }
             },
             bottomBar = {
-                HomeBottomBar(viewState, viewModel)
+                HomeBottomBar(viewState, pagerState)
             },
             floatingActionButton = {
                 HomeFloatActionBar(viewState.currentPage, viewModel)
@@ -78,22 +83,36 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
                 Modifier
                     .background(MaterialTheme.colors.baseBackground)
                     .fillMaxSize()
-                    .padding(bottom = it.calculateBottomPadding())) {
-                HomeContent(viewState.currentPage, viewModel, navController, repoPath, scaffoldState)
+                    .padding(bottom = it.calculateBottomPadding())
+            ) {
+                HomeContent(pagerState, navController, repoPath, scaffoldState)
+            }
+        }
+    }
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            if (page == CurrentPager.HOME_TODO.ordinal) {
+                viewModel.dispatch(TodoHomeViewAction.GoToTodo(repoPath))
+            }
+
+            if (page == CurrentPager.HOME_ME.ordinal) {
+                viewModel.dispatch(TodoHomeViewAction.GoToMe(repoPath))
             }
         }
     }
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HomeContent(currentPager: CurrentPager, viewModel: TodoHomeViewModel, navController: NavHostController, repoPath: String, scaffoldState: ScaffoldState) {
-    if (currentPager == CurrentPager.HOME_TODO) {
-        viewModel.dispatch(TodoHomeViewAction.ChangeTitle(repoPath.split("/")[1]))
-        TodoListScreen(navController, repoPath, scaffoldState)
-    }
-    else if (currentPager == CurrentPager.HOME_ME) {
-        viewModel.dispatch(TodoHomeViewAction.ChangeTitle(repoPath.split("/")[0]))
-        ProfileScreen(navController, scaffoldState, repoPath)
+fun HomeContent(pagerState: PagerState, navController: NavHostController, repoPath: String, scaffoldState: ScaffoldState) {
+    HorizontalPager(count = 2,
+        state = pagerState
+    ) { page ->
+        when (page) {
+            0 -> TodoListScreen(navController, repoPath, scaffoldState)
+            1 -> ProfileScreen(navController, scaffoldState, repoPath)
+        }
     }
 }
 
@@ -126,14 +145,18 @@ fun HomeTopBarAction(currentPager: CurrentPager, viewModel: TodoHomeViewModel) {
     }
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HomeBottomBar(viewState: TodoHomeViewState, viewModel: TodoHomeViewModel) {
+fun HomeBottomBar(viewState: TodoHomeViewState, pagerState: PagerState) {
+    val scope = rememberCoroutineScope()
     BottomAppBar {
         Column(horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .clickable {
-                    viewModel.dispatch(TodoHomeViewAction.GoToTodo)
+                    scope.launch {
+                        pagerState.animateScrollToPage(CurrentPager.HOME_TODO.ordinal)
+                    }
                 }
                 .fillMaxWidth()
                 .weight(1f)) {
@@ -145,7 +168,9 @@ fun HomeBottomBar(viewState: TodoHomeViewState, viewModel: TodoHomeViewModel) {
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .clickable {
-                    viewModel.dispatch(TodoHomeViewAction.GoToMe)
+                    scope.launch {
+                        pagerState.animateScrollToPage(CurrentPager.HOME_ME.ordinal)
+                    }
                 }
                 .fillMaxWidth()
                 .weight(1f)) {
@@ -153,10 +178,4 @@ fun HomeBottomBar(viewState: TodoHomeViewState, viewModel: TodoHomeViewModel) {
             Text("我的", color = viewState.meTextColor)
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewTodoListHome() {
-    HomeScreen(navController = rememberNavController(), repoPath = "")
 }

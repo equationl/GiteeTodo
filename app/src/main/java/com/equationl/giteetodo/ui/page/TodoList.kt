@@ -1,7 +1,5 @@
 package com.equationl.giteetodo.ui.page
 
-import android.util.Log
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,14 +58,14 @@ fun TodoListScreen(navController: NavHostController, repoPath: String, scaffoldS
         }
     }
 
-    TodoListContent(viewState, viewModel, repoPath, navController)
+    Column(Modifier.fillMaxSize()) {
+        TodoListContent(viewState, viewModel, repoPath, navController)
+    }
 }
 
 @Composable
 fun TodoListContent(viewState: TodoListViewState, viewModel: TodoListViewModel, repoPath: String, navController: NavHostController) {
     val todoList = viewState.todoFlow.collectAsLazyPagingItems()
-
-    Log.i(TAG, "TodoListContent: loadState=${todoList.loadState}")
 
     if (todoList.loadState.refresh is LoadState.Error) {
         viewModel.dispatch(TodoListViewAction.SendMsg("加载错误："+ (todoList.loadState.refresh as LoadState.Error).error.message))

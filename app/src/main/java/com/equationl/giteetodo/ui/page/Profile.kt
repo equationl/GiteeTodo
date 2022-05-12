@@ -63,7 +63,9 @@ fun ProfileScreen(navHostController: NavHostController, scaffoldState: ScaffoldS
     }
 
     if (viewState.user != null) {
-        ProFileContent(viewState.user, navHostController, repoPath, viewModel)
+        Column(Modifier.fillMaxSize()) {
+            ProFileContent(viewState.user, navHostController, repoPath, viewModel)
+        }
     }
     else {
         ListEmptyContent(text = "用户信息为空，点击刷新") {

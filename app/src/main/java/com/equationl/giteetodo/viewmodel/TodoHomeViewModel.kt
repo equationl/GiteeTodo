@@ -28,11 +28,10 @@ class TodoHomeViewModel : ViewModel() {
     fun dispatch(action: TodoHomeViewAction) {
         when (action) {
             is TodoHomeViewAction.ChangeRepo -> changeRepo()
-            is TodoHomeViewAction.GoToMe -> goToMe()
-            is TodoHomeViewAction.GoToTodo -> goToTodo()
+            is TodoHomeViewAction.GoToMe -> goToMe(action.repoPath)
+            is TodoHomeViewAction.GoToTodo -> goToTodo(action.repoPath)
             is TodoHomeViewAction.AddATodo -> addATodo()
             is TodoHomeViewAction.Logout -> logout()
-            is TodoHomeViewAction.ChangeTitle -> changeTitle(action.title)
         }
     }
 
@@ -42,39 +41,31 @@ class TodoHomeViewModel : ViewModel() {
         }
     }
 
-    private fun goToMe() {
-        if (viewStates.currentPage != CurrentPager.HOME_ME) {
-            viewStates = viewStates.copy(
-                currentPage = CurrentPager.HOME_ME,
-                title = "我的",
-                homeIcon = Icons.Outlined.Home,
-                homeTextColor = Color.Gray,
-                meIcon = Icons.Filled.Person,
-                meTextColor = Color.White
-            )
-        }
+    private fun goToMe(repoPath: String) {
+        viewStates = viewStates.copy(
+            currentPage = CurrentPager.HOME_ME,
+            title = repoPath.split("/")[0],
+            homeIcon = Icons.Outlined.Home,
+            homeTextColor = Color.Gray,
+            meIcon = Icons.Filled.Person,
+            meTextColor = Color.White
+        )
     }
 
-    private fun goToTodo() {
-        if (viewStates.currentPage != CurrentPager.HOME_TODO) {
-            viewStates = viewStates.copy(
-                currentPage = CurrentPager.HOME_TODO,
-                title = "TODO TITLE",
-                homeIcon = Icons.Filled.Home,
-                homeTextColor = Color.White,
-                meIcon = Icons.Outlined.Person,
-                meTextColor = Color.Gray)
-        }
+    private fun goToTodo(repoPath: String) {
+        viewStates = viewStates.copy(
+            currentPage = CurrentPager.HOME_TODO,
+            title = repoPath.split("/")[1],
+            homeIcon = Icons.Filled.Home,
+            homeTextColor = Color.White,
+            meIcon = Icons.Outlined.Person,
+            meTextColor = Color.Gray)
     }
 
     private fun addATodo() {
         viewModelScope.launch {
             _viewEvents.send(TodoHomeViewEvent.Goto("${Route.TODO_DETAIL}/null"))
         }
-    }
-
-    private fun changeTitle(title: String) {
-        viewStates = viewStates.copy(title = title)
     }
 
     private fun logout() {
@@ -102,14 +93,13 @@ sealed class TodoHomeViewEvent {
 
 sealed class TodoHomeViewAction {
     object ChangeRepo : TodoHomeViewAction()
-    object GoToTodo: TodoHomeViewAction()
-    object GoToMe: TodoHomeViewAction()
+    data class GoToTodo(val repoPath: String): TodoHomeViewAction()
+    data class GoToMe(val repoPath: String): TodoHomeViewAction()
     object AddATodo: TodoHomeViewAction()
     object Logout: TodoHomeViewAction()
-    data class ChangeTitle(val title: String): TodoHomeViewAction()
 }
 
 enum class CurrentPager {
-    HOME_ME,
-    HOME_TODO
+    HOME_TODO,
+    HOME_ME
 }

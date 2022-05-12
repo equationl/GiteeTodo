@@ -35,6 +35,7 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 - retrofit2：网络请求库。
 - datastore： 以异步、一致的事务方式存储数据，克服了 SharedPreferences 的一些缺点。
 - coil：由 Kotlin Coroutines 支持的 Android 图像加载库。
+- Pager：一个用于在 Jetpack Compose 中构建分页布局的库，类似于 ViewPager。
 - compose-richtext： 用于在 compose 中显示富文本（包括 markdown）。
 - lottie： 在 Android 、 iOS、 Web 和 React Native 上原生渲染 After Effects 动画。
 - compose-material-dialogs： Jetpack Compose 的MD对话框。

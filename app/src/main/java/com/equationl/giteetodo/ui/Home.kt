@@ -1,25 +1,40 @@
 package com.equationl.giteetodo.ui
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.common.RouteParams
 import com.equationl.giteetodo.ui.page.*
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeNavHost() {
-    val navController = rememberNavController()
-    NavHost(navController, Route.LOGIN) {
+    val navController = rememberAnimatedNavController()
+    AnimatedNavHost(navController, Route.LOGIN) {
         composable(Route.LOGIN) {
             LoginScreen(navController)
         }
 
         composable(Route.OAuthLogin) {
             OAuthLoginScreen(navController)
+        }
+
+        composable(Route.ABOUT,
+            enterTransition = {
+                slideIntoContainer(AnimatedContentScope.SlideDirection.Left, animationSpec = tween(700))
+            },
+            exitTransition = {
+                slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))
+            }
+        ) {
+            AboutScreen(navController)
         }
 
         composable("${Route.HOME}/{${RouteParams.PAR_REPO_PATH}}",
@@ -35,11 +50,18 @@ fun HomeNavHost() {
         }
 
         composable("${Route.TODO_DETAIL}/{${RouteParams.PAR_ISSUE_NUM}}",
-        arguments = listOf(
-            navArgument(RouteParams.PAR_ISSUE_NUM) {
-                type = NavType.StringType
-                nullable = true}
-        )) {
+            arguments = listOf(
+                navArgument(RouteParams.PAR_ISSUE_NUM) {
+                    type = NavType.StringType
+                    nullable = true}
+            ),
+            enterTransition = {
+                slideIntoContainer(AnimatedContentScope.SlideDirection.Down, animationSpec = tween(700))
+            },
+            exitTransition = {
+                slideOutOfContainer(AnimatedContentScope.SlideDirection.Up, animationSpec = tween(700))
+            }
+        ) {
             val argument = requireNotNull(it.arguments)
             val issueNum = argument.getString(RouteParams.PAR_ISSUE_NUM) ?: "null"
             TodoDetailScreen(navController, issueNum)
@@ -49,7 +71,14 @@ fun HomeNavHost() {
             RepoDetailScreen(navController)
         }
 
-        composable(Route.REPO_LIST) {
+        composable(Route.REPO_LIST,
+            enterTransition = {
+                slideIntoContainer(AnimatedContentScope.SlideDirection.Up, animationSpec = tween(700))
+            },
+            exitTransition = {
+                slideOutOfContainer(AnimatedContentScope.SlideDirection.Down, animationSpec = tween(700))
+            }
+        ) {
             RepoListScreen(navController)
         }
 
@@ -58,7 +87,14 @@ fun HomeNavHost() {
                 navArgument(RouteParams.PAR_REPO_PATH) {
                     type = NavType.StringType
                     nullable = false}
-            )) {
+            ),
+            enterTransition = {
+                slideIntoContainer(AnimatedContentScope.SlideDirection.Left, animationSpec = tween(700))
+            },
+            exitTransition = {
+                slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))
+            }
+        ) {
             val argument = requireNotNull(it.arguments)
             val repoPath = argument.getString(RouteParams.PAR_REPO_PATH) ?: "null/null"
             LabelManagerScreen(repoPath = repoPath, navController = navController)

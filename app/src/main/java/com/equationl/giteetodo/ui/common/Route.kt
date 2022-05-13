@@ -8,6 +8,7 @@ object Route {
     const val HOME = "home"
     const val LABEL_MG = "labelMg"
     const val OAuthLogin = "OAuthLogin"
+    const val ABOUT = "about"
 }
 
 object RouteParams {

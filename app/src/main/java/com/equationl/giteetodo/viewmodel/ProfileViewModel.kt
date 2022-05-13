@@ -34,7 +34,6 @@ class ProfileViewModel : ViewModel() {
     fun dispatch(action: ProfileViewAction) {
         when (action) {
             is ProfileViewAction.ReadUserInfo -> readUserInfo()
-            is ProfileViewAction.ChangeAboutDialogShowState -> changeAboutDialogShow(action.isShow)
             is ProfileViewAction.ShowMessage -> showMessage(action.msg)
         }
     }
@@ -43,10 +42,6 @@ class ProfileViewModel : ViewModel() {
         viewModelScope.launch {
             _viewEvents.send(ProfileViewEvent.ShowMessage(msg))
         }
-    }
-
-    private fun changeAboutDialogShow(isShow: Boolean) {
-        viewStates = viewStates.copy(isShowAboutDialog = isShow)
     }
 
     private fun readUserInfo() {
@@ -78,7 +73,6 @@ class ProfileViewModel : ViewModel() {
 
 data class ProfileViewState(
     val user: User? = null,
-    val isShowAboutDialog: Boolean = false
 )
 
 sealed class ProfileViewEvent {
@@ -88,6 +82,5 @@ sealed class ProfileViewEvent {
 
 sealed class ProfileViewAction {
     object ReadUserInfo: ProfileViewAction()
-    data class ChangeAboutDialogShowState(val isShow: Boolean): ProfileViewAction()
     data class ShowMessage(val msg: String): ProfileViewAction()
 }

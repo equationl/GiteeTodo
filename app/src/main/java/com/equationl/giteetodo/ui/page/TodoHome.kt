@@ -20,7 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.ui.theme.baseBackground
-import com.equationl.giteetodo.ui.widgets.TopBar
+import com.equationl.giteetodo.ui.widgets.HomeTopBar
 import com.equationl.giteetodo.viewmodel.*
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -56,8 +56,9 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
     MaterialTheme {
         Scaffold(
             topBar = {
-                TopBar(viewState.title,
+                HomeTopBar(viewState.title,
                     navigationIcon = Icons.Outlined.Close,
+                    currentPager = viewState.currentPage,
                     actions = {
                         HomeTopBarAction(viewState.currentPage, viewModel)
                     }) {

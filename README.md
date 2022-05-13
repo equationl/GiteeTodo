@@ -30,7 +30,7 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 *基本架构： [MVI](https://juejin.cn/post/7048980213811642382)*
 
 - viewmodel： ViewModel 类旨在以注重生命周期的方式存储和管理界面相关的数据。
-- navigation： 构建和组织应用内界面，处理深层链接以及在屏幕之间导航。
+- Navigation-Animation： 为 Navigation 提供动画支持的库。
 - paging： 使用 Paging 库，您可以更轻松地在应用的 RecyclerView 中逐步妥善地加载数据。
 - retrofit2：网络请求库。
 - datastore： 以异步、一致的事务方式存储数据，克服了 SharedPreferences 的一些缺点。

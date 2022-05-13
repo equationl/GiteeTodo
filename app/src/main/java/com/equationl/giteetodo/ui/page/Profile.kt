@@ -26,10 +26,8 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.equationl.giteetodo.R
-import com.equationl.giteetodo.constants.DefaultText
 import com.equationl.giteetodo.data.user.model.response.User
 import com.equationl.giteetodo.ui.common.Route
-import com.equationl.giteetodo.ui.widgets.BaseMsgDialog
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.viewmodel.ProfileViewAction
 import com.equationl.giteetodo.viewmodel.ProfileViewEvent
@@ -70,12 +68,6 @@ fun ProfileScreen(navHostController: NavHostController, scaffoldState: ScaffoldS
     else {
         ListEmptyContent(text = "用户信息为空，点击刷新") {
             viewModel.dispatch(ProfileViewAction.ReadUserInfo)
-        }
-    }
-
-    if (viewState.isShowAboutDialog) {
-        BaseMsgDialog(message = DefaultText.AboutContent.trimIndent(), confirmText = "确定") {
-            viewModel.dispatch(ProfileViewAction.ChangeAboutDialogShowState(false))
         }
     }
 }
@@ -143,7 +135,7 @@ fun ProFileContent(user: User, navHostController: NavHostController, repoPath: S
                 iconDescription = "关于",
                 title = "关于"
             ) {
-                viewModel.dispatch(ProfileViewAction.ChangeAboutDialogShowState(true))
+                navHostController.navigate(Route.ABOUT)
             }
 
             Divider()

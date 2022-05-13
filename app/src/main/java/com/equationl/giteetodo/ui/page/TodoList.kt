@@ -295,10 +295,7 @@ fun TodoListDateTimePicker(showState: MaterialDialogState, viewModel: TodoListVi
             negativeButton("取消")
         }
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            Text(tipText)
-        }
-        datepicker { date ->
+        datepicker(title = tipText) { date ->
             viewModel.dispatch(TodoListViewAction.FilterDate(date, isStartDate))
         }
     }

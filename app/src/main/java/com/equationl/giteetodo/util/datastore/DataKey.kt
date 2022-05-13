@@ -10,4 +10,5 @@ object DataKey {
     const val UsingRepo = "using_repo"
 
     const val UserInfo = "user_info_string"
+    const val ExistLabel = "exist_label"
 }

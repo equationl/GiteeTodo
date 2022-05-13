@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.repos.model.request.CreateLabel
 import com.equationl.giteetodo.data.repos.model.response.Label
+import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -33,7 +34,7 @@ class LabelMgViewModel : ViewModel() {
     fun dispatch(action: LabelMgViewAction) {
         when (action) {
             is LabelMgViewAction.ClickAddLabel -> clickAddLabel()
-            is LabelMgViewAction.LoadLabel -> loadLabel(action.repoPath)
+            is LabelMgViewAction.LoadLabel -> loadLabel(action.forceRequest, action.isShowSuccessAlt)
             is LabelMgViewAction.ClickEditLabel -> clickEditLabel(action.pos)
             is LabelMgViewAction.DeleteLabel -> deleteLabel(action.label, action.repoPath)
             is LabelMgViewAction.InitEdit -> initEdit(action.label)
@@ -65,7 +66,7 @@ class LabelMgViewModel : ViewModel() {
             }
 
             if (response.isSuccessful) {
-                loadLabel(repoPath)
+                loadLabel(true)
             }
             else {
                 val result = kotlin.runCatching {
@@ -118,7 +119,7 @@ class LabelMgViewModel : ViewModel() {
                     _viewEvents.send(LabelMgViewEvent.ShowMessage("删除标签失败，获取失败信息失败：${result.exceptionOrNull()?.message ?: ""}"))
                 }
                 // 重新加载标签
-                loadLabel(repoPath)
+                loadLabel(true)
             }
         }
     }
@@ -135,26 +136,17 @@ class LabelMgViewModel : ViewModel() {
         }
     }
 
-    private fun loadLabel(repoPath: String) {
+    private fun loadLabel(forceRequest: Boolean, isShowSuccessAlt: Boolean = false) {
         viewModelScope.launch(exception) {
-            val accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
-            val response = repoApi.getExistLabels(
-                repoPath.split("/")[0],
-                repoPath.split("/")[1],
-                accessToken
-            )
-
-            if (response.isSuccessful) {
-                val labels = response.body() ?: listOf()
-                viewStates = viewStates.copy(labelList = labels as MutableList<Label>, editPos = -1, editColor = "", editName = "")
+            val labelList = Utils.getExistLabel(forceRequest)
+            if (labelList.isEmpty()) {
+                _viewEvents.send(LabelMgViewEvent.ShowMessage("获取标签失败"))
             }
             else {
-                val result = kotlin.runCatching {
-                    _viewEvents.send(LabelMgViewEvent.ShowMessage("获取标签失败"+response.errorBody()?.string()))
+                if (isShowSuccessAlt) {
+                    _viewEvents.send(LabelMgViewEvent.ShowMessage("加载成功！"))
                 }
-                if (result.isFailure) {
-                    _viewEvents.send(LabelMgViewEvent.ShowMessage("获取标签失败，获取失败信息失败：${result.exceptionOrNull()?.message ?: ""}"))
-                }
+                viewStates = viewStates.copy(labelList = labelList as MutableList<Label>, editPos = -1, editColor = "", editName = "")
             }
         }
     }
@@ -175,7 +167,7 @@ sealed class LabelMgViewEvent {
 sealed class LabelMgViewAction {
     object ClickAddLabel: LabelMgViewAction()
     data class ClickEditLabel(val pos: Int): LabelMgViewAction()
-    data class LoadLabel(val repoPath: String): LabelMgViewAction()
+    data class LoadLabel(val forceRequest: Boolean, val isShowSuccessAlt: Boolean = false): LabelMgViewAction()
     data class DeleteLabel(val label: Label, val repoPath: String): LabelMgViewAction()
     data class InitEdit(val label: Label?): LabelMgViewAction()
     data class OnEditNameChange(val value: String): LabelMgViewAction()

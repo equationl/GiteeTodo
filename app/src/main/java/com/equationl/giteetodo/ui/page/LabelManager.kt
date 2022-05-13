@@ -10,6 +10,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -49,7 +50,7 @@ fun LabelManagerScreen(repoPath: String, navController: NavHostController) {
     val coroutineState = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
-        viewModel.dispatch(LabelMgViewAction.LoadLabel(repoPath))
+        viewModel.dispatch(LabelMgViewAction.LoadLabel(false))
         onDispose {  }
     }
 
@@ -70,13 +71,17 @@ fun LabelManagerScreen(repoPath: String, navController: NavHostController) {
     MaterialTheme {
         Scaffold(
             topBar = {
-                TopBar("标签管理", actions = {
-                    IconButton(onClick = {
-                        viewModel.dispatch(LabelMgViewAction.ClickAddLabel)
-                    }) {
-                        Icon(Icons.Outlined.Add, "添加标签")
+                TopBar("标签管理",
+                    actions = {
+                        IconButton(onClick = {
+                            viewModel.dispatch(LabelMgViewAction.LoadLabel(forceRequest = true, isShowSuccessAlt = true)) }) {
+                            Icon(Icons.Outlined.SyncAlt, "同步标签")
+                        }
+                        IconButton(onClick = { viewModel.dispatch(LabelMgViewAction.ClickAddLabel) }) {
+                            Icon(Icons.Outlined.Add, "添加标签")
+                        }
                     }
-                }) {
+                ) {
                     navController.popBackStack()
                 }
             },
@@ -89,7 +94,7 @@ fun LabelManagerScreen(repoPath: String, navController: NavHostController) {
         {
             if (viewState.labelList.isEmpty()) {
                 ListEmptyContent(text = "暂无标签，点击刷新或点击右上角新建") {
-                    viewModel.dispatch(LabelMgViewAction.LoadLabel(repoPath))
+                    viewModel.dispatch(LabelMgViewAction.LoadLabel(true))
                 }
             }
             else {

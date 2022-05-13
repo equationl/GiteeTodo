@@ -15,6 +15,7 @@ import com.equationl.giteetodo.data.repos.model.pagingSource.IssuesPagingSource
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
+import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -160,18 +161,17 @@ class TodoListViewModel: ViewModel() {
     private fun changeLabelsDropMenuShowState(isShow: Boolean) {
         if (isShow) {
             viewModelScope.launch(exception) {
-                val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-                val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
-                val response = reposApi.getExistLabels(
-                    repoPath.split("/")[0],
-                    repoPath.split("/")[1],
-                    token
-                )
-                if (response.isSuccessful) {
+                val labelList = Utils.getExistLabel()
+
+                if (labelList.isEmpty()) {
+                    viewStates = viewStates.copy(isShowLabelsDropMenu = false)
+                    _viewEvents.send(TodoListViewEvent.ShowMessage("加载标签失败"))
+                }
+                else {
                     val selectedLabels = queryFlow.value.labels
 
                     val showLabelMap = mutableMapOf<String, Boolean>()
-                    for (label in response.body() ?: listOf()) {
+                    for (label in labelList) {
                         showLabelMap[label.name] = false
                     }
 
@@ -183,16 +183,6 @@ class TodoListViewModel: ViewModel() {
                     }
 
                     viewStates = viewStates.copy(isShowLabelsDropMenu = isShow, availableLabels = showLabelMap)
-                }
-                else {
-                    viewStates = viewStates.copy(isShowLabelsDropMenu = false)
-
-                    val result = kotlin.runCatching {
-                        _viewEvents.send(TodoListViewEvent.ShowMessage("加载标签失败："+response.errorBody()?.string()))
-                    }
-                    if (result.isFailure) {
-                        _viewEvents.send(TodoListViewEvent.ShowMessage("加载标签失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
-                    }
                 }
             }
         }

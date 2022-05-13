@@ -214,16 +214,14 @@ class TodoDetailViewModel: ViewModel() {
     private fun labelsDropMenuShowState(isShow: Boolean) {
         if (isShow) {
             viewModelScope.launch(exception) {
-                val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-                val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
-                val response = repoApi.getExistLabels(
-                    repoPath.split("/")[0],
-                    repoPath.split("/")[1],
-                    token
-                )
-                if (response.isSuccessful) {
+                val labelList = Utils.getExistLabel()
+                if (labelList.isEmpty()) {
+                    viewStates = viewStates.copy(isShowLabelsDropMenu = false)
+                    _viewEvents.send(TodoDetailViewEvent.ShowMessage("加载标签失败"))
+                }
+                else {
                     val showLabelMap = mutableMapOf<String, Boolean>()
-                    for (label in response.body() ?: listOf()) {
+                    for (label in labelList) {
                         showLabelMap[label.name] = false
                     }
 
@@ -235,16 +233,6 @@ class TodoDetailViewModel: ViewModel() {
                     }
 
                     viewStates = viewStates.copy(isShowLabelsDropMenu = isShow, availableLabels = showLabelMap)
-                }
-                else {
-                    viewStates = viewStates.copy(isShowLabelsDropMenu = false)
-
-                    val result = kotlin.runCatching {
-                        _viewEvents.send(TodoDetailViewEvent.ShowMessage("加载标签失败："+response.errorBody()?.string()))
-                    }
-                    if (result.isFailure) {
-                        _viewEvents.send(TodoDetailViewEvent.ShowMessage("加载标签失败，获取失败信息错误：${result.exceptionOrNull()?.message ?: ""}"))
-                    }
                 }
             }
         }

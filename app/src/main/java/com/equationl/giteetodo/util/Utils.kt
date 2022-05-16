@@ -1,6 +1,7 @@
 package com.equationl.giteetodo.util
 
 import android.util.Log
+import android.webkit.CookieManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.equationl.giteetodo.data.RetrofitManger
@@ -86,6 +87,11 @@ object Utils {
                 emptyList()
             }
         }
+    }
+
+    fun clearCookies() {
+        CookieManager.getInstance().removeAllCookies(null)
+        CookieManager.getInstance().flush()
     }
 
     val String.toColor

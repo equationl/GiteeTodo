@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.ui.common.Route
+import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -70,6 +71,7 @@ class TodoHomeViewModel : ViewModel() {
 
     private fun logout() {
         viewModelScope.launch {
+            Utils.clearCookies()
             DataStoreUtils.clear()
             _viewEvents.send(TodoHomeViewEvent.Goto(Route.LOGIN))
         }

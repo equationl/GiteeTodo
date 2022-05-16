@@ -96,8 +96,8 @@ fun CustomWebView(
             this.settings.builtInZoomControls = false
             this.settings.displayZoomControls = false
             this.settings.domStorageEnabled = true
-            this.settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NARROW_COLUMNS
-            this.settings.setAppCacheEnabled(true)
+            this.settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
+            //this.settings.setAppCacheEnabled(true)
             initSettings(this.settings)
             webView = this
             loadUrl(url)

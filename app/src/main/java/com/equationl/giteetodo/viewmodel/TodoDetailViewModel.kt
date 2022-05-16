@@ -324,6 +324,7 @@ class TodoDetailViewModel: ViewModel() {
         viewStates = viewStates.copy(isEditAble = false)
         viewModelScope.launch(exception) {
             if (viewStates.title.isBlank()) {
+                viewStates = viewStates.copy(isEditAble = true)
                 _viewEvents.send(TodoDetailViewEvent.ShowMessage("请至少输入标题！"))
                 return@launch
             }

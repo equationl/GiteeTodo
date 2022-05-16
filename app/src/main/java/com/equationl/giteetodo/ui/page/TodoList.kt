@@ -121,18 +121,23 @@ fun TodoListContent(viewState: TodoListViewState, viewModel: TodoListViewModel, 
 @Composable
 fun TodoCardScreen(data: TodoCardData, navController: NavHostController, viewModel: TodoListViewModel, repoPath: String) {
     Card(modifier = Modifier
-        .heightIn(20.dp, 800.dp)
+        .heightIn(20.dp, Int.MAX_VALUE.dp)
         .padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column(Modifier.padding(8.dp)) {
             Text(text = data.createDate, Modifier.padding(8.dp))
 
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.fillMaxSize()) {
+                data.itemArray.forEach {
+                    TodoItem(navController, it, viewModel, repoPath)
+                }
+            }
+            /*LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 data.itemArray.forEach {
                     item(key = it.number) {
                         TodoItem(navController, it, viewModel, repoPath)
                     }
                 }
-            }
+            }*/
         }
     }
 }

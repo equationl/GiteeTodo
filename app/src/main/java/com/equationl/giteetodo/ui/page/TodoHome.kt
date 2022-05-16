@@ -161,7 +161,7 @@ fun HomeBottomBar(viewState: TodoHomeViewState, pagerState: PagerState) {
                 }
                 .fillMaxWidth()
                 .weight(1f)) {
-            Icon(viewState.homeIcon, "Home")
+            Icon(viewState.homeIcon, "首页", tint = viewState.homeTextColor)
             Text("首页", color = viewState.homeTextColor)
         }
         Spacer(Modifier.weight(1f, true))
@@ -175,7 +175,7 @@ fun HomeBottomBar(viewState: TodoHomeViewState, pagerState: PagerState) {
                 }
                 .fillMaxWidth()
                 .weight(1f)) {
-            Icon(viewState.meIcon, "Me")
+            Icon(viewState.meIcon, "我的", tint = viewState.meTextColor)
             Text("我的", color = viewState.meTextColor)
         }
     }

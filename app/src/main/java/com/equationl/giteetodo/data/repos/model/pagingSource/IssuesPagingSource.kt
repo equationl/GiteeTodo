@@ -1,6 +1,5 @@
 package com.equationl.giteetodo.data.repos.model.pagingSource
 
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.equationl.giteetodo.data.repos.ReposApi
@@ -80,14 +79,14 @@ class IssuesPagingSource(
 
         for (issue in issueList) {
             val issueDate = Utils.getDateTimeString(issue.createdAt)
-            Log.i(TAG, "loadIssues: issue=${issue.title}, date=${issue.createdAt}, currentDate=$currentDate, issueDate=$issueDate")
+            //Log.i(TAG, "loadIssues: issue=${issue.title}, date=${issue.createdAt}, currentDate=$currentDate, issueDate=$issueDate")
             if (issueDate != currentDate) {
                 val tempItem: ArrayList<TodoCardItemData> = arrayListOf()
                 tempItem.addAll(currentItem)
                 todoCardDataList.add(
                     TodoCardData(currentDate, tempItem)
                 )
-                Log.i(TAG, "loadIssues: 添加：$currentDate, $tempItem, $currentItem")
+                //Log.i(TAG, "loadIssues: 添加：$currentDate, $tempItem, $currentItem")
                 currentDate = issueDate
                 currentItem.clear()
 
@@ -110,7 +109,7 @@ class IssuesPagingSource(
             TodoCardData(currentDate, tempItem)
         )
 
-        Log.i(TAG, "loadIssues: cardList=$todoCardDataList")
+        //Log.i(TAG, "loadIssues: cardList=$todoCardDataList")
         return todoCardDataList
     }
 }

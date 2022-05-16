@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.equationl.giteetodo.R
@@ -28,6 +29,8 @@ import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.ui.widgets.noRippleClickable
 import com.equationl.giteetodo.viewmodel.*
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.MaterialDialogState
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -65,52 +68,73 @@ fun TodoListScreen(navController: NavHostController, repoPath: String, scaffoldS
 
 @Composable
 fun TodoListContent(viewState: TodoListViewState, viewModel: TodoListViewModel, repoPath: String, navController: NavHostController) {
-    val todoList = viewState.todoFlow.collectAsLazyPagingItems()
+    val todoPagingItems = viewState.todoFlow.collectAsLazyPagingItems()
+    val rememberSwipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
 
-    if (todoList.loadState.refresh is LoadState.Error) {
-        viewModel.dispatch(TodoListViewAction.SendMsg("加载错误："+ (todoList.loadState.refresh as LoadState.Error).error.message))
+    if (todoPagingItems.loadState.refresh is LoadState.Error) {
+        viewModel.dispatch(TodoListViewAction.SendMsg("加载错误："+ (todoPagingItems.loadState.refresh as LoadState.Error).error.message))
     }
 
-    if (todoList.itemCount < 1) {
-        if (todoList.loadState.refresh == LoadState.Loading) {
+    if (todoPagingItems.itemCount < 1) {
+        if (todoPagingItems.loadState.refresh == LoadState.Loading) {
             LoadDataContent("正在加载中…")
         }
         else {
             // 筛选类型
             TodoFilterContent(viewState, viewModel)
             ListEmptyContent("还没有数据哦，点击立即刷新\n或点击下方 ”+“ 添加数据；也可以点击右上角切换仓库哦") {
-                todoList.refresh()
+                todoPagingItems.refresh()
             }
         }
     }
     else {
-        LazyColumn {
-            item(key = "headerFilter") {
-                // 筛选类型
-                TodoFilterContent(viewState, viewModel)
-            }
+        rememberSwipeRefreshState.isRefreshing = (todoPagingItems.loadState.refresh is LoadState.Loading)
 
-            itemsIndexed(todoList, key = {_, item -> item.itemArray.toString()}) { _, item ->
-                if (item != null) {
-                    TodoCardScreen(item, navController, viewModel, repoPath)
-                }
+        SwipeRefresh(
+            state = rememberSwipeRefreshState,
+            onRefresh = {
+                todoPagingItems.refresh()
             }
+        ) {
+            TodoListLazyColumn(viewState, viewModel, todoPagingItems, navController, repoPath)
+        }
+    }
+}
 
-            item {
-                when (todoList.loadState.append) {
-                    is LoadState.NotLoading -> {}
-                    LoadState.Loading -> {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            Text("加载中")
-                        }
+@Composable
+fun TodoListLazyColumn(
+    viewState: TodoListViewState,
+    viewModel: TodoListViewModel,
+    todoPagingItems: LazyPagingItems<TodoCardData>,
+    navController: NavHostController,
+    repoPath: String
+) {
+    LazyColumn {
+        item(key = "headerFilter") {
+            // 筛选类型
+            TodoFilterContent(viewState, viewModel)
+        }
+
+        itemsIndexed(todoPagingItems, key = { _, item -> item.itemArray.toString()}) { _, item ->
+            if (item != null) {
+                TodoCardScreen(item, navController, viewModel, repoPath)
+            }
+        }
+
+        item {
+            when (todoPagingItems.loadState.append) {
+                is LoadState.NotLoading -> {}
+                LoadState.Loading -> {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        Text("加载中")
                     }
-                    is LoadState.Error -> {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            LinkText("加载失败，点击重试") {
-                                todoList.retry()
-                            }
-                            viewModel.dispatch(TodoListViewAction.SendMsg("加载出错："+ (todoList.loadState.append as LoadState.Error).error.toString()))
+                }
+                is LoadState.Error -> {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        LinkText("加载失败，点击重试") {
+                            todoPagingItems.retry()
                         }
+                        viewModel.dispatch(TodoListViewAction.SendMsg("加载出错："+ (todoPagingItems.loadState.append as LoadState.Error).error.toString()))
                     }
                 }
             }

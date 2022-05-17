@@ -267,6 +267,9 @@ class LoginViewModel: ViewModel() {
                         loginByAccess()
                     }
                 }
+
+                // 检测完毕后就恢复成默认模式
+                loginMethod = LoginMethod.Email
             }
         }
     }

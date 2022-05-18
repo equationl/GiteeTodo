@@ -29,6 +29,9 @@ import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.ui.widgets.noRippleClickable
 import com.equationl.giteetodo.viewmodel.*
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material.fade
+import com.google.accompanist.placeholder.material.placeholder
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vanpra.composematerialdialogs.MaterialDialog
@@ -94,9 +97,10 @@ fun TodoListContent(viewState: TodoListViewState, viewModel: TodoListViewModel, 
             state = rememberSwipeRefreshState,
             onRefresh = {
                 todoPagingItems.refresh()
-            }
+            },
+            modifier = Modifier.fillMaxSize()
         ) {
-            TodoListLazyColumn(viewState, viewModel, todoPagingItems, navController, repoPath)
+            TodoListLazyColumn(viewState, viewModel, todoPagingItems, navController, repoPath, rememberSwipeRefreshState.isRefreshing)
         }
     }
 }
@@ -107,9 +111,10 @@ fun TodoListLazyColumn(
     viewModel: TodoListViewModel,
     todoPagingItems: LazyPagingItems<TodoCardData>,
     navController: NavHostController,
-    repoPath: String
+    repoPath: String,
+    isLoading: Boolean
 ) {
-    LazyColumn {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
         item(key = "headerFilter") {
             // 筛选类型
             TodoFilterContent(viewState, viewModel)
@@ -117,7 +122,7 @@ fun TodoListLazyColumn(
 
         itemsIndexed(todoPagingItems, key = { _, item -> item.itemArray.toString()}) { _, item ->
             if (item != null) {
-                TodoCardScreen(item, navController, viewModel, repoPath)
+                TodoCardScreen(item, navController, viewModel, repoPath, isLoading)
             }
         }
 
@@ -143,10 +148,11 @@ fun TodoListLazyColumn(
 }
 
 @Composable
-fun TodoCardScreen(data: TodoCardData, navController: NavHostController, viewModel: TodoListViewModel, repoPath: String) {
+fun TodoCardScreen(data: TodoCardData, navController: NavHostController, viewModel: TodoListViewModel, repoPath: String, isLoading: Boolean) {
     Card(modifier = Modifier
         .heightIn(20.dp, Int.MAX_VALUE.dp)
-        .padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
+        .padding(32.dp)
+        .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade()), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column(Modifier.padding(8.dp)) {
             Text(text = data.createDate, Modifier.padding(8.dp))
 

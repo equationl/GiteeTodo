@@ -1,6 +1,7 @@
 package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -51,6 +52,10 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
                 navController.navigate(it.route)
             }
         }
+    }
+
+    BackHandler { // 在主页点击返回按键一律按退出程序处理
+        activity?.finish()
     }
 
     MaterialTheme {

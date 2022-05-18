@@ -9,7 +9,6 @@ import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -71,8 +70,8 @@ class LoginOauthViewModel : ViewModel() {
     private fun webViewLoadError(message: String) {
         viewModelScope.launch {
             _viewEvents.send(LoginOauthViewEvent.ShowMessage(message))
-            delay(3000)
-            _viewEvents.send(LoginOauthViewEvent.Goto(Route.LOGIN))
+            //delay(3000)
+            //_viewEvents.send(LoginOauthViewEvent.Goto(Route.LOGIN))
         }
     }
 }

@@ -89,8 +89,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
     implementation "com.airbnb.android:lottie-compose:5.0.3"
-    implementation "io.github.vanpra.compose-material-dialogs:datetime:0.7.0"
-    implementation "io.github.vanpra.compose-material-dialogs:color:0.7.0"
+    implementation "io.github.vanpra.compose-material-dialogs:datetime:0.7.1"
+    implementation "io.github.vanpra.compose-material-dialogs:color:0.7.1"
 
     // see: https://developer.android.com/studio/write/java8-support#library-desugaring
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'

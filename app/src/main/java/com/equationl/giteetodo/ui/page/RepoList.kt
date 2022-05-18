@@ -88,12 +88,12 @@ fun RepoListScreen(navController: NavHostController) {
                         Icon(Icons.Outlined.LibraryAdd, "添加仓库")
                     }
                 }) {
-                    if (navController.backQueue.size <= 2) {
-                        Log.i(TAG, "RepoListScreen: 退出1")
-                        activity?.finish()
+                    val lastQueue = navController.backQueue[navController.backQueue.size - 2]
+                    if (lastQueue.destination.route?.contains(Route.HOME) == true) { // 只有从首页跳转过来的才返回，否则直接退出
+                        navController.popBackStack()
                     }
                     else {
-                        navController.popBackStack()
+                        activity?.finish()
                     }
                 }
             },

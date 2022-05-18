@@ -78,6 +78,7 @@ dependencies {
     implementation "androidx.paging:paging-runtime:3.1.1"
     implementation "androidx.paging:paging-compose:1.0.0-alpha14"
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0"
+    implementation "androidx.glance:glance-appwidget:1.0.0-alpha03"
     implementation 'com.google.accompanist:accompanist-pager:0.23.1'
     implementation "com.google.accompanist:accompanist-navigation-animation:0.23.1"
     implementation "com.google.accompanist:accompanist-swiperefresh:0.23.1"

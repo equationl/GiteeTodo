@@ -11,9 +11,10 @@ class TodoListWidget : GlanceAppWidget() {
     @Composable
     override fun Content() {
         val prefs = currentState<Preferences>()
-        val todoList = prefs[TodoListWidgetReceiver.todoListKey]
+        val todoList = prefs[TodoListWidgetReceiver.TodoListKey]
+        val loadStatus = prefs[TodoListWidgetReceiver.LoadStateKey]
 
 
-        TodoListWidgetContent(todoList)
+        TodoListWidgetContent(todoList, loadStatus)
     }
 }

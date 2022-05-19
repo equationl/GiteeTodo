@@ -1,5 +1,6 @@
 package com.equationl.giteetodo.widget.ui
 
+import android.util.Log
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -7,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.action.*
+import androidx.glance.appwidget.CheckBox
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
@@ -20,16 +22,27 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.equationl.giteetodo.MainActivity
 import com.equationl.giteetodo.ui.theme.baseBackground
-import com.equationl.giteetodo.util.fromJson
 import com.equationl.giteetodo.widget.callback.TodoListWidgetCallback
+import com.equationl.giteetodo.widget.receive.TodoListWidgetReceiver
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.lang.reflect.Type
+
+private const val TAG = "el, TodoListWidgetContent"
 
 val actionKey = ActionParameters.Key<String>(TodoListWidgetCallback.ACTION_NAME)
+val issueNumKey = ActionParameters.Key<String>(TodoListWidgetCallback.ISSUE_NUM_NAME)
 val refreshActionPar = actionParametersOf(actionKey to TodoListWidgetCallback.UPDATE_ACTION)
 
 @Composable
-fun TodoListWidgetContent(todoList: String?) {
-    val showTodoList = remember { mutableStateListOf<String>() }
+fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
+    Log.i(TAG, "TodoListWidgetContent: todoList=$todoList")
+    Log.i(TAG, "TodoListWidgetContent: loadState=$loadStatus")
+
+    val showTodoList = remember { mutableStateListOf<Pair<String, String>>() }
     showTodoList.addAll(resolveData(todoList))
+
+    Log.i(TAG, "TodoListWidgetContent: showTodoList=${showTodoList.toList()}")
 
 
     Column(modifier = GlanceModifier
@@ -37,7 +50,7 @@ fun TodoListWidgetContent(todoList: String?) {
         .cornerRadius(10.dp)
         .padding(8.dp)
         .background(MaterialTheme.colors.baseBackground)
-        .clickable(actionStartActivity<MainActivity>())
+        //.clickable(actionStartActivity<MainActivity>())
     ) {
         Row(modifier = GlanceModifier.fillMaxWidth().clickable(actionRunCallback<TodoListWidgetCallback>(refreshActionPar))) {
             Box(modifier = GlanceModifier.fillMaxWidth()) {
@@ -56,19 +69,36 @@ fun TodoListWidgetContent(todoList: String?) {
             }
         }
 
-        if (showTodoList.isEmpty()) {
-            WidgetEmptyContent()
-        }
-        else {
-            LazyColumn {
-                itemsIndexed(showTodoList) { index, item ->
-                    Text(
-                        text = "${index+1}: $item",
-                        style = TextStyle(color = ColorProvider(MaterialTheme.colors.primary)),
-                        modifier = GlanceModifier.fillMaxWidth().padding(bottom = 2.dp).clickable(actionStartActivity<MainActivity>())
-                    )
+        if (loadStatus == TodoListWidgetReceiver.LoadSuccess) {
+            if (showTodoList.isEmpty()) {
+                WidgetEmptyContent()
+            }
+            else {
+                LazyColumn {
+                    itemsIndexed(showTodoList) { index, item ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CheckBox(
+                                checked = false,
+                                onCheckedChange = actionRunCallback<TodoListWidgetCallback>(
+                                    actionParametersOf(
+                                        actionKey to TodoListWidgetCallback.CHECK_ISSUE_ACTION,
+                                        issueNumKey to item.first
+                                    )
+                                )
+                            )
+
+                            Text(
+                                text = "${index+1}: ${item.second}",
+                                style = TextStyle(color = ColorProvider(MaterialTheme.colors.primary)),
+                                modifier = GlanceModifier.fillMaxWidth().padding(start = 2.dp, bottom = 2.dp).clickable(actionStartActivity<MainActivity>())
+                            )
+                        }
+                    }
                 }
             }
+        }
+        else {
+            WidgetEmptyContent("加载失败：$loadStatus， 点击进入主页处理", actionStartActivity<MainActivity>())
         }
     }
 }
@@ -84,6 +114,13 @@ fun WidgetEmptyContent(text: String = "无数据， 点击刷新", action: Actio
     }
 }
 
-private fun resolveData(jsonString: String?): List<String> {
-    return jsonString?.fromJson<List<String>>() ?: listOf()
+private fun resolveData(jsonString: String?): List<Pair<String, String>> {
+    try {
+        val listType: Type = object : TypeToken<List<Pair<String, String>?>?>() {}.type
+        return Gson().fromJson(jsonString, listType)
+    } catch (tr: Throwable) {
+        Log.w(TAG, "resolveData: ", tr)
+    }
+
+    return listOf()
 }

@@ -94,6 +94,9 @@ object Utils {
         CookieManager.getInstance().flush()
     }
 
+    /**
+     * 将十六进制字符串表示的颜色转为 [Color]
+     * */
     val String.toColor
         get() = Color(android.graphics.Color.parseColor(this))
 

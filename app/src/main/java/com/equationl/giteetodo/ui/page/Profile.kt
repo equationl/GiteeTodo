@@ -1,8 +1,6 @@
 package com.equationl.giteetodo.ui.page
 
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,12 +72,13 @@ fun ProfileScreen(navHostController: NavHostController, scaffoldState: ScaffoldS
 
 @Composable
 fun ProFileContent(user: User, navHostController: NavHostController, repoPath: String, viewModel: ProfileViewModel) {
-    val state = rememberScrollState()
     Column(
         Modifier
             .fillMaxWidth()
             .padding(top = 32.dp)
-            .scrollable(state, Orientation.Vertical), horizontalAlignment = Alignment.CenterHorizontally) {
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(user.avatarUrl)
@@ -145,7 +144,7 @@ fun ProFileContent(user: User, navHostController: NavHostController, repoPath: S
                 iconDescription = "设置",
                 title = "设置"
             ) {
-                viewModel.dispatch(ProfileViewAction.ShowMessage("暂无可设置项"))
+                navHostController.navigate(Route.SETTING)
             }
         }
     }

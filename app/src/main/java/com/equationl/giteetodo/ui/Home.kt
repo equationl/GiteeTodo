@@ -100,5 +100,15 @@ fun HomeNavHost() {
             LabelManagerScreen(repoPath = repoPath, navController = navController)
         }
 
+        composable(Route.SETTING,
+            enterTransition = {
+                slideIntoContainer(AnimatedContentScope.SlideDirection.Left, animationSpec = tween(700))
+            },
+            exitTransition = {
+                slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))
+            }) {
+            SettingScreen(navController)
+        }
+
     }
 }

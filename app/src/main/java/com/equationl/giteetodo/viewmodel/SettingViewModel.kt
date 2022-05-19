@@ -46,13 +46,14 @@ class SettingViewModel : ViewModel() {
         newLabel.addAll(viewStates.currentChoiceLabel)
 
         if (isChecked) {
-            if (label !in viewStates.currentChoiceLabel) {
+            // 只有当前标签未加入筛选列表才继续加入
+            if (viewStates.currentChoiceLabel.indexOfFirst { it.id == label.id } == -1) {
                 newLabel.add(label)
                 DataStoreUtils.putSyncData(DataKey.WidgetFilterLabels, newLabel.toJson())
             }
         }
         else {
-            newLabel.remove(label)
+            newLabel.removeIf { it.id == label.id }
             DataStoreUtils.putSyncData(DataKey.WidgetFilterLabels, newLabel.toJson())
         }
         viewStates = viewStates.copy(currentChoiceLabel = newLabel)

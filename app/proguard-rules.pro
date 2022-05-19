@@ -36,3 +36,4 @@
 -keep class com.equationl.giteetodo.data.auth.model.** { *; }
 -keep class com.equationl.giteetodo.data.repos.model.** { *; }
 -keep class com.equationl.giteetodo.data.user.model.** { *; }
+-keep class com.equationl.giteetodo.widget.dataBean.** { *;}

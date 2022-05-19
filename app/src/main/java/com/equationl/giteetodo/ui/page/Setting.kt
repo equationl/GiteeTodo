@@ -104,11 +104,12 @@ fun SettingContent(viewModel: SettingViewModel, viewState: SettingViewState) {
                 labelTipText += label.name + " "
             }
             ExpandableItem(title = "筛选标签", endText = labelTipText.ifBlank { "无" }) {
-                val existLabels = viewState.existLabels
-                existLabels.forEach {
+                viewState.existLabels.forEach {
+                    // 不能直接对比 label 对象，因为 label 中的某些数值（例如更新日期）可能会变化，所以使用 id 对比
+                    val isChecked = viewState.currentChoiceLabel.indexOfFirst { label -> label.id == it.id } != -1
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
-                            checked = it in viewState.currentChoiceLabel,
+                            checked = isChecked,
                             onCheckedChange = { isChecked ->
                                 viewModel.dispatch(SettingViewAction.ChoiceANewLabel(it, isChecked))
                             }

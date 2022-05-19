@@ -23,6 +23,7 @@ import androidx.glance.unit.ColorProvider
 import com.equationl.giteetodo.MainActivity
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.widget.callback.TodoListWidgetCallback
+import com.equationl.giteetodo.widget.dataBean.TodoListWidgetShowData
 import com.equationl.giteetodo.widget.receive.TodoListWidgetReceiver
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -39,7 +40,7 @@ fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
     Log.i(TAG, "TodoListWidgetContent: todoList=$todoList")
     Log.i(TAG, "TodoListWidgetContent: loadState=$loadStatus")
 
-    val showTodoList = remember { mutableStateListOf<Pair<String, String>>() }
+    val showTodoList = remember { mutableStateListOf<TodoListWidgetShowData>() }
     showTodoList.addAll(resolveData(todoList))
 
     Log.i(TAG, "TodoListWidgetContent: showTodoList=${showTodoList.toList()}")
@@ -56,7 +57,7 @@ fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
             Box(modifier = GlanceModifier.fillMaxWidth()) {
                 Row(modifier = GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
                     Text(
-                        text = "当前未完成：",
+                        text = "待办列表：",
                         style = TextStyle(fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = ColorProvider(MaterialTheme.colors.secondary)
                         ),
                         modifier = GlanceModifier.padding(start = 8.dp)
@@ -78,17 +79,17 @@ fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
                     itemsIndexed(showTodoList) { index, item ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CheckBox(
-                                checked = false,
+                                checked = item.isChecked,
                                 onCheckedChange = actionRunCallback<TodoListWidgetCallback>(
                                     actionParametersOf(
                                         actionKey to TodoListWidgetCallback.CHECK_ISSUE_ACTION,
-                                        issueNumKey to item.first
+                                        issueNumKey to item.issueNum
                                     )
                                 )
                             )
 
                             Text(
-                                text = "${index+1}: ${item.second}",
+                                text = "${index+1}: ${item.title}",
                                 style = TextStyle(color = ColorProvider(MaterialTheme.colors.primary)),
                                 modifier = GlanceModifier.fillMaxWidth().padding(start = 2.dp, bottom = 2.dp).clickable(actionStartActivity<MainActivity>())
                             )
@@ -114,9 +115,9 @@ fun WidgetEmptyContent(text: String = "无数据， 点击刷新", action: Actio
     }
 }
 
-private fun resolveData(jsonString: String?): List<Pair<String, String>> {
+private fun resolveData(jsonString: String?): List<TodoListWidgetShowData> {
     try {
-        val listType: Type = object : TypeToken<List<Pair<String, String>?>?>() {}.type
+        val listType: Type = object : TypeToken<List<TodoListWidgetShowData?>?>() {}.type
         return Gson().fromJson(jsonString, listType)
     } catch (tr: Throwable) {
         Log.w(TAG, "resolveData: ", tr)

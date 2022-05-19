@@ -15,14 +15,19 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import com.equationl.giteetodo.data.RetrofitManger
 import com.equationl.giteetodo.data.repos.ReposApi
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
+import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import com.equationl.giteetodo.util.toJson
 import com.equationl.giteetodo.widget.TodoListWidget
 import com.equationl.giteetodo.widget.callback.TodoListWidgetCallback
+import com.equationl.giteetodo.widget.dataBean.TodoListWidgetShowData
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import java.lang.reflect.Type
 
 class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
 
@@ -64,7 +69,27 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
             var loadState = LoadSuccess
             val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "null/null")
             val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
-            val todoTitleList: MutableList<Pair<String, String>> = mutableListOf()
+            val maxNum = DataStoreUtils.getSyncData(DataKey.WidgetShowNum, 10)
+            val filterState = DataStoreUtils.getSyncData(DataKey.WidgetFilterState, "")
+            val filterLabelsString = DataStoreUtils.getSyncData(DataKey.WidgetFilterLabels, "")
+
+            val listType: Type = object : TypeToken<List<Label?>?>() {}.type
+            val filterLabelList: List<Label> =
+                if (filterLabelsString.isBlank()) { listOf() }
+                else { Gson().fromJson(filterLabelsString, listType) }
+
+            var filterLabels = ""
+            filterLabelList.forEach { label ->
+                filterLabels += "${label.name},"
+            }
+
+            filterLabels = if (filterLabels.isBlank()) {
+                ""
+            } else {
+                filterLabels.substring(0, filterLabels.length-1)
+            }
+
+            val todoTitleList: MutableList<TodoListWidgetShowData> = mutableListOf()
 
             if (repoPath == "null/null" || token.isBlank()) {
                 loadState = LoadFailByOther
@@ -75,8 +100,10 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
                     repoPath.split("/")[0],
                     repoPath.split("/")[1],
                     token,
+                    state = filterState.ifBlank { null },
+                    labels = filterLabels.ifBlank { null },
                     page = 1,
-                    perPage = 10
+                    perPage = maxNum,
                 )
 
                 val todoList = if (todoListResponse.isSuccessful) {
@@ -88,7 +115,8 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
                 }
 
                 for (todo in todoList) {
-                    todoTitleList.add(todo.number to todo.title)
+                    val isChecked = todo.state != IssueState.OPEN.des
+                    todoTitleList.add(TodoListWidgetShowData(todo.title, todo.number, isChecked))
                 }
             }
 

@@ -1,15 +1,16 @@
 package com.equationl.giteetodo.ui.page
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
@@ -210,16 +211,18 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeLabelsDropMenuShowState(true))
         }) {
+            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowLabelsDropMenu) -180f else 0f)
             Text("标签", color = if (viewState.filteredOptionList.contains(FilteredOption.Labels)) MaterialTheme.colors.primary else Color.Unspecified)
-            Icon(if (viewState.isShowLabelsDropMenu) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown, contentDescription = "标签")
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = "标签", modifier = Modifier.rotate(arrowRotateDegrees))
             TodoListLabelDropMenu(viewState.availableLabels, viewModel, viewState)
         }
 
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeStateDropMenuShowState(true))
         }) {
+            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowStateDropMenu) -180f else 0f)
             Text("状态", color = if (viewState.filteredOptionList.contains(FilteredOption.States)) MaterialTheme.colors.primary else Color.Unspecified)
-            Icon(if (viewState.isShowStateDropMenu) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown, contentDescription = "状态")
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = "状态", modifier = Modifier.rotate(arrowRotateDegrees))
             TodoListStateDropMenu(viewModel = viewModel, isShow = viewState.isShowStateDropMenu)
         }
 
@@ -235,8 +238,9 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeDirectionDropMenuShowState(true))
         }) {
+            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowDirectionDropMenu) -180f else 0f)
             Text("排序", color = if (viewState.filteredOptionList.contains(FilteredOption.Direction)) MaterialTheme.colors.primary else Color.Unspecified)
-            Icon(if (viewState.isShowDirectionDropMenu) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown, contentDescription = "排序")
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = "排序", modifier = Modifier.rotate(arrowRotateDegrees))
             TodoListDirecDropMenu(viewModel = viewModel, isShow = viewState.isShowDirectionDropMenu)
         }
 

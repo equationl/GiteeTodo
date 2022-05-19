@@ -95,7 +95,7 @@ class SettingViewModel : ViewModel() {
                 existLabels = existLabels,
                 currentChoiceLabel = currentChoiceLabel,
                 currentShowNum = currentShowNum,
-                currentState = currentState
+                currentState = currentState.ifBlank { IssueState.OPEN.des }
             )
         }
     }

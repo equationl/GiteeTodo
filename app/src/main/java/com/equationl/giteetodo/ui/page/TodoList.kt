@@ -121,7 +121,7 @@ fun TodoListLazyColumn(
             TodoFilterContent(viewState, viewModel)
         }
 
-        itemsIndexed(todoPagingItems, key = { _, item -> item.itemArray.toString()}) { _, item ->
+        itemsIndexed(todoPagingItems, key = { _, item -> item.cardTitle+item.itemArray.toString()}) { _, item ->
             if (item != null) {
                 TodoCardScreen(item, navController, viewModel, repoPath, isLoading)
             }
@@ -155,7 +155,7 @@ fun TodoCardScreen(data: TodoCardData, navController: NavHostController, viewMod
         .padding(32.dp)
         .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade()), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column(Modifier.padding(8.dp)) {
-            Text(text = data.createDate, Modifier.padding(8.dp))
+            Text(text = data.cardTitle, Modifier.padding(8.dp))
 
             Column(Modifier.fillMaxSize()) {
                 data.itemArray.forEach {

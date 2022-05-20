@@ -4,9 +4,13 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.equationl.giteetodo.data.repos.ReposApi
 import com.equationl.giteetodo.data.repos.model.response.Issues
+import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.getIssueState
 import com.equationl.giteetodo.util.Utils
+import com.equationl.giteetodo.util.datastore.DataKey
+import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import com.equationl.giteetodo.viewmodel.GroupBy
 import com.equationl.giteetodo.viewmodel.QueryParameter
 import com.equationl.giteetodo.viewmodel.TodoCardData
 import com.equationl.giteetodo.viewmodel.TodoCardItemData
@@ -67,8 +71,25 @@ class IssuesPagingSource(
     }
 
     private fun resolveIssue(response: Response<List<Issues>>): List<TodoCardData> {
-        // fixme 直接这样解析可能会造成出现多个同一日期组
+        // fixme 直接这样解析分组数据会由于是分页加载的导致出现多个相同分组
 
+        return when (DataStoreUtils.getSyncData(DataKey.SettingGroupBy, GroupBy.Date.name)) {
+            GroupBy.Date.name -> {
+                resolveIssueByDate(response)
+            }
+            GroupBy.Label.name -> {
+                resolveIssueByLabel(response)
+            }
+            GroupBy.State.name -> {
+                resolveIssueByState(response)
+            }
+            else -> {
+                resolveIssueByDate(response)
+            }
+        }
+    }
+
+    private fun resolveIssueByDate(response: Response<List<Issues>>): List<TodoCardData> {
         val issueList = response.body()
         if (issueList.isNullOrEmpty()) {
             return emptyList()
@@ -110,6 +131,64 @@ class IssuesPagingSource(
         )
 
         //Log.i(TAG, "loadIssues: cardList=$todoCardDataList")
+        return todoCardDataList
+    }
+
+    private fun resolveIssueByLabel(response: Response<List<Issues>>): List<TodoCardData> {
+        val issueList = response.body()
+        if (issueList.isNullOrEmpty()) {
+            return emptyList()
+        }
+        val todoCardDataList = arrayListOf<TodoCardData>()
+
+        for (issue in issueList) {
+            val labelList: List<Label> = issue.labels
+            val state = try { IssueState.valueOf(issue.state.uppercase()) } catch (e: IllegalArgumentException) { IssueState.OPEN }
+            val title = issue.title
+            val number = issue.number
+
+            if (labelList.isEmpty()) {
+                val index = todoCardDataList.indexOfFirst{ it.cardTitle == "无标签" }
+                if (index == -1) {
+                    todoCardDataList.add(TodoCardData("无标签", arrayListOf(TodoCardItemData(title, state, number))))
+                }
+                else {
+                    todoCardDataList[index].itemArray.add(TodoCardItemData(title, state, number))
+                }
+            }
+            else {
+                for (label in labelList) {
+                    val index = todoCardDataList.indexOfFirst{ it.cardTitle == label.name }
+                    if (index == -1) {
+                        todoCardDataList.add(TodoCardData(label.name, arrayListOf(TodoCardItemData(title, state, number))))
+                    }
+                    else {
+                        todoCardDataList[index].itemArray.add(TodoCardItemData(title, state, number))
+                    }
+                }
+            }
+        }
+        return todoCardDataList
+    }
+
+    private fun resolveIssueByState(response: Response<List<Issues>>): List<TodoCardData> {
+        val issueList = response.body()
+        if (issueList.isNullOrEmpty()) {
+            return emptyList()
+        }
+        val todoCardDataList = arrayListOf<TodoCardData>()
+
+        for (issue in issueList) {
+            val state = try { IssueState.valueOf(issue.state.uppercase()) } catch (e: IllegalArgumentException) { IssueState.OPEN }
+            val index = todoCardDataList.indexOfFirst{ it.cardTitle == state.humanName }
+
+            if (index == -1) {
+                todoCardDataList.add(TodoCardData(state.humanName, arrayListOf(TodoCardItemData(issue.title, state, issue.number))))
+            }
+            else {
+                todoCardDataList[index].itemArray.add(TodoCardItemData(issue.title, state, issue.number))
+            }
+        }
         return todoCardDataList
     }
 }

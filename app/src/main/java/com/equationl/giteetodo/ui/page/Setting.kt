@@ -85,11 +85,26 @@ fun SettingContent(viewModel: SettingViewModel, viewState: SettingViewState) {
 
         Divider(modifier = Modifier.padding(12.dp, 0.dp))
 
+        ExpandableItem(title = "首页分组方式", modifier = Modifier.padding(12.dp)) {
+            SettingOption.groupBy.forEach {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected =  viewState.currentGroupBy == it.name,
+                        onClick = { viewModel.dispatch(SettingViewAction.ChangeGroupBy(it)) }
+                    )
+                    Text(text = it.des, modifier = Modifier.padding(2.dp))
+                }
+            }
+        }
+
+        Divider(modifier = Modifier.padding(12.dp, 0.dp))
+
+
         ExpandableItem(title = "小组件设置", modifier = Modifier.padding(12.dp)) {
             Text(text = "更新小组件设置后需要手动点击桌面上小组件的刷新按钮方可生效", fontSize = 12.sp, modifier = Modifier.padding(8.dp, 4.dp))
 
             ExpandableItem(title = "最大显示数量", endText = viewState.currentShowNum.toString()) {
-                SettingOption.MaxShowNum.forEach {
+                SettingOption.maxShowNum.forEach {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(
                             selected =  viewState.currentShowNum == it,

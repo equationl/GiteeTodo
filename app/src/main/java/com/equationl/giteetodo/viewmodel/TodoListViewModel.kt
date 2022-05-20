@@ -258,7 +258,7 @@ sealed class TodoListViewAction {
 
 
 data class TodoCardData(
-    val createDate: String,
+    val cardTitle: String,
     val itemArray: ArrayList<TodoCardItemData>
 )
 

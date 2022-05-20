@@ -12,6 +12,8 @@ object DataKey {
     const val UserInfo = "user_info_string"
     const val ExistLabel = "exist_label"
 
+    const val SettingGroupBy = "setting_group_by"
+
     const val WidgetShowNum = "widget_show_num"
     const val WidgetFilterLabels = "widget_filter_labels"
     const val WidgetFilterState = "widget_filter_state"

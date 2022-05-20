@@ -38,6 +38,17 @@ class SettingViewModel : ViewModel() {
             is SettingViewAction.ChoiceANewNum -> choiceANewNum(action.num)
             is SettingViewAction.ChoiceANewState -> choiceANewState(action.state)
             is SettingViewAction.ChoiceANewLabel -> choiceANewLabel(action.label, action.isChecked)
+            is SettingViewAction.ChangeGroupBy -> changeGroupBy(action.groupBy.name)
+        }
+    }
+
+    private fun changeGroupBy(groupBy: String) {
+        if (groupBy == viewStates.currentGroupBy) {
+            return
+        }
+        viewModelScope.launch(exception) {
+            DataStoreUtils.putSyncData(DataKey.SettingGroupBy, groupBy)
+            viewStates = viewStates.copy(currentGroupBy = groupBy)
         }
     }
 
@@ -87,6 +98,8 @@ class SettingViewModel : ViewModel() {
             val currentChoiceLabelString = DataStoreUtils.getSyncData(DataKey.WidgetFilterLabels, "")
             val currentState = DataStoreUtils.getSyncData(DataKey.WidgetFilterState, "")
 
+            val groupBy = DataStoreUtils.getSyncData(DataKey.SettingGroupBy, GroupBy.Date.name)
+
             val listType: Type = object : TypeToken<List<Label?>?>() {}.type
             val currentChoiceLabel: List<Label> =
                 if (currentChoiceLabelString.isBlank()) { listOf() }
@@ -96,6 +109,7 @@ class SettingViewModel : ViewModel() {
                 existLabels = existLabels,
                 currentChoiceLabel = currentChoiceLabel,
                 currentShowNum = currentShowNum,
+                currentGroupBy = groupBy,
                 currentState = currentState.ifBlank { IssueState.OPEN.des }
             )
         }
@@ -106,6 +120,7 @@ data class SettingViewState(
     val currentShowNum: Int = 10,
     val currentChoiceLabel: List<Label> = listOf(),
     val currentState: String = IssueState.OPEN.des,
+    val currentGroupBy: String = GroupBy.Date.name,
     val existLabels: List<Label> = listOf()
 )
 
@@ -119,10 +134,11 @@ sealed class SettingViewAction {
     data class ChoiceANewNum(val num: Int): SettingViewAction()
     data class ChoiceANewState(val state: String): SettingViewAction()
     data class ChoiceANewLabel(val label: Label, val isChecked: Boolean): SettingViewAction()
+    data class ChangeGroupBy(val groupBy: GroupBy) : SettingViewAction()
 }
 
 object SettingOption {
-    val MaxShowNum = listOf(5, 10, 15, 20)
+    val maxShowNum = listOf(5, 10, 15, 20)
 
     val availableState = listOf(
         IssueState.OPEN,
@@ -131,4 +147,12 @@ object SettingOption {
         IssueState.REJECTED,
         IssueState.ALL
     )
+
+    val groupBy = listOf(GroupBy.Date, GroupBy.State, GroupBy.Label)
+}
+
+enum class GroupBy(val des: String) {
+    Date("日期"),
+    Label("标签"),
+    State("状态")
 }

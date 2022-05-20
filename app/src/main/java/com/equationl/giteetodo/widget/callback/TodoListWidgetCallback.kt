@@ -7,6 +7,7 @@ import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.ToggleableStateKey
+import com.equationl.giteetodo.constants.IntentDataKey
 import com.equationl.giteetodo.widget.receive.TodoListWidgetReceiver
 
 // 其实可以不用 callback 来中转，
@@ -42,7 +43,7 @@ class TodoListWidgetCallback : ActionCallback {
         private const val TAG = "el, TodoListWidgetCallback"
 
         const val ACTION_NAME = "actionName"
-        const val ISSUE_NUM_NAME = "issueName"
+        const val ISSUE_NUM_NAME = IntentDataKey.IssueNumber
 
         const val UPDATE_ACTION = "updateAction"
         const val CHECK_ISSUE_ACTION = "checkIssueAction"

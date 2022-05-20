@@ -91,7 +91,12 @@ fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
                             Text(
                                 text = "${index+1}: ${item.title}",
                                 style = TextStyle(color = ColorProvider(MaterialTheme.colors.primary)),
-                                modifier = GlanceModifier.fillMaxWidth().padding(start = 2.dp, bottom = 2.dp).clickable(actionStartActivity<MainActivity>())
+                                modifier = GlanceModifier
+                                    .fillMaxWidth()
+                                    .padding(start = 2.dp, bottom = 2.dp)
+                                    .clickable(actionStartActivity<MainActivity>(
+                                        actionParametersOf(issueNumKey to item.issueNum))
+                                    )
                             )
                         }
                     }

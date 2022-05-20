@@ -1,10 +1,12 @@
 package com.equationl.giteetodo.ui.page
 
+import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
@@ -20,7 +22,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -32,10 +33,12 @@ import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
-import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.viewmodel.*
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material.fade
+import com.google.accompanist.placeholder.material.placeholder
 import com.halilibo.richtext.markdown.Markdown
 import com.halilibo.richtext.ui.RichText
 import com.halilibo.richtext.ui.material.MaterialRichText
@@ -44,7 +47,8 @@ import kotlinx.coroutines.launch
 private const val TAG = "el, TodoDetailScreen"
 
 @Composable
-fun TodoDetailScreen(navController: NavHostController, issueNum: String) {
+fun TodoDetailScreen(navController: NavHostController?, issueNum: String) {
+    val activity = (LocalContext.current as? Activity)
     val viewModel: TodoDetailViewModel = viewModel()
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
@@ -86,7 +90,12 @@ fun TodoDetailScreen(navController: NavHostController, issueNum: String) {
                         }
                     }
                 }) {
-                    navController.popBackStack()
+                    if (navController == null) {
+                        activity?.finish()
+                    }
+                    else {
+                        navController.popBackStack()
+                    }
                 }
             },
             snackbarHost = {
@@ -94,72 +103,26 @@ fun TodoDetailScreen(navController: NavHostController, issueNum: String) {
                     Snackbar(snackbarData = snackBarData)
                 }})
         {
-            if (viewState.isLoading) {
-                TodoDetailLoad()
-            }
-            else {
-                TodoDetailContent(it.calculateTopPadding(), viewModel, viewState, issueNum)
-            }
+            TodoDetailContent(it, viewModel, viewState, issueNum)
         }
     }
 }
 
 @Composable
-fun TodoDetailLoad() {
-    LoadDataContent(text = "加载详情中…")
-}
-
-@Composable
-fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState: TodoDetailViewState, issueNum: String) {
+fun TodoDetailContent(padding: PaddingValues, viewModel: TodoDetailViewModel, viewState: TodoDetailViewState, issueNum: String) {
     val listState = rememberLazyListState()
     LazyColumn(state = listState,
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = topPadding)
+            .padding(padding)
             .background(MaterialTheme.colors.baseBackground)
     ) {
         item {
-            OutlinedTextField(
-                value = viewState.title,
-                onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnTitleChange(it)) },
-                readOnly = !viewState.isEditAble,
-                label = { Text("标题")},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(2.dp)
-                    .background(MaterialTheme.colors.background)
+            TodoDetailMainContent(
+                viewState = viewState,
+                viewModel = viewModel,
+                issueNum = issueNum
             )
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(end = 2.dp), horizontalAlignment = Alignment.End) {
-                Text(text = "创建于 ${viewState.createdDateTime}", fontSize = 12.sp)
-                Text(text = "更新于 ${viewState.updateDateTime}", fontSize = 12.sp)
-            }
-
-            TodoDetailBodyItem(viewModel, viewState)
-
-            TodoDetailSateItem(viewModel, viewState)
-
-            TodoDetailLabelsItem(viewModel, viewState)
-
-            // OpenApi 中没有修改下面这个三个值的接口
-            TodoDetailCommonItem("优先级：", viewState.priority.getPriorityString())
-            TodoDetailCommonItem("开始时间：", viewState.startDateTime)
-            TodoDetailCommonItem("结束时间：", viewState.stopDateTime)
-
-            if (viewState.isEditAble) {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 32.dp), horizontalArrangement = Arrangement.Center) {
-                    Button(
-                        onClick = { viewModel.dispatch(TodoDetailViewAction.ClickSave(issueNum)) },
-                        shape = Shapes.large) {
-                        Text(text = "保存", fontSize = 20.sp, modifier = Modifier.padding(start = 82.dp, end = 82.dp, top = 4.dp, bottom = 4.dp))
-                    }
-                }
-            }
         }
 
         item {
@@ -171,6 +134,63 @@ fun TodoDetailContent(topPadding: Dp, viewModel: TodoDetailViewModel, viewState:
                 scope.launch {
                     listState.animateScrollToItem(1)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun TodoDetailMainContent(viewState: TodoDetailViewState, viewModel: TodoDetailViewModel, issueNum: String) {
+    OutlinedTextField(
+        value = viewState.title,
+        onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnTitleChange(it)) },
+        readOnly = !viewState.isEditAble,
+        label = { Text("标题")},
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(2.dp)
+            .background(MaterialTheme.colors.background)
+            .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
+    )
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(end = 2.dp),
+        horizontalAlignment = Alignment.End
+    ) {
+        Text(text = "创建于 ${viewState.createdDateTime}",
+            fontSize = 12.sp,
+            modifier = Modifier
+                .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
+        )
+
+        Text(text = "更新于 ${viewState.updateDateTime}",
+            fontSize = 12.sp,
+            modifier = Modifier
+                .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
+        )
+    }
+
+    TodoDetailBodyItem(viewModel, viewState)
+
+    TodoDetailSateItem(viewModel, viewState)
+
+    TodoDetailLabelsItem(viewModel, viewState)
+
+    // OpenApi 中没有修改下面这个三个值的接口
+    TodoDetailCommonItem("优先级：", viewState.priority.getPriorityString(), viewState.isLoading)
+    TodoDetailCommonItem("开始时间：", viewState.startDateTime, viewState.isLoading)
+    TodoDetailCommonItem("结束时间：", viewState.stopDateTime, viewState.isLoading)
+
+    if (viewState.isEditAble) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 32.dp), horizontalArrangement = Arrangement.Center) {
+            Button(
+                onClick = { viewModel.dispatch(TodoDetailViewAction.ClickSave(issueNum)) },
+                shape = Shapes.large) {
+                Text(text = "保存", fontSize = 20.sp, modifier = Modifier.padding(start = 82.dp, end = 82.dp, top = 4.dp, bottom = 4.dp))
             }
         }
     }
@@ -195,13 +215,25 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
     }
     else {
         if (viewState.content.isNotBlank()) {
-            Text("描述：", modifier = Modifier.padding(top = 32.dp, start = 2.dp))
+            Text("描述：",
+                modifier = Modifier
+                    .padding(top = 32.dp, start = 2.dp)
+                    .placeholder(
+                        visible = viewState.isLoading,
+                        highlight = PlaceholderHighlight.fade()
+                    )
+            )
             Card(
                 border = BorderStroke(1.dp, Color.Gray),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp)
-                    .background(MaterialTheme.colors.background)) {
+                    .background(MaterialTheme.colors.background)
+                    .placeholder(
+                        visible = viewState.isLoading,
+                        highlight = PlaceholderHighlight.fade()
+                    )
+            ) {
                 MaterialRichText(modifier = Modifier.padding(4.dp)) {
                     Markdown(
                         viewState.content
@@ -220,7 +252,9 @@ fun TodoDetailSateItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
             .fillMaxWidth()
             .padding(2.dp)
             .padding(top = 8.dp)
-            .background(MaterialTheme.colors.background)) {
+            .background(MaterialTheme.colors.background)
+            .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
+    ) {
         Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = "状态：")
             Box {
@@ -242,7 +276,9 @@ fun TodoDetailLabelsItem(viewModel: TodoDetailViewModel, viewState: TodoDetailVi
             .fillMaxWidth()
             .padding(2.dp)
             .padding(top = 8.dp)
-            .background(MaterialTheme.colors.background)) {
+            .background(MaterialTheme.colors.background)
+            .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
+    ) {
         Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = "标签：")
             Box {
@@ -258,14 +294,16 @@ fun TodoDetailLabelsItem(viewModel: TodoDetailViewModel, viewState: TodoDetailVi
 }
 
 @Composable
-fun TodoDetailCommonItem(title: String, content: String) {
+fun TodoDetailCommonItem(title: String, content: String, isLoading: Boolean) {
     Card(
         border = BorderStroke(0.dp, Color.Gray),
         modifier = Modifier
             .fillMaxWidth()
             .padding(2.dp)
             .padding(top = 8.dp)
-            .background(MaterialTheme.colors.background)) {
+            .background(MaterialTheme.colors.background)
+            .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade())
+    ) {
         Row(
             Modifier
                 .padding(8.dp),
@@ -329,8 +367,13 @@ fun TodoCommentContent(
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp, top = 16.dp)) {
-        Text("评论（${commentList.size}）", Modifier.padding(start = 8.dp, end = 8.dp))
+            .padding(bottom = 8.dp, top = 16.dp)
+    ) {
+        Text("评论（${commentList.size}）",
+            Modifier
+                .padding(start = 8.dp, end = 8.dp)
+                .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
+        )
 
         Card(border = BorderStroke(1.dp, Color.Gray),
             modifier = Modifier
@@ -338,12 +381,18 @@ fun TodoCommentContent(
                 .padding(2.dp)
                 .background(MaterialTheme.colors.background)
         ) {
-            Column {  // 不知道为什么，这里如果再嵌套一个 LazyColumn 的话会闪退
+            Column {
 
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        .padding(8.dp)
+                        .placeholder(
+                            visible = viewState.isLoading,
+                            highlight = PlaceholderHighlight.fade()
+                        ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
                     OutlinedTextField(value = viewState.newComment,
                         onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnNewCommentChange(it)) },
@@ -362,11 +411,19 @@ fun TodoCommentContent(
                 Divider(Modifier.padding(bottom = 8.dp))
 
                 if (commentList.isEmpty()) {
-                    Text(text = "暂无评论", Modifier.padding(8.dp))
+                    Text(text = "暂无评论",
+                        Modifier
+                            .padding(8.dp)
+                            .placeholder(
+                                visible = viewState.isLoading,
+                                highlight = PlaceholderHighlight.fade()
+                            ))
                 }
                 else {
-                    commentList.forEachIndexed { index, comment ->
-                        TodoCommentItem(comment, viewModel, index != commentList.lastIndex)
+                    LazyColumn(modifier = Modifier.heightIn(0.dp, 1000.dp)) {
+                        itemsIndexed(commentList) { index: Int, item: Comment ->
+                            TodoCommentItem(item, viewModel, index != commentList.lastIndex, viewState.isLoading)
+                        }
                     }
                 }
             }
@@ -378,9 +435,14 @@ fun TodoCommentContent(
 fun TodoCommentItem(
     comment: Comment,
     viewModel: TodoDetailViewModel,
-    hasDivider: Boolean = true
+    hasDivider: Boolean = true,
+    isLoading: Boolean
 ) {
-    Column(Modifier.padding(4.dp)) {
+    Column(
+        Modifier
+            .padding(4.dp)
+            .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade())
+    ) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp)) {
@@ -416,7 +478,13 @@ fun TodoCommentItem(
                         modifier = Modifier
                             .padding(start = 4.dp)
                             .size(16.dp)
-                            .clickable { viewModel.dispatch(TodoDetailViewAction.ClickDeleteComment(comment.id)) })
+                            .clickable {
+                                viewModel.dispatch(
+                                    TodoDetailViewAction.ClickDeleteComment(
+                                        comment.id
+                                    )
+                                )
+                            })
                 }
                 //Text(text = "更新于 ${Utils.getDateTimeString(comment.updatedAt, "M月dd日 hh:mm:ss")}", fontSize = 8.sp)
             }

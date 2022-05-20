@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">GiteeTodo</string>
+    
+    <string name="todoList_widget_description">在桌面上显示您的TODO列表</string>
 </resources>

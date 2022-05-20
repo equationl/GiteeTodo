@@ -8,7 +8,9 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import com.equationl.giteetodo.constants.IntentDataKey
 import com.equationl.giteetodo.ui.HomeNavHost
+import com.equationl.giteetodo.ui.page.TodoDetailScreen
 import com.equationl.giteetodo.ui.theme.GiteeTodoTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,7 +28,13 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colors.background
                     ) {
-                        HomeNavHost()
+                        val issueNumber = intent.getStringExtra(IntentDataKey.IssueNumber)
+                        if (issueNumber.isNullOrBlank()) {
+                            HomeNavHost()
+                        }
+                        else {
+                            TodoDetailScreen(null, issueNumber)
+                        }
                     }
                 }
             }

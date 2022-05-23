@@ -116,6 +116,8 @@ fun TodoDetailContent(padding: PaddingValues, viewModel: TodoDetailViewModel, vi
             .fillMaxSize()
             .padding(padding)
             .background(MaterialTheme.colors.baseBackground)
+            //.imePadding()
+            //.imeNestedScroll()
     ) {
         item {
             TodoDetailMainContent(
@@ -394,6 +396,7 @@ fun TodoCommentContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
+                    // TODO 点击编辑时增加动画效果，用于提醒用户在此处修改，或更改该输入框为恒定悬浮于底部/顶部
                     OutlinedTextField(value = viewState.newComment,
                         onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnNewCommentChange(it)) },
                         label = { Text(viewState.editCommentLabel) },

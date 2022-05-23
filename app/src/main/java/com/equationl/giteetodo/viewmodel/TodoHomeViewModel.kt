@@ -33,6 +33,13 @@ class TodoHomeViewModel : ViewModel() {
             is TodoHomeViewAction.GoToTodo -> goToTodo(action.repoPath)
             is TodoHomeViewAction.AddATodo -> addATodo()
             is TodoHomeViewAction.Logout -> logout()
+            is TodoHomeViewAction.ChangeSystemBarShowState -> changeSystemBarShowState(action.isShow)
+        }
+    }
+
+    private fun changeSystemBarShowState(isShow: Boolean) {
+        if (viewStates.currentPage == CurrentPager.HOME_TODO) {
+            viewStates = viewStates.copy(isShowBottomBar = isShow)
         }
     }
 
@@ -49,7 +56,8 @@ class TodoHomeViewModel : ViewModel() {
             homeIcon = Icons.Outlined.Home,
             homeTextColor = Color.Gray,
             meIcon = Icons.Filled.Person,
-            meTextColor = Color.White
+            meTextColor = Color.White,
+            isShowBottomBar = true
         )
     }
 
@@ -60,7 +68,8 @@ class TodoHomeViewModel : ViewModel() {
             homeIcon = Icons.Filled.Home,
             homeTextColor = Color.White,
             meIcon = Icons.Outlined.Person,
-            meTextColor = Color.Gray)
+            meTextColor = Color.Gray
+        )
     }
 
     private fun addATodo() {
@@ -85,7 +94,8 @@ data class TodoHomeViewState(
     val homeIcon: ImageVector = Icons.Filled.Home,
     val homeTextColor: Color = Color.White,
     val meIcon: ImageVector = Icons.Outlined.Person,
-    val meTextColor: Color = Color.Gray
+    val meTextColor: Color = Color.Gray,
+    val isShowBottomBar: Boolean = true
 )
 
 sealed class TodoHomeViewEvent {
@@ -97,6 +107,7 @@ sealed class TodoHomeViewAction {
     object ChangeRepo : TodoHomeViewAction()
     data class GoToTodo(val repoPath: String): TodoHomeViewAction()
     data class GoToMe(val repoPath: String): TodoHomeViewAction()
+    data class ChangeSystemBarShowState(val isShow: Boolean): TodoHomeViewAction()
     object AddATodo: TodoHomeViewAction()
     object Logout: TodoHomeViewAction()
 }

@@ -3,6 +3,7 @@ package com.equationl.giteetodo.ui.page
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -44,7 +45,12 @@ import kotlinx.coroutines.launch
 private const val TAG = "el, TodoListScreen"
 
 @Composable
-fun TodoListScreen(navController: NavHostController, repoPath: String, scaffoldState: ScaffoldState) {
+fun TodoListScreen(
+    navController: NavHostController,
+    repoPath: String,
+    scaffoldState: ScaffoldState,
+    isShowSystemBar: (isShow: Boolean) -> Unit
+) {
     val viewModel: TodoListViewModel = viewModel()
     val viewState = viewModel.viewStates
     val coroutineState = rememberCoroutineScope()
@@ -66,12 +72,18 @@ fun TodoListScreen(navController: NavHostController, repoPath: String, scaffoldS
     }
 
     Column(Modifier.fillMaxSize()) {
-        TodoListContent(viewState, viewModel, repoPath, navController)
+        TodoListContent(viewState, viewModel, repoPath, navController, isShowSystemBar)
     }
 }
 
 @Composable
-fun TodoListContent(viewState: TodoListViewState, viewModel: TodoListViewModel, repoPath: String, navController: NavHostController) {
+fun TodoListContent(
+    viewState: TodoListViewState,
+    viewModel: TodoListViewModel,
+    repoPath: String,
+    navController: NavHostController,
+    isShowSystemBar: (isShow: Boolean) -> Unit
+) {
     val todoPagingItems = viewState.todoFlow.collectAsLazyPagingItems()
     val rememberSwipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
 
@@ -101,7 +113,7 @@ fun TodoListContent(viewState: TodoListViewState, viewModel: TodoListViewModel, 
             },
             modifier = Modifier.fillMaxSize()
         ) {
-            TodoListLazyColumn(viewState, viewModel, todoPagingItems, navController, repoPath, rememberSwipeRefreshState.isRefreshing)
+            TodoListLazyColumn(viewState, viewModel, todoPagingItems, navController, repoPath, rememberSwipeRefreshState.isRefreshing, isShowSystemBar)
         }
     }
 }
@@ -113,13 +125,35 @@ fun TodoListLazyColumn(
     todoPagingItems: LazyPagingItems<TodoCardData>,
     navController: NavHostController,
     repoPath: String,
-    isLoading: Boolean
+    isLoading: Boolean,
+    isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    val listState = rememberLazyListState()
+
+    // TODO 增加往回滑动显示UI
+    val isShow by derivedStateOf { listState.firstVisibleItemIndex == 0 }
+    isShowSystemBar(isShow)
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        state = listState
+    ) {
         item(key = "headerFilter") {
             // 筛选类型
             TodoFilterContent(viewState, viewModel)
         }
+
+        /*todoPagingItems.itemSnapshotList.forEach {
+            if (it != null) {
+                stickyHeader {
+                    Text(text = it.cardTitle)
+                }
+
+                item {
+                    TodoCardScreen(it, navController, viewModel, repoPath, isLoading)
+                }
+            }
+        }*/
 
         itemsIndexed(todoPagingItems, key = { _, item -> item.cardTitle+item.itemArray.toString()}) { _, item ->
             if (item != null) {

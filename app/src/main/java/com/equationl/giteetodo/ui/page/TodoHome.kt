@@ -2,6 +2,11 @@ package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,22 +16,24 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ChangeCircle
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Logout
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.ui.theme.baseBackground
+import com.equationl.giteetodo.ui.theme.systemBar
 import com.equationl.giteetodo.ui.widgets.HomeTopBar
 import com.equationl.giteetodo.viewmodel.*
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class)
@@ -38,6 +45,15 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
     val pagerState = rememberPagerState()
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()
+    val systemUiCtrl = rememberSystemUiController()
+    val systemBarColor = MaterialTheme.colors.systemBar
+
+    DisposableEffect(Unit) {
+        onDispose {
+            systemUiCtrl.setSystemBarsColor(systemBarColor)
+            systemUiCtrl.systemBarsDarkContentEnabled = false
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
@@ -58,24 +74,51 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
         activity?.finish()
     }
 
+    if (viewState.isShowBottomBar) {
+        systemUiCtrl.setSystemBarsColor(systemBarColor)
+        systemUiCtrl.systemBarsDarkContentEnabled = false
+    }
+    else {
+        systemUiCtrl.setSystemBarsColor(Color.Transparent)
+        systemUiCtrl.systemBarsDarkContentEnabled = true
+    }
+
     MaterialTheme {
         Scaffold(
             topBar = {
-                HomeTopBar(viewState.title,
-                    navigationIcon = Icons.Outlined.Close,
-                    currentPager = viewState.currentPage,
-                    actions = {
-                        HomeTopBarAction(viewState.currentPage, viewModel)
-                    }) {
-                    // 点击退出
-                    activity?.finish()
+                AnimatedVisibility(
+                    visible = viewState.isShowBottomBar,
+                    exit = slideOutVertically(),
+                    enter = slideInVertically()
+                ) {
+                    Column(modifier = if (viewState.isShowBottomBar) Modifier.statusBarsPadding() else Modifier) {
+                        HomeTopBar(viewState.title,
+                            navigationIcon = Icons.Outlined.Close,
+                            currentPager = viewState.currentPage,
+                            actions = {
+                                HomeTopBarAction(viewState.currentPage, viewModel)
+                            }) {
+                            // 点击退出
+                            activity?.finish()
+                        }
+                    }
                 }
             },
             bottomBar = {
-                HomeBottomBar(viewState, pagerState)
+                AnimatedVisibility(
+                    visible = viewState.isShowBottomBar,
+                    exit = slideOutVertically(targetOffsetY = { it / 2}),
+                    enter = slideInVertically(initialOffsetY = { it / 2})
+                ) {
+                    Column(modifier = if (viewState.isShowBottomBar) Modifier.navigationBarsPadding() else Modifier) {
+                        HomeBottomBar(viewState, pagerState)
+                    }
+                }
             },
             floatingActionButton = {
-                HomeFloatActionBar(viewState.currentPage, viewModel)
+                Column(modifier = if (viewState.isShowBottomBar) Modifier else Modifier.navigationBarsPadding()) {
+                    HomeFloatActionBar(viewState.currentPage, viewModel, viewState)
+                }
             },
             floatingActionButtonPosition = FabPosition.Center,
             isFloatingActionButtonDocked = true,
@@ -91,7 +134,7 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
                     .fillMaxSize()
                     .padding(bottom = it.calculateBottomPadding())
             ) {
-                HomeContent(pagerState, navController, repoPath, scaffoldState)
+                HomeContent(pagerState, navController, repoPath, scaffoldState, viewModel)
             }
         }
     }
@@ -111,23 +154,39 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HomeContent(pagerState: PagerState, navController: NavHostController, repoPath: String, scaffoldState: ScaffoldState) {
+fun HomeContent(
+    pagerState: PagerState,
+    navController: NavHostController,
+    repoPath: String,
+    scaffoldState: ScaffoldState,
+    viewModel: TodoHomeViewModel
+) {
     HorizontalPager(count = 2,
         state = pagerState
     ) { page ->
         when (page) {
-            0 -> TodoListScreen(navController, repoPath, scaffoldState)
+            0 -> TodoListScreen(navController, repoPath, scaffoldState) {
+                viewModel.dispatch(TodoHomeViewAction.ChangeSystemBarShowState(it))
+            }
             1 -> ProfileScreen(navController, scaffoldState, repoPath)
         }
     }
 }
 
 @Composable
-fun HomeFloatActionBar(currentPager: CurrentPager, viewModel: TodoHomeViewModel) {
+fun HomeFloatActionBar(currentPager: CurrentPager, viewModel: TodoHomeViewModel, viewState: TodoHomeViewState) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+    val offsetValue by animateIntAsState(
+        targetValue = if (viewState.isShowBottomBar) 0 else screenWidth / 2 - 32 - 16,
+        animationSpec = spring(0.3f)
+    )
+
     if (currentPager == CurrentPager.HOME_TODO) {
-        FloatingActionButton(onClick = {
-            viewModel.dispatch(TodoHomeViewAction.AddATodo)
-        }) {
+        FloatingActionButton(
+            onClick = { viewModel.dispatch(TodoHomeViewAction.AddATodo) },
+            modifier = Modifier.offset(offsetValue.dp, 0.dp)
+        ) {
             Icon(Icons.Outlined.Add, "Add")
         }
     }

@@ -3,7 +3,10 @@ package com.equationl.giteetodo.ui
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.equationl.giteetodo.ui.common.Route
@@ -19,11 +22,15 @@ fun HomeNavHost() {
     val navController = rememberAnimatedNavController()
     AnimatedNavHost(navController, Route.LOGIN) {
         composable(Route.LOGIN) {
-            LoginScreen(navController)
+            Column(Modifier.systemBarsPadding()) {
+                LoginScreen(navController)
+            }
         }
 
         composable(Route.OAuthLogin) {
-            OAuthLoginScreen(navController)
+            Column(Modifier.systemBarsPadding()) {
+                OAuthLoginScreen(navController)
+            }
         }
 
         composable(Route.ABOUT,
@@ -34,7 +41,9 @@ fun HomeNavHost() {
                 slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))
             }
         ) {
-            AboutScreen(navController)
+            Column(Modifier.systemBarsPadding()) {
+                AboutScreen(navController)
+            }
         }
 
         composable("${Route.HOME}/{${RouteParams.PAR_REPO_PATH}}",
@@ -64,11 +73,15 @@ fun HomeNavHost() {
         ) {
             val argument = requireNotNull(it.arguments)
             val issueNum = argument.getString(RouteParams.PAR_ISSUE_NUM) ?: "null"
-            TodoDetailScreen(navController, issueNum)
+            Column(Modifier.systemBarsPadding()) {
+                TodoDetailScreen(navController, issueNum)
+            }
         }
 
         composable(Route.REPO_DETAIL) {
-            RepoDetailScreen(navController)
+            Column(Modifier.systemBarsPadding()) {
+                RepoDetailScreen(navController)
+            }
         }
 
         composable(Route.REPO_LIST,
@@ -79,7 +92,9 @@ fun HomeNavHost() {
                 slideOutOfContainer(AnimatedContentScope.SlideDirection.Down, animationSpec = tween(700))
             }
         ) {
-            RepoListScreen(navController)
+            Column(Modifier.systemBarsPadding()) {
+                RepoListScreen(navController)
+            }
         }
 
         composable("${Route.LABEL_MG}/{${RouteParams.PAR_REPO_PATH}}",
@@ -97,7 +112,9 @@ fun HomeNavHost() {
         ) {
             val argument = requireNotNull(it.arguments)
             val repoPath = argument.getString(RouteParams.PAR_REPO_PATH) ?: "null/null"
-            LabelManagerScreen(repoPath = repoPath, navController = navController)
+            Column(Modifier.systemBarsPadding()) {
+                LabelManagerScreen(repoPath = repoPath, navController = navController)
+            }
         }
 
         composable(Route.SETTING,
@@ -107,7 +124,9 @@ fun HomeNavHost() {
             exitTransition = {
                 slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))
             }) {
-            SettingScreen(navController)
+            Column(Modifier.systemBarsPadding()) {
+                SettingScreen(navController)
+            }
         }
 
     }

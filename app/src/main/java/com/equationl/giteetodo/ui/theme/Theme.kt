@@ -7,6 +7,7 @@ import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val DarkColorPalette = darkColors(
     //primary = Color.Red,
@@ -37,6 +38,11 @@ fun GiteeTodoTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
         LightColorPalette
     }
 
+    val systemUiCtrl = rememberSystemUiController()
+    //systemUiCtrl.setStatusBarColor(colors.primary)
+    //systemUiCtrl.setNavigationBarColor(colors.baseBackground)
+    systemUiCtrl.setSystemBarsColor(colors.systemBar)
+
     MaterialTheme(
         colors = colors,
         typography = Typography,
@@ -48,3 +54,7 @@ fun GiteeTodoTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
 @get:Composable
 val Colors.baseBackground: Color
     get() = if (isLight) LightGray else DarkGray
+
+@get:Composable
+val Colors.systemBar: Color
+    get() = if (isLight) LightColorPalette.primary else DarkColorPalette.primary

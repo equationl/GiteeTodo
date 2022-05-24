@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -26,10 +27,7 @@ import com.equationl.giteetodo.R
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.Route
-import com.equationl.giteetodo.ui.widgets.LinkText
-import com.equationl.giteetodo.ui.widgets.ListEmptyContent
-import com.equationl.giteetodo.ui.widgets.LoadDataContent
-import com.equationl.giteetodo.ui.widgets.noRippleClickable
+import com.equationl.giteetodo.ui.widgets.*
 import com.equationl.giteetodo.viewmodel.*
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
@@ -130,9 +128,8 @@ fun TodoListLazyColumn(
 ) {
     val listState = rememberLazyListState()
 
-    // TODO 增加往回滑动显示UI
-    val isShow by derivedStateOf { listState.firstVisibleItemIndex == 0 }
-    isShowSystemBar(isShow)
+    // fixme 如果拉到底后往回拉一点再尝试拉到底会导致“反复横跳”
+    isShowSystemBar(listState.isScrollingUp())
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -230,9 +227,12 @@ fun TodoItem(navController: NavHostController, itemData: TodoCardItemData, viewM
         Text(
             text = itemData.title,
             textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
-        modifier = Modifier.noRippleClickable {
-            navController.navigate("${Route.TODO_DETAIL}/${itemData.number}")
-        })
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.noRippleClickable {
+                navController.navigate("${Route.TODO_DETAIL}/${itemData.number}")
+            }
+        )
     }
 }
 

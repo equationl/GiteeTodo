@@ -74,7 +74,7 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
         activity?.finish()
     }
 
-    if (viewState.isShowBottomBar) {
+    if (viewState.isShowSystemBar) {
         systemUiCtrl.setSystemBarsColor(systemBarColor)
         systemUiCtrl.systemBarsDarkContentEnabled = false
     }
@@ -87,11 +87,11 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
         Scaffold(
             topBar = {
                 AnimatedVisibility(
-                    visible = viewState.isShowBottomBar,
+                    visible = viewState.isShowSystemBar,
                     exit = slideOutVertically(),
                     enter = slideInVertically()
                 ) {
-                    Column(modifier = if (viewState.isShowBottomBar) Modifier.statusBarsPadding() else Modifier) {
+                    Column(modifier = if (viewState.isShowSystemBar) Modifier.statusBarsPadding() else Modifier) {
                         HomeTopBar(viewState.title,
                             navigationIcon = Icons.Outlined.Close,
                             currentPager = viewState.currentPage,
@@ -106,17 +106,17 @@ fun HomeScreen(navController: NavHostController, repoPath: String) {
             },
             bottomBar = {
                 AnimatedVisibility(
-                    visible = viewState.isShowBottomBar,
+                    visible = viewState.isShowSystemBar,
                     exit = slideOutVertically(targetOffsetY = { it / 2}),
                     enter = slideInVertically(initialOffsetY = { it / 2})
                 ) {
-                    Column(modifier = if (viewState.isShowBottomBar) Modifier.navigationBarsPadding() else Modifier) {
+                    Column(modifier = if (viewState.isShowSystemBar) Modifier.navigationBarsPadding() else Modifier) {
                         HomeBottomBar(viewState, pagerState)
                     }
                 }
             },
             floatingActionButton = {
-                Column(modifier = if (viewState.isShowBottomBar) Modifier else Modifier.navigationBarsPadding()) {
+                Column(modifier = if (viewState.isShowSystemBar) Modifier else Modifier.navigationBarsPadding()) {
                     HomeFloatActionBar(viewState.currentPage, viewModel, viewState)
                 }
             },
@@ -178,7 +178,7 @@ fun HomeFloatActionBar(currentPager: CurrentPager, viewModel: TodoHomeViewModel,
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val offsetValue by animateIntAsState(
-        targetValue = if (viewState.isShowBottomBar) 0 else screenWidth / 2 - 32 - 16,
+        targetValue = if (viewState.isShowSystemBar) 0 else screenWidth / 2 - 32 - 16,
         animationSpec = spring(0.3f)
     )
 

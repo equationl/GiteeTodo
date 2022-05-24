@@ -1,6 +1,5 @@
 package com.equationl.giteetodo.ui.widgets
 
-import androidx.compose.foundation.clickable
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +11,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LinkText(
     text: String,
+    modifier: Modifier = Modifier,
     fontSize: TextUnit = 12.sp,
     color: Color = MaterialTheme.colors.primary,
     onClick: () -> Unit) {
@@ -20,5 +20,5 @@ fun LinkText(
         text = text,
         color = color,
         fontSize = fontSize,
-        modifier = Modifier.noRippleClickable(onClick = onClick) )
+        modifier = modifier.noRippleClickable(onClick = onClick) )
 }

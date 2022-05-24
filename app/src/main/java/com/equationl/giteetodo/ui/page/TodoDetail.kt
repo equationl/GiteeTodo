@@ -1,6 +1,9 @@
 package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,7 +22,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -33,6 +35,7 @@ import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
+import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.viewmodel.*
@@ -110,33 +113,37 @@ fun TodoDetailScreen(navController: NavHostController?, issueNum: String) {
 
 @Composable
 fun TodoDetailContent(padding: PaddingValues, viewModel: TodoDetailViewModel, viewState: TodoDetailViewState, issueNum: String) {
-    val listState = rememberLazyListState()
-    LazyColumn(state = listState,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .background(MaterialTheme.colors.baseBackground)
+    Box {
+        val listState = rememberLazyListState()
+        LazyColumn(state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(MaterialTheme.colors.baseBackground)
             //.imePadding()
             //.imeNestedScroll()
-    ) {
-        item {
-            TodoDetailMainContent(
-                viewState = viewState,
-                viewModel = viewModel,
-                issueNum = issueNum
-            )
-        }
-
-        item {
-            if (!viewState.isEditAble && issueNum != "null") {
-                TodoCommentContent(viewState.commentList, issueNum, viewModel, viewState)
+        ) {
+            item {
+                TodoDetailMainContent(
+                    viewState = viewState,
+                    viewModel = viewModel,
+                    issueNum = issueNum
+                )
             }
-            if (viewState.editCommentId != -1) {
-                val scope = rememberCoroutineScope()
-                scope.launch {
-                    listState.animateScrollToItem(1)
+
+            item {
+                if (!viewState.isEditAble && issueNum != "null") {
+                    TodoCommentContent(viewState.commentList, viewModel, viewState)
                 }
             }
+        }
+
+        AnimatedVisibility(
+            visible = viewState.isShowCommentEdit,
+            exit = slideOutVertically(targetOffsetY = { it / 2}),
+            enter = slideInVertically(initialOffsetY = { it / 2})
+        ) {
+            TodoCreateCommentEdit(viewModel = viewModel, viewState = viewState, issueNum = issueNum)
         }
     }
 }
@@ -188,7 +195,7 @@ fun TodoDetailMainContent(viewState: TodoDetailViewState, viewModel: TodoDetailV
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(top = 32.dp), horizontalArrangement = Arrangement.Center) {
+                .padding(top = 32.dp, bottom = 8.dp), horizontalArrangement = Arrangement.Center) {
             Button(
                 onClick = { viewModel.dispatch(TodoDetailViewAction.ClickSave(issueNum)) },
                 shape = Shapes.large) {
@@ -362,7 +369,6 @@ fun StateDropMenu(viewModel: TodoDetailViewModel, isShow: Boolean) {
 @Composable
 fun TodoCommentContent(
     commentList: List<Comment>,
-    issueNum: String,
     viewModel: TodoDetailViewModel,
     viewState: TodoDetailViewState
 ) {
@@ -371,11 +377,28 @@ fun TodoCommentContent(
             .fillMaxWidth()
             .padding(bottom = 8.dp, top = 16.dp)
     ) {
-        Text("评论（${commentList.size}）",
-            Modifier
-                .padding(start = 8.dp, end = 8.dp)
-                .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
-        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("评论（${commentList.size}）",
+                Modifier
+                    .padding(start = 8.dp)
+                    .placeholder(
+                        visible = viewState.isLoading,
+                        highlight = PlaceholderHighlight.fade()
+                    )
+            )
+
+            LinkText(
+                text = "新建",
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .placeholder(
+                        visible = viewState.isLoading,
+                        highlight = PlaceholderHighlight.fade()
+                    )
+            ) {
+                viewModel.dispatch(TodoDetailViewAction.ToggleCreateComment(true))
+            }
+        }
 
         Card(border = BorderStroke(1.dp, Color.Gray),
             modifier = Modifier
@@ -384,35 +407,6 @@ fun TodoCommentContent(
                 .background(MaterialTheme.colors.background)
         ) {
             Column {
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                        .placeholder(
-                            visible = viewState.isLoading,
-                            highlight = PlaceholderHighlight.fade()
-                        ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
-                    // TODO 点击编辑时增加动画效果，用于提醒用户在此处修改，或更改该输入框为恒定悬浮于底部/顶部
-                    OutlinedTextField(value = viewState.newComment,
-                        onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnNewCommentChange(it)) },
-                        label = { Text(viewState.editCommentLabel) },
-                        modifier = Modifier
-                            .weight(8f)
-                            .padding(end = 4.dp)
-                            .scale(1f, 0.8f)
-                    )
-
-                    Button(onClick = { viewModel.dispatch(TodoDetailViewAction.ClickSaveComment(issueNum)) }, modifier = Modifier.weight(2f)) {
-                        Text(text = viewState.editCommentSaveBtn, fontSize = 12.sp)
-                    }
-                }
-
-                Divider(Modifier.padding(bottom = 8.dp))
-
                 if (commentList.isEmpty()) {
                     Text(text = "暂无评论",
                         Modifier
@@ -497,6 +491,45 @@ fun TodoCommentItem(
         }
         if (hasDivider) {
             Divider()
+        }
+    }
+}
+
+@Composable
+fun TodoCreateCommentEdit(viewModel: TodoDetailViewModel, viewState: TodoDetailViewState, issueNum: String) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colors.background),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(value = viewState.newComment,
+                onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnNewCommentChange(it)) },
+                label = { Text(viewState.editCommentLabel) },
+                modifier = Modifier.fillMaxWidth().weight(8f).padding(2.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().weight(2f).padding(end = 8.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                LinkText(
+                    text = viewState.editCommentSaveBtn,
+                    modifier = Modifier.padding(end = 4.dp)
+                ) {
+                    viewModel.dispatch(TodoDetailViewAction.ClickSaveComment(issueNum))
+                }
+
+                LinkText(text = "取消") {
+                    viewModel.dispatch(TodoDetailViewAction.ToggleCreateComment(false))
+                }
+            }
         }
     }
 }

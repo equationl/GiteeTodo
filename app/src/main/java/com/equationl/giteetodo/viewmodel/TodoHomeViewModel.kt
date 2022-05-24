@@ -39,7 +39,7 @@ class TodoHomeViewModel : ViewModel() {
 
     private fun changeSystemBarShowState(isShow: Boolean) {
         if (viewStates.currentPage == CurrentPager.HOME_TODO) {
-            viewStates = viewStates.copy(isShowBottomBar = isShow)
+            viewStates = viewStates.copy(isShowSystemBar = isShow)
         }
     }
 
@@ -57,7 +57,7 @@ class TodoHomeViewModel : ViewModel() {
             homeTextColor = Color.Gray,
             meIcon = Icons.Filled.Person,
             meTextColor = Color.White,
-            isShowBottomBar = true
+            isShowSystemBar = true
         )
     }
 
@@ -95,7 +95,7 @@ data class TodoHomeViewState(
     val homeTextColor: Color = Color.White,
     val meIcon: ImageVector = Icons.Outlined.Person,
     val meTextColor: Color = Color.Gray,
-    val isShowBottomBar: Boolean = true
+    val isShowSystemBar: Boolean = true
 )
 
 sealed class TodoHomeViewEvent {

@@ -52,6 +52,21 @@ class TodoDetailViewModel: ViewModel() {
             is TodoDetailViewAction.OnNewCommentChange -> onNewCommentChange(action.value)
             is TodoDetailViewAction.ClickDeleteComment -> clickDeleteComment(action.id)
             is TodoDetailViewAction.ClickEditComment -> clickEditComment(action.comment)
+            is TodoDetailViewAction.ToggleCreateComment -> toggleCreateComment(action.isShowLayout)
+        }
+    }
+
+    private fun toggleCreateComment(isShow: Boolean) {
+        viewStates = if (isShow) {
+            viewStates.copy(isShowCommentEdit = isShow)
+        } else {
+            viewStates.copy(
+                newComment = "",
+                editCommentSaveBtn = "发送",
+                editCommentLabel = "评论(支持Markdown)",
+                editCommentId = -1,
+                isShowCommentEdit = false
+            )
         }
     }
 
@@ -89,7 +104,13 @@ class TodoDetailViewModel: ViewModel() {
     }
 
     private fun clickEditComment(comment: Comment) {
-        viewStates = viewStates.copy(newComment = comment.body, editCommentId = comment.id, editCommentLabel = "编辑 ${comment.id}", editCommentSaveBtn = "更新")
+        viewStates = viewStates.copy(
+            newComment = comment.body,
+            editCommentId = comment.id,
+            editCommentLabel = "编辑 ${comment.id}",
+            editCommentSaveBtn = "更新",
+            isShowCommentEdit = true
+        )
     }
 
     private fun clickSaveComment(issueNum: String) {
@@ -143,7 +164,8 @@ class TodoDetailViewModel: ViewModel() {
                         newComment = "",
                         editCommentSaveBtn = "发送",
                         editCommentLabel = "评论(支持Markdown)",
-                        editCommentId = -1
+                        editCommentId = -1,
+                        isShowCommentEdit = false
                     )
                 }
                 else {
@@ -405,7 +427,8 @@ data class TodoDetailViewState(
     val editCommentLabel: String = "评论(支持Markdown)",
     val editCommentSaveBtn: String = "发送",
     val availableLabels: MutableMap<String, Boolean> = mutableMapOf(),
-    val commentList: List<Comment> = listOf()
+    val commentList: List<Comment> = listOf(),
+    val isShowCommentEdit: Boolean = false
 )
 
 sealed class TodoDetailViewEvent {
@@ -413,6 +436,7 @@ sealed class TodoDetailViewEvent {
 }
 
 sealed class TodoDetailViewAction {
+    data class ToggleCreateComment(val isShowLayout: Boolean): TodoDetailViewAction()
     data class ToggleEditModel(val isEditAble: Boolean) : TodoDetailViewAction()
     data class StateDropMenuShowState(val isShow: Boolean): TodoDetailViewAction()
     data class LabelsDropMenuShowState(val isShow: Boolean): TodoDetailViewAction()

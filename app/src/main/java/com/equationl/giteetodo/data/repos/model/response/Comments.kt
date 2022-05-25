@@ -21,12 +21,12 @@ data class Comment(
 
 data class Target(
     @SerializedName("issue")
-    val issue: Issue,
+    val issue: SimpleIssue,
     @SerializedName("pull_request")
     val pullRequest: Any?
 )
 
-data class Issue(
+data class SimpleIssue(
     @SerializedName("id")
     val id: Int,
     @SerializedName("number")

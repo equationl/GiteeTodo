@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -50,9 +50,12 @@ import kotlinx.coroutines.launch
 private const val TAG = "el, TodoDetailScreen"
 
 @Composable
-fun TodoDetailScreen(navController: NavHostController?, issueNum: String) {
+fun TodoDetailScreen(
+    navController: NavHostController?,
+    issueNum: String,
+    viewModel: TodoDetailViewModel = hiltViewModel()
+) {
     val activity = (LocalContext.current as? Activity)
-    val viewModel: TodoDetailViewModel = viewModel()
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()
@@ -512,11 +515,17 @@ fun TodoCreateCommentEdit(viewModel: TodoDetailViewModel, viewState: TodoDetailV
             OutlinedTextField(value = viewState.newComment,
                 onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnNewCommentChange(it)) },
                 label = { Text(viewState.editCommentLabel) },
-                modifier = Modifier.fillMaxWidth().weight(8f).padding(2.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(8f)
+                    .padding(2.dp)
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth().weight(2f).padding(end = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(2f)
+                    .padding(end = 8.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 LinkText(

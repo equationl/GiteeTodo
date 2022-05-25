@@ -17,7 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -47,9 +47,9 @@ fun TodoListScreen(
     navController: NavHostController,
     repoPath: String,
     scaffoldState: ScaffoldState,
+    viewModel: TodoListViewModel = hiltViewModel(),
     isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
-    val viewModel: TodoListViewModel = viewModel()
     val viewState = viewModel.viewStates
     val coroutineState = rememberCoroutineScope()
 

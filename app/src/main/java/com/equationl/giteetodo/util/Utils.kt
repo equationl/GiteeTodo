@@ -4,7 +4,7 @@ import android.util.Log
 import android.webkit.CookieManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
@@ -53,8 +53,7 @@ object Utils {
      * @param forceRequest 是否强制从服务器请求
      * @return 如果出错则返回 [emptyList]
      * */
-    suspend fun getExistLabel(forceRequest: Boolean = false): List<Label> {
-        val reposApi = RetrofitManger.getReposApi()
+    suspend fun getExistLabel(repoApi: RepoApi, forceRequest: Boolean = false): List<Label> {
         var localData: String? = null
 
         if (!forceRequest) {
@@ -65,7 +64,7 @@ object Utils {
             val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
             val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
 
-            val response = reposApi.getExistLabels(
+            val response = repoApi.getExistLabels(
                 repoPath.split("/")[0],
                 repoPath.split("/")[1],
                 token

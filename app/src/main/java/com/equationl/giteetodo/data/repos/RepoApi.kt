@@ -7,7 +7,9 @@ import com.equationl.giteetodo.data.user.model.response.Repo
 import retrofit2.Response
 import retrofit2.http.*
 
-interface ReposApi {
+interface RepoApi {
+    // TODO 加入缓存到数据库，避免频繁请求
+
     /**
      * 创建一个仓库
      * */
@@ -44,7 +46,7 @@ interface ReposApi {
      * 创建一个 issue
      * */
     @POST("repos/{owner}/issues")
-    suspend fun createIssues(@Path("owner") owner: String, @Body createIssues: CreateIssues): Response<Issues>
+    suspend fun createIssues(@Path("owner") owner: String, @Body createIssues: CreateIssues): Response<Issue>
 
 
     /**
@@ -62,7 +64,7 @@ interface ReposApi {
         @Query("page") page: Int = 1,
         @Query("per_page") perPage: Int = 100,
         @Query("labels") labels: String? = null,
-        @QueryMap filters: Map<String, String> = mapOf()): Response<List<Issues>>
+        @QueryMap filters: Map<String, String> = mapOf()): Response<List<Issue>>
 
 
     /**
@@ -74,7 +76,7 @@ interface ReposApi {
         @Path("repo") repo: String,
         @Path("number") number: String,
         @Query("access_token") accessToken: String
-    ): Response<Issues>
+    ): Response<Issue>
 
     /**
      * 更新指定 issue
@@ -84,7 +86,7 @@ interface ReposApi {
         @Path("owner") owner: String,
         @Path("number") number: String,
         @Body updateIssue: UpdateIssue
-    ): Response<Issues>
+    ): Response<Issue>
 
     /**
      * 获取指定 label

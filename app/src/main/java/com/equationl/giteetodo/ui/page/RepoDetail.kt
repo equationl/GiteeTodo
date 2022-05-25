@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
@@ -26,8 +26,10 @@ import kotlinx.coroutines.launch
 private const val TAG = "el, RepoDetail"
 
 @Composable
-fun RepoDetailScreen(navController: NavHostController) {
-    val viewModel: RepoDetailViewModel = viewModel()
+fun RepoDetailScreen(
+    navController: NavHostController,
+    viewModel: RepoDetailViewModel = hiltViewModel()
+) {
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()

@@ -5,25 +5,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.model.request.CreateLabel
 import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LabelMgViewModel : ViewModel() {
+@HiltViewModel
+class LabelMgViewModel @Inject constructor(
+    private val repoApi: RepoApi
+) : ViewModel() {
     private val exception = CoroutineExceptionHandler { _, throwable ->
         viewModelScope.launch {
             _viewEvents.send(LabelMgViewEvent.ShowMessage("请求失败：${throwable.message}"))
         }
     }
-
-    private val repoApi = RetrofitManger.getReposApi()
 
     var viewStates by mutableStateOf(LabelMgViewState())
         private set
@@ -84,7 +87,7 @@ class LabelMgViewModel : ViewModel() {
             viewStates = viewStates.copy(editName = label?.name ?: "")
         }
         if (viewStates.editColor.isBlank()) {
-            viewStates = viewStates.copy(editColor = label?.color ?: "", )
+            viewStates = viewStates.copy(editColor = label?.color ?: "")
         }
     }
 
@@ -138,7 +141,7 @@ class LabelMgViewModel : ViewModel() {
 
     private fun loadLabel(forceRequest: Boolean, isShowSuccessAlt: Boolean = false) {
         viewModelScope.launch(exception) {
-            val labelList = Utils.getExistLabel(forceRequest)
+            val labelList = Utils.getExistLabel(repoApi, forceRequest)
             if (labelList.isEmpty()) {
                 _viewEvents.send(LabelMgViewEvent.ShowMessage("获取标签失败"))
             }

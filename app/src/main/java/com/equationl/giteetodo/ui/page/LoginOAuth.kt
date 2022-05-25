@@ -12,7 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.constants.ClientInfo
 import com.equationl.giteetodo.ui.common.Route
@@ -28,8 +28,10 @@ import java.nio.charset.StandardCharsets
 private const val TAG = "el, OAuthLogin"
 
 @Composable
-fun OAuthLoginScreen(navHostController: NavHostController) {
-    val viewModel: LoginOauthViewModel = viewModel()
+fun OAuthLoginScreen(
+    navHostController: NavHostController,
+    viewModel: LoginOauthViewModel = hiltViewModel()
+) {
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()
 

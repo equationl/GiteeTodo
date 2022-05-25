@@ -8,23 +8,25 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.constants.DefaultText
-import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.model.request.UpdateContent
 import com.equationl.giteetodo.data.user.model.request.UserRepos
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import javax.inject.Inject
 
-private const val TAG = "el, RepoDetailViewModel"
-
-class RepoDetailViewModel: ViewModel() {
-    private val repoApi = RetrofitManger.getReposApi()
+@HiltViewModel
+class RepoDetailViewModel @Inject constructor(
+    private val repoApi: RepoApi
+) : ViewModel() {
 
     var viewStates by mutableStateOf(RepoDetailViewState())
         private set
@@ -168,6 +170,10 @@ class RepoDetailViewModel: ViewModel() {
     }
     private fun changeReadmeContent(text: String) {
         viewStates = viewStates.copy(readmeContent = text)
+    }
+
+    companion object {
+        private const val TAG = "el, RepoDetailViewModel"
     }
 
 }

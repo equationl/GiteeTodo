@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.ui.common.Route
@@ -43,9 +44,11 @@ import kotlinx.coroutines.launch
 private const val TAG = "el, LoginScreen"
 
 @Composable
-fun LoginScreen(navController: NavHostController) {
+fun LoginScreen(
+    navController: NavHostController,
+    viewModel: LoginViewModel = hiltViewModel()
+) {
     val activity = (LocalContext.current as? Activity)
-    val viewModel: LoginViewModel = viewModel()
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()

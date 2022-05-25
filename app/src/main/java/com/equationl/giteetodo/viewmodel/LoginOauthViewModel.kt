@@ -3,17 +3,21 @@ package com.equationl.giteetodo.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.constants.ClientInfo
-import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.auth.OAuthApi
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginOauthViewModel : ViewModel() {
-    private val oAuthApi by lazy { RetrofitManger.getOAuthApi() }
+@HiltViewModel
+class LoginOauthViewModel @Inject constructor(
+    private val oAuthApi: OAuthApi
+) : ViewModel() {
 
     private val _viewEvents = Channel<LoginOauthViewEvent>(Channel.BUFFERED)
     val viewEvents = _viewEvents.receiveAsFlow()

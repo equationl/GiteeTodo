@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.theme.baseBackground
@@ -43,8 +43,11 @@ import kotlinx.coroutines.launch
 private const val TAG = "el, LabelManagerScreen"
 
 @Composable
-fun LabelManagerScreen(repoPath: String, navController: NavHostController) {
-    val viewModel: LabelMgViewModel = viewModel()
+fun LabelManagerScreen(
+    repoPath: String,
+    navController: NavHostController,
+    viewModel: LabelMgViewModel = hiltViewModel()
+) {
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()

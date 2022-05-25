@@ -1,6 +1,5 @@
 package com.equationl.giteetodo.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,7 +9,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.model.pagingSource.IssuesPagingSource
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
 import com.equationl.giteetodo.ui.common.Direction
@@ -18,6 +17,7 @@ import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -29,12 +29,13 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import javax.inject.Inject
 
-private const val TAG = "el, TodoListViewModel"
-
-class TodoListViewModel: ViewModel() {
+@HiltViewModel
+class TodoListViewModel @Inject constructor(
+    private val repoApi: RepoApi
+) : ViewModel() {
     private var filterDate = ""
-    private val reposApi = RetrofitManger.getReposApi()
     private val queryFlow = MutableStateFlow(QueryParameter())
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -42,7 +43,7 @@ class TodoListViewModel: ViewModel() {
         Pager(
             PagingConfig(pageSize = 50, initialLoadSize = 50)
         ) {
-            IssuesPagingSource(reposApi, it)
+            IssuesPagingSource(repoApi, it)
         }.flow.cachedIn(viewModelScope)
     }
 
@@ -87,7 +88,6 @@ class TodoListViewModel: ViewModel() {
     }
 
     private fun filterDate(date: LocalDate, isStart: Boolean) {
-        Log.i(TAG, "filterDate: date=$date, isStart=$isStart")
         if (isStart) {
             filterDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd", Locale.CHINA))
             filterDate += "T000000+8-"
@@ -161,7 +161,7 @@ class TodoListViewModel: ViewModel() {
     private fun changeLabelsDropMenuShowState(isShow: Boolean) {
         if (isShow) {
             viewModelScope.launch(exception) {
-                val labelList = Utils.getExistLabel()
+                val labelList = Utils.getExistLabel(repoApi)
 
                 if (labelList.isEmpty()) {
                     viewStates = viewStates.copy(isShowLabelsDropMenu = false)
@@ -205,7 +205,7 @@ class TodoListViewModel: ViewModel() {
 
     private fun updateIssueState(issueNum: String, isClose: Boolean, repoPath: String) {
         viewModelScope.launch {
-            val response = reposApi.updateIssues(
+            val response = repoApi.updateIssues(
                 repoPath.split("/")[0],
                 issueNum,
                 UpdateIssue(

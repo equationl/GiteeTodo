@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.theme.systemBar
@@ -38,8 +38,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HomeScreen(navController: NavHostController, repoPath: String) {
-    val viewModel: TodoHomeViewModel = viewModel()
+fun HomeScreen(
+    navController: NavHostController,
+    repoPath: String,
+    viewModel: TodoHomeViewModel = hiltViewModel()
+) {
     val viewState = viewModel.viewStates
     val activity = (LocalContext.current as? Activity)
     val pagerState = rememberPagerState()

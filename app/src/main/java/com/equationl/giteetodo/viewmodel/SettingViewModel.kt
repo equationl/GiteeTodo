@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.Utils
@@ -13,13 +14,18 @@ import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import com.equationl.giteetodo.util.toJson
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.lang.reflect.Type
+import javax.inject.Inject
 
-class SettingViewModel : ViewModel() {
+@HiltViewModel
+class SettingViewModel @Inject constructor(
+    private val repoApi: RepoApi
+) : ViewModel() {
     private val exception = CoroutineExceptionHandler { _, throwable ->
         viewModelScope.launch {
             _viewEvents.send(SettingViewEvent.ShowMessage("出错：${throwable.message}"))
@@ -92,7 +98,7 @@ class SettingViewModel : ViewModel() {
 
     private fun initSetting() {
         viewModelScope.launch(exception) {
-            val existLabels = Utils.getExistLabel()
+            val existLabels = Utils.getExistLabel(repoApi = repoApi)
             val currentShowNum = DataStoreUtils.getSyncData(DataKey.WidgetShowNum, 10)
 
             val currentChoiceLabelString = DataStoreUtils.getSyncData(DataKey.WidgetFilterLabels, "")

@@ -5,19 +5,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.user.UserApi
 import com.equationl.giteetodo.data.user.model.response.User
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import com.equationl.giteetodo.util.fromJson
 import com.equationl.giteetodo.util.toJson
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ProfileViewModel : ViewModel() {
-    private val userApi = RetrofitManger.getUserApi()
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val userApi: UserApi
+) : ViewModel() {
 
     var viewStates by mutableStateOf(ProfileViewState())
         private set

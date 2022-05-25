@@ -2,7 +2,7 @@ package com.equationl.giteetodo.data.repos.model.response
 import com.google.gson.annotations.SerializedName
 
 
-data class Issues(
+data class Issue(
     @SerializedName("assignee")
     val assignee: Any?,
     @SerializedName("body")

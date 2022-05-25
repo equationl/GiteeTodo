@@ -2,8 +2,8 @@ package com.equationl.giteetodo.data.repos.model.pagingSource
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.equationl.giteetodo.data.repos.ReposApi
-import com.equationl.giteetodo.data.repos.model.response.Issues
+import com.equationl.giteetodo.data.repos.RepoApi
+import com.equationl.giteetodo.data.repos.model.response.Issue
 import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.getIssueState
@@ -20,7 +20,7 @@ import retrofit2.Response
 private const val TAG = "el, IssuesPagingSource"
 
 class IssuesPagingSource(
-    private val reposApi: ReposApi,
+    private val repoApi: RepoApi,
     private val queryParameter: QueryParameter
 ) : PagingSource<Int, TodoCardData>() {
     override suspend fun load(
@@ -34,7 +34,7 @@ class IssuesPagingSource(
                 return LoadResult.Error(IllegalArgumentException("路径为空！"))
             }
 
-            val response = reposApi.getAllIssues(
+            val response = repoApi.getAllIssues(
                 repoPath.split("/")[0],
                 repoPath.split("/")[1],
                 queryParameter.accessToken,
@@ -70,7 +70,7 @@ class IssuesPagingSource(
         }
     }
 
-    private fun resolveIssue(response: Response<List<Issues>>): List<TodoCardData> {
+    private fun resolveIssue(response: Response<List<Issue>>): List<TodoCardData> {
         // fixme 直接这样解析分组数据会由于是分页加载的导致出现多个相同分组
 
         return when (DataStoreUtils.getSyncData(DataKey.SettingGroupBy, GroupBy.Date.name)) {
@@ -89,7 +89,7 @@ class IssuesPagingSource(
         }
     }
 
-    private fun resolveIssueByDate(response: Response<List<Issues>>): List<TodoCardData> {
+    private fun resolveIssueByDate(response: Response<List<Issue>>): List<TodoCardData> {
         val issueList = response.body()
         if (issueList.isNullOrEmpty()) {
             return emptyList()
@@ -134,7 +134,7 @@ class IssuesPagingSource(
         return todoCardDataList
     }
 
-    private fun resolveIssueByLabel(response: Response<List<Issues>>): List<TodoCardData> {
+    private fun resolveIssueByLabel(response: Response<List<Issue>>): List<TodoCardData> {
         val issueList = response.body()
         if (issueList.isNullOrEmpty()) {
             return emptyList()
@@ -171,7 +171,7 @@ class IssuesPagingSource(
         return todoCardDataList
     }
 
-    private fun resolveIssueByState(response: Response<List<Issues>>): List<TodoCardData> {
+    private fun resolveIssueByState(response: Response<List<Issue>>): List<TodoCardData> {
         val issueList = response.body()
         if (issueList.isNullOrEmpty()) {
             return emptyList()

@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.ExpandableItem
@@ -23,8 +23,10 @@ import com.equationl.giteetodo.viewmodel.*
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingScreen(navController: NavHostController) {
-    val viewModel: SettingViewModel = viewModel()
+fun SettingScreen(
+    navController: NavHostController,
+    viewModel: SettingViewModel = hiltViewModel()
+) {
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()

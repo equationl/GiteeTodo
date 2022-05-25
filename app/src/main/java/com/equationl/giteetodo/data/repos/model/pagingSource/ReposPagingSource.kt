@@ -2,14 +2,14 @@ package com.equationl.giteetodo.data.repos.model.pagingSource
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.equationl.giteetodo.data.repos.ReposApi
+import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.user.model.response.Repo
 import retrofit2.HttpException
 
 private const val TAG = "el, ReposPagingSource"
 
 class ReposPagingSource(
-    private val reposApi: ReposApi,
+    private val repoApi: RepoApi,
     private val accessToken: String
 ) : PagingSource<Int, Repo>() {
     override suspend fun load(
@@ -17,7 +17,7 @@ class ReposPagingSource(
     ): LoadResult<Int, Repo> {
         try {
             val nextPageNumber = params.key ?: 1  // 从第 1 页开始加载
-            val response = reposApi.getRepos(accessToken, page = nextPageNumber, perPage = params.loadSize)
+            val response = repoApi.getRepos(accessToken, page = nextPageNumber, perPage = params.loadSize)
             if (!response.isSuccessful) {
                 return LoadResult.Error(HttpException(response))
             }

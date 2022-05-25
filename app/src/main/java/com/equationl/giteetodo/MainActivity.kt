@@ -13,9 +13,11 @@ import com.equationl.giteetodo.constants.IntentDataKey
 import com.equationl.giteetodo.ui.HomeNavHost
 import com.equationl.giteetodo.ui.page.TodoDetailScreen
 import com.equationl.giteetodo.ui.theme.GiteeTodoTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

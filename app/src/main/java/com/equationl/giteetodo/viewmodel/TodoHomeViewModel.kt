@@ -15,11 +15,14 @@ import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TodoHomeViewModel : ViewModel() {
+@HiltViewModel
+class TodoHomeViewModel @Inject constructor() : ViewModel() {
     var viewStates by mutableStateOf(TodoHomeViewState())
         private set
 

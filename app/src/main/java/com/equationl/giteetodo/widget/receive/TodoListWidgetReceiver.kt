@@ -12,8 +12,7 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.ToggleableStateKey
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
-import com.equationl.giteetodo.data.RetrofitManger
-import com.equationl.giteetodo.data.repos.ReposApi
+import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
 import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.common.IssueState
@@ -25,17 +24,20 @@ import com.equationl.giteetodo.widget.callback.TodoListWidgetCallback
 import com.equationl.giteetodo.widget.dataBean.TodoListWidgetShowData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.lang.reflect.Type
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
+
+    @Inject lateinit var repoApi: RepoApi
 
     private val coroutineScope = MainScope()
 
     override val glanceAppWidget: GlanceAppWidget = TodoListWidget()
-
-    private var reposApi: ReposApi = RetrofitManger.getReposApi()
 
     override fun onUpdate(
         context: Context,
@@ -96,7 +98,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
             }
 
             else {
-                val todoListResponse = reposApi.getAllIssues(
+                val todoListResponse = repoApi.getAllIssues(
                     repoPath.split("/")[0],
                     repoPath.split("/")[1],
                     token,
@@ -140,7 +142,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
         coroutineScope.launch {
             val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "null/null")
             val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
-            val response = reposApi.updateIssues(
+            val response = repoApi.updateIssues(
                 repoPath.split("/")[0],
                 issueNum,
                 UpdateIssue(

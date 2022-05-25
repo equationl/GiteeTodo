@@ -5,24 +5,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.model.request.CreateComment
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
 import com.equationl.giteetodo.data.repos.model.response.Comment
-import com.equationl.giteetodo.data.repos.model.response.Issues
+import com.equationl.giteetodo.data.repos.model.response.Issue
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.getIssueState
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TodoDetailViewModel: ViewModel() {
-    private val repoApi = RetrofitManger.getReposApi()
+@HiltViewModel
+class TodoDetailViewModel @Inject constructor(
+    private val repoApi: RepoApi
+) : ViewModel() {
 
     var viewStates by mutableStateOf(TodoDetailViewState())
         private set
@@ -236,7 +240,7 @@ class TodoDetailViewModel: ViewModel() {
     private fun labelsDropMenuShowState(isShow: Boolean) {
         if (isShow) {
             viewModelScope.launch(exception) {
-                val labelList = Utils.getExistLabel()
+                val labelList = Utils.getExistLabel(repoApi)
                 if (labelList.isEmpty()) {
                     viewStates = viewStates.copy(isShowLabelsDropMenu = false)
                     _viewEvents.send(TodoDetailViewEvent.ShowMessage("加载标签失败"))
@@ -281,7 +285,7 @@ class TodoDetailViewModel: ViewModel() {
         viewStates = viewStates.copy(isShowLabelsDropMenu = false, labels = labels)
     }
 
-    private fun loadIssue(issueNum: String, issue: Issues? = null) {
+    private fun loadIssue(issueNum: String, issue: Issue? = null) {
         viewModelScope.launch(exception) {
             val issueDetail = issue ?: requestIssue(issueNum)
 
@@ -315,7 +319,7 @@ class TodoDetailViewModel: ViewModel() {
         }
     }
 
-    private suspend fun requestIssue(issueNum: String): Issues? {
+    private suspend fun requestIssue(issueNum: String): Issue? {
         val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
         val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
 

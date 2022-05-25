@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -45,9 +45,11 @@ import kotlinx.coroutines.launch
 private const val TAG = "el, RepoList"
 
 @Composable
-fun RepoListScreen(navController: NavHostController) {
+fun RepoListScreen(
+    navController: NavHostController,
+    viewModel: RepoListViewModel = hiltViewModel()
+) {
     val activity = (LocalContext.current as? Activity)
-    val viewModel: RepoListViewModel = viewModel()
     val viewState = viewModel.viewStates
     val scaffoldState = rememberScaffoldState()
     val coroutineState = rememberCoroutineScope()

@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -35,8 +35,12 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun ProfileScreen(navHostController: NavHostController, scaffoldState: ScaffoldState, repoPath: String) {
-    val viewModel: ProfileViewModel = viewModel()
+fun ProfileScreen(
+    navHostController: NavHostController,
+    scaffoldState: ScaffoldState,
+    repoPath: String,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
     val viewState = viewModel.viewStates
     val coroutineState = rememberCoroutineScope()
 

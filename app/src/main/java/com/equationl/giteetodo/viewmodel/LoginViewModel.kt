@@ -3,21 +3,22 @@ package com.equationl.giteetodo.viewmodel
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.constants.ClientInfo
-import com.equationl.giteetodo.data.RetrofitManger
+import com.equationl.giteetodo.data.auth.OAuthApi
 import com.equationl.giteetodo.data.auth.model.response.Token
+import com.equationl.giteetodo.data.user.UserApi
 import com.equationl.giteetodo.data.user.model.response.User
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils.isEmail
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import com.equationl.giteetodo.util.toJson
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -25,13 +26,14 @@ import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import javax.inject.Inject
 
-private const val TAG = "el, LoginViewModel"
-
-class LoginViewModel: ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val oAuthApi: OAuthApi,
+    private val userApi: UserApi
+) : ViewModel() {
     private var loginMethod: LoginMethod = LoginMethod.Email
-    private val oAuthApi by lazy { RetrofitManger.getOAuthApi() }
-    private val userApi by lazy { RetrofitManger.getUserApi() }
 
     var viewStates by mutableStateOf(LoginViewState())
         private set
@@ -275,7 +277,6 @@ class LoginViewModel: ViewModel() {
     }
 
     private suspend fun resolveTokenResponse(response: Response<Token>) {
-        Log.i(TAG, "resolveTokenResponse: response = $response")
         if (response.isSuccessful) {
             val tokenBody = response.body()
             if (tokenBody == null) {

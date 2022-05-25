@@ -31,6 +31,7 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 *基本架构： [MVI](https://juejin.cn/post/7048980213811642382)*
 
 - viewmodel： ViewModel 类旨在以注重生命周期的方式存储和管理界面相关的数据。
+- Hilt：Hilt 是一个适用于 Android 的依赖注入库，可减少在项目中进行手动依赖注入的样板代码。
 - Navigation-Animation： 为 Navigation 提供动画支持的库。
 - paging： 使用 Paging 库，您可以更轻松地在应用的 RecyclerView 中逐步妥善地加载数据。
 - swiperefresh：一个提供实现滑动刷新布局的库，类似于 Android 的 SwipeRefreshLayout。
@@ -112,11 +113,13 @@ CLIENT_SECRET = "xxxxxx"
 ## 关于
 由于我是第一次接触 MVI 架构，所以我也不确定这个程序是否符合 MVI 规范，如有错误，还望海涵并希望大佬们能不吝赐教。
 
+我也是第一次接触 compose ，如有错误，还望大佬们能够指出。
+
 该程序使用 API 来自于 Gitee 的 [OpenAPI](https://gitee.com/api/v5/swagger) 。
 
 **请勿滥用 Gitee 资源。**
 
-该程序在撰写过程中参照了 [shenzhen2017](https://github.com/shenzhen2017) 的 [wanandroid-compose](https://github.com/shenzhen2017/wanandroid-compose)
+该程序参照了 [shenzhen2017](https://github.com/shenzhen2017) 的 [wanandroid-compose](https://github.com/shenzhen2017/wanandroid-compose)
 
 
 ### 联系我

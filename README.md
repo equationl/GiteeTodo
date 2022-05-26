@@ -119,7 +119,21 @@ CLIENT_SECRET = "xxxxxx"
 
 **请勿滥用 Gitee 资源。**
 
+### 参考资料
 该程序参照了 [shenzhen2017](https://github.com/shenzhen2017) 的 [wanandroid-compose](https://github.com/shenzhen2017/wanandroid-compose)
+
+**MVI**
+2. [Jetpack Compose 架构如何选？ MVP, MVVM, MVI](https://juejin.cn/post/6969382803112722446)
+3. [MVVM 进阶版：MVI 架构了解一下~](https://juejin.cn/post/7022624191723601928)
+4. [Google 推荐使用 MVI 架构？卷起来了~](https://juejin.cn/post/7048980213811642382)
+5. [MVI架构模式？到底是谁在卷？《官方架构指南升级》](https://juejin.cn/post/7058903426893086734)
+6. [一文了解MVI架构，学起来吧~](https://huanglinqing.blog.csdn.net/article/details/124273344)
+
+**依赖注入**
+1. [依赖注入库Hilt的使用和理解，一篇就够了](https://juejin.cn/post/6992500050790187021)
+2. [Java：控制反转（IoC）与依赖注入（DI）](https://mp.weixin.qq.com/s/JaIJwuXnV0YCb1PwdXCMXg)
+3. [Dependency injection with Hilt](https://developer.android.com/training/dependency-injection/hilt-android)
+4. [Dagger-Hilt + Retrofit + Coroutines](https://rahul9650ray.medium.com/dagger-hilt-retrofit-coroutines-9e8af89500ab)
 
 
 ### 联系我

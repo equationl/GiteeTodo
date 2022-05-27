@@ -1,9 +1,12 @@
 package com.equationl.giteetodo.ui.page
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -21,14 +24,17 @@ import androidx.navigation.NavHostController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemsIndexed
 import com.equationl.giteetodo.R
 import com.equationl.giteetodo.data.repos.model.common.TodoShowData
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.Route
+import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.*
 import com.equationl.giteetodo.viewmodel.*
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material.fade
+import com.google.accompanist.placeholder.material.placeholder
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vanpra.composematerialdialogs.MaterialDialog
@@ -86,6 +92,8 @@ fun TodoListContent(
         viewModel.dispatch(TodoListViewAction.SendMsg("加载错误："+ (todoPagingItems.loadState.refresh as LoadState.Error).error.message))
     }
 
+    // TODO 需要重新确定加载状态，并根据状态更改UI
+
     if (todoPagingItems.itemCount < 1) {
         if (todoPagingItems.loadState.refresh == LoadState.Loading) {
             LoadDataContent("正在加载中…")
@@ -113,6 +121,7 @@ fun TodoListContent(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TodoListLazyColumn(
     viewState: TodoListViewState,
@@ -129,7 +138,7 @@ fun TodoListLazyColumn(
     isShowSystemBar(listState.isScrollingUp())
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(bottom = 2.dp),
         state = listState
     ) {
         item(key = "headerFilter") {
@@ -137,19 +146,30 @@ fun TodoListLazyColumn(
             TodoFilterContent(viewState, viewModel)
         }
 
-        /*todoPagingItems.itemSnapshotList.forEach {
+        var lastTitle = ""
+
+        todoPagingItems.itemSnapshotList.forEach {
             if (it != null) {
-                stickyHeader {
-                    Text(text = it.cardTitle)
+                if (it.headerTitle != lastTitle) {
+                    stickyHeader {
+                        TodoListGroupHeader(text = it.headerTitle, isLoading)
+                    }
+                    lastTitle = it.headerTitle
                 }
 
-                item {
-                    TodoCardScreen(it, navController, viewModel, repoPath, isLoading)
+                item(key = it.toString()) {
+                    TodoItem(
+                        navController = navController,
+                        itemData = it,
+                        viewModel = viewModel,
+                        repoPath = repoPath,
+                        isLoading
+                    )
                 }
             }
-        }*/
+        }
 
-        itemsIndexed(todoPagingItems, key = { _, item -> item.number}) { _, item ->
+        /*itemsIndexed(todoPagingItems, key = { _, item -> item.number}) { _, item ->
             if (item != null) {
                 // fixme test TodoCardScreen(item, navController, viewModel, repoPath, isLoading)
                 TodoItem(
@@ -159,9 +179,9 @@ fun TodoListLazyColumn(
                     repoPath = repoPath
                 )
             }
-        }
+        }*/
 
-        item {
+        item(key = "loading") {
             when (todoPagingItems.loadState.append) {
                 is LoadState.NotLoading -> {}
                 LoadState.Loading -> {
@@ -179,6 +199,23 @@ fun TodoListLazyColumn(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun TodoListGroupHeader(text: String, isLoading: Boolean) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colors.baseBackground)
+            .padding(start = 12.dp)
+            .padding(4.dp)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier
+                .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade())
+        )
     }
 }
 
@@ -210,39 +247,65 @@ fun TodoCardScreen(data: TodoShowData, navController: NavHostController, viewMod
 }*/
 
 @Composable
-fun TodoItem(navController: NavHostController, itemData: TodoShowData, viewModel: TodoListViewModel, repoPath: String) {
-    var checked by remember { mutableStateOf(
-        when (itemData.state) {
-            IssueState.CLOSED -> {
-                true
-            }
-            else -> {
-                false
-            }
-        }
-    ) }
-
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
-        Checkbox(checked = checked,
-            enabled = itemData.state != IssueState.REJECTED,
-            onCheckedChange = {
-                checked = it
-                viewModel.dispatch(TodoListViewAction.UpdateIssueState(itemData.number, it, repoPath))
-        })
-        Text(
-            text = itemData.title,
-            textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.noRippleClickable {
-                navController.navigate("${Route.TODO_DETAIL}/${itemData.number}")
+fun TodoItem(
+    navController: NavHostController,
+    itemData: TodoShowData,
+    viewModel: TodoListViewModel,
+    repoPath: String,
+    isLoading: Boolean
+) {
+    var checked by remember {
+        mutableStateOf(
+            when (itemData.state) {
+                IssueState.CLOSED -> true
+                else -> false
             }
         )
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp, 2.dp)
+            .background(MaterialTheme.colors.baseBackground)
+            .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade()),
+        shape = RoundedCornerShape(4.dp),
+        elevation = 2.dp
+    ) {
+        Column(Modifier.padding(4.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Checkbox(checked = checked,
+                    enabled = itemData.state != IssueState.REJECTED,
+                    onCheckedChange = {
+                        checked = it
+                        viewModel.dispatch(
+                            TodoListViewAction.UpdateIssueState(
+                                itemData.number,
+                                it,
+                                repoPath
+                            )
+                        )
+                    })
+                Text(
+                    text = itemData.title,
+                    textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.noRippleClickable {
+                        navController.navigate("${Route.TODO_DETAIL}/${itemData.number}")
+                    }
+                )
+            }
+        }
     }
 }
 
 @Composable
 fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel) {
+    // TODO 筛选后需要触发一下刷新才会重新加载数据（如果只是更新了排序则不需要）
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
         .fillMaxWidth()
         .padding(end = 32.dp, start = 32.dp)) {

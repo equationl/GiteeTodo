@@ -1,7 +1,10 @@
 package com.equationl.giteetodo.data.repos.paging.remoteMediator
 
 import android.util.Log
-import androidx.paging.*
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.LoadType
+import androidx.paging.PagingState
+import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.db.IssueDb
@@ -153,7 +156,7 @@ class IssueRemoteMediator(
         val todoShowDataList = arrayListOf<TodoShowData>()
 
         for (issue in issueList) {
-            val issueDate = Utils.getDateTimeString(issue.createdAt)
+            val issueDate = Utils.getDateTimeString(issue.updatedAt)
             val issueState = try { IssueState.valueOf(issue.state.uppercase()) } catch (e: IllegalArgumentException) { IssueState.OPEN }
 
             todoShowDataList.add(

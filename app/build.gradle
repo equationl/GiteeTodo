@@ -80,8 +80,13 @@ dependencies {
     implementation "androidx.paging:paging-runtime:3.1.1"
     implementation "androidx.paging:paging-compose:1.0.0-alpha14"
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0"
+    implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.glance:glance-appwidget:1.0.0-alpha03"
+    implementation "androidx.room:room-paging:2.5.0-alpha01"
     implementation "com.google.dagger:hilt-android:2.42"
+    kapt "com.google.dagger:hilt-compiler:2.42"
     implementation "androidx.hilt:hilt-navigation-compose:1.0.0"
     implementation "com.google.accompanist:accompanist-pager:$accompanist_version"
     implementation "com.google.accompanist:accompanist-navigation-animation:$accompanist_version"
@@ -102,8 +107,6 @@ dependencies {
 
     // see: https://developer.android.com/studio/write/java8-support#library-desugaring
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
-
-    kapt "com.google.dagger:hilt-compiler:2.42"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

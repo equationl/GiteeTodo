@@ -11,7 +11,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.equationl.giteetodo.data.repos.RepoApi
-import com.equationl.giteetodo.data.repos.model.pagingSource.ReposPagingSource
+import com.equationl.giteetodo.data.repos.paging.pagingSource.ReposPagingSource
 import com.equationl.giteetodo.data.user.model.response.Repo
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.datastore.DataKey

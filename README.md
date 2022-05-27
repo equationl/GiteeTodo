@@ -35,6 +35,7 @@ GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TO
 - Navigation-Animation： 为 Navigation 提供动画支持的库。
 - paging： 使用 Paging 库，您可以更轻松地在应用的 RecyclerView 中逐步妥善地加载数据。
 - swiperefresh：一个提供实现滑动刷新布局的库，类似于 Android 的 SwipeRefreshLayout。
+- room：Room 持久性库在 SQLite 的基础上提供了一个抽象层，让用户能够在充分利用 SQLite 的强大功能的同时，获享更强健的数据库访问机制。
 - placeholder：在加载内容时显示“占位符”的库。
 - systemuicontroller：提供易于使用的实用程序，用于更新 Jetpack Compose 中的 System UI 栏颜色。
 - retrofit2：网络请求库。
@@ -141,6 +142,9 @@ CLIENT_SECRET = "xxxxxx"
 
 1. [Large data-sets (paging)](https://developer.android.com/jetpack/compose/lists#large-datasets)
 2. [Load and display paged data ](https://developer.android.com/topic/libraries/architecture/paging/v3-paged-data)
+3. [Page from network and database](https://developer.android.com/topic/libraries/architecture/paging/v3-network-db)
+4. [PagingWithNetworkSample](https://github.com/android/architecture-components-samples/tree/main/PagingWithNetworkSample)
+5. [Android Paging 3 library with page and limit parameters](https://www.bornfight.com/blog/android-paging-3-library-with-page-and-limit-parameters/)
 
 **glance**
 

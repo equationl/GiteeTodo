@@ -1,14 +1,15 @@
 package com.equationl.giteetodo.data.repos.model.response
+
+
 import com.google.gson.annotations.SerializedName
 
-
-data class Issue(
+data class Issue constructor(
     @SerializedName("assignee")
-    val assignee: Any?,
+    val assignee: Assignee?,
     @SerializedName("body")
     val body: String?,
     @SerializedName("branch")
-    val branch: Any?,
+    val branch: String?,
     @SerializedName("collaborators")
     val collaborators: List<Any>,
     @SerializedName("comments")
@@ -22,7 +23,7 @@ data class Issue(
     @SerializedName("depth")
     val depth: Int,
     @SerializedName("finished_at")
-    val finishedAt: Any?,
+    val finishedAt: String?,
     @SerializedName("html_url")
     val htmlUrl: String,
     @SerializedName("id")
@@ -40,19 +41,19 @@ data class Issue(
     @SerializedName("labels_url")
     val labelsUrl: String,
     @SerializedName("milestone")
-    val milestone: Any?,
+    val milestone: Milestone?,
     @SerializedName("number")
     val number: String,
     @SerializedName("parent_id")
     val parentId: Int,
     @SerializedName("parent_url")
-    val parentUrl: Any?,
+    val parentUrl: String?,
     @SerializedName("plan_started_at")
     val planStartedAt: String?,
     @SerializedName("priority")
     val priority: Int,
     @SerializedName("program")
-    val program: Any?,
+    val program: Program?,
     @SerializedName("repository")
     val repository: Repository,
     @SerializedName("repository_url")
@@ -77,7 +78,7 @@ data class IssueStateDetail(
     @SerializedName("color")
     val color: String,
     @SerializedName("command")
-    val command: Any?,
+    val command: String?,
     @SerializedName("created_at")
     val createdAt: String,
     @SerializedName("icon")
@@ -104,7 +105,7 @@ data class IssueTypeDetail(
     @SerializedName("is_system")
     val isSystem: Boolean,
     @SerializedName("template")
-    val template: Any?,
+    val template: String?,
     @SerializedName("title")
     val title: String,
     @SerializedName("updated_at")
@@ -137,11 +138,11 @@ data class Repository(
     @SerializedName("default_branch")
     val defaultBranch: String,
     @SerializedName("description")
-    val description: Any?,
+    val description: String?,
     @SerializedName("empty_repo")
     val emptyRepo: Boolean,
     @SerializedName("enterprise")
-    val enterprise: Any?,
+    val enterprise: Enterprise?,
     @SerializedName("fork")
     val fork: Boolean,
     @SerializedName("forks_count")
@@ -159,7 +160,7 @@ data class Repository(
     @SerializedName("has_wiki")
     val hasWiki: Boolean,
     @SerializedName("homepage")
-    val homepage: Any?,
+    val homepage: String?,
     @SerializedName("hooks_url")
     val hooksUrl: String,
     @SerializedName("html_url")
@@ -169,9 +170,9 @@ data class Repository(
     @SerializedName("id")
     val id: Int,
     @SerializedName("internal")
-    val `internal`: Boolean,
+    val internal_name: Boolean,
     @SerializedName("issue_comment")
-    val issueComment: Any?,
+    val issueComment: Boolean?,
     @SerializedName("issue_comment_url")
     val issueCommentUrl: String,
     @SerializedName("issues_url")
@@ -181,11 +182,11 @@ data class Repository(
     @SerializedName("labels_url")
     val labelsUrl: String,
     @SerializedName("language")
-    val language: Any?,
+    val language: String?,
     @SerializedName("license")
-    val license: Any?,
+    val license: String?,
     @SerializedName("members")
-    val members: List<String>,
+    val members: List<String?>,
     @SerializedName("milestones_url")
     val milestonesUrl: String,
     @SerializedName("name")
@@ -201,21 +202,21 @@ data class Repository(
     @SerializedName("owner")
     val owner: Owner,
     @SerializedName("paas")
-    val paas: Any?,
+    val paas: String?,
     @SerializedName("parent")
-    val parent: Any?,
+    val parent: String?,
     @SerializedName("path")
     val path: String,
     @SerializedName("private")
-    val `private`: Boolean,
+    val private_name: Boolean,
     @SerializedName("programs")
-    val programs: List<Any>,
+    val programs: List<String?>? = null,
     @SerializedName("project_creator")
     val projectCreator: String,
     @SerializedName("project_labels")
-    val projectLabels: List<Any>,
+    val projectLabels: List<ProjectLabels>,
     @SerializedName("public")
-    val `public`: Boolean,
+    val public_name: Boolean,
     @SerializedName("pull_requests_enabled")
     val pullRequestsEnabled: Boolean,
     @SerializedName("pulls_url")
@@ -237,7 +238,7 @@ data class Repository(
     @SerializedName("tags_url")
     val tagsUrl: String,
     @SerializedName("testers")
-    val testers: List<Tester>,
+    val testers: List<Tester>? = null,
     @SerializedName("testers_number")
     val testersNumber: Int,
     @SerializedName("updated_at")
@@ -407,4 +408,39 @@ data class Tester(
     val type: String,
     @SerializedName("url")
     val url: String
+)
+
+data class Milestone(
+    val url: String,
+    val html_url: String,
+    val number: Int,
+    val repository_id: Int,
+    val state: String,
+    val title: String,
+    val description: String,
+    val updated_at: String,
+    val created_at: String,
+    val open_issues: Int,
+    val closed_issues: Int,
+    val due_on: String,
+)
+
+data class Program(
+    val id: Int,
+    val name: String,
+    val description: String
+)
+
+data class Enterprise(
+    val id: Int,
+    val type: String,
+    val name: String,
+    val path: String,
+    val html_url: String
+)
+
+data class ProjectLabels(
+    val id: Int,
+    val name: String,
+    val ident: String
 )

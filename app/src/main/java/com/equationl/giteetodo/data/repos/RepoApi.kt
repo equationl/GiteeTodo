@@ -8,8 +8,6 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface RepoApi {
-    // TODO 加入缓存到数据库，避免频繁请求
-
     /**
      * 创建一个仓库
      * */

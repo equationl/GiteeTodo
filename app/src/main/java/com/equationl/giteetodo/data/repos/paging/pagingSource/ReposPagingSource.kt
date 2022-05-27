@@ -1,4 +1,4 @@
-package com.equationl.giteetodo.data.repos.model.pagingSource
+package com.equationl.giteetodo.data.repos.paging.pagingSource
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState

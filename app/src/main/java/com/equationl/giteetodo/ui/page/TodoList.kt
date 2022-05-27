@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -24,14 +23,12 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.equationl.giteetodo.R
+import com.equationl.giteetodo.data.repos.model.common.TodoShowData
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.widgets.*
 import com.equationl.giteetodo.viewmodel.*
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material.fade
-import com.google.accompanist.placeholder.material.placeholder
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vanpra.composematerialdialogs.MaterialDialog
@@ -120,7 +117,7 @@ fun TodoListContent(
 fun TodoListLazyColumn(
     viewState: TodoListViewState,
     viewModel: TodoListViewModel,
-    todoPagingItems: LazyPagingItems<TodoCardData>,
+    todoPagingItems: LazyPagingItems<TodoShowData>,
     navController: NavHostController,
     repoPath: String,
     isLoading: Boolean,
@@ -152,9 +149,15 @@ fun TodoListLazyColumn(
             }
         }*/
 
-        itemsIndexed(todoPagingItems, key = { _, item -> item.cardTitle+item.itemArray.toString()}) { _, item ->
+        itemsIndexed(todoPagingItems, key = { _, item -> item.number}) { _, item ->
             if (item != null) {
-                TodoCardScreen(item, navController, viewModel, repoPath, isLoading)
+                // fixme test TodoCardScreen(item, navController, viewModel, repoPath, isLoading)
+                TodoItem(
+                    navController = navController,
+                    itemData = item,
+                    viewModel = viewModel,
+                    repoPath = repoPath
+                )
             }
         }
 
@@ -179,13 +182,15 @@ fun TodoListLazyColumn(
     }
 }
 
-@Composable
-fun TodoCardScreen(data: TodoCardData, navController: NavHostController, viewModel: TodoListViewModel, repoPath: String, isLoading: Boolean) {
+/*@Composable
+fun TodoCardScreen(data: TodoShowData, navController: NavHostController, viewModel: TodoListViewModel, repoPath: String, isLoading: Boolean) {
     Card(modifier = Modifier
         .heightIn(20.dp, Int.MAX_VALUE.dp)
         .padding(32.dp)
         .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade()), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
         Column(Modifier.padding(8.dp)) {
+
+
             Text(text = data.cardTitle, Modifier.padding(8.dp))
 
             Column(Modifier.fillMaxSize()) {
@@ -193,19 +198,19 @@ fun TodoCardScreen(data: TodoCardData, navController: NavHostController, viewMod
                     TodoItem(navController, it, viewModel, repoPath)
                 }
             }
-            /*LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            *//*LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 data.itemArray.forEach {
                     item(key = it.number) {
                         TodoItem(navController, it, viewModel, repoPath)
                     }
                 }
-            }*/
+            }*//*
         }
     }
-}
+}*/
 
 @Composable
-fun TodoItem(navController: NavHostController, itemData: TodoCardItemData, viewModel: TodoListViewModel, repoPath: String) {
+fun TodoItem(navController: NavHostController, itemData: TodoShowData, viewModel: TodoListViewModel, repoPath: String) {
     var checked by remember { mutableStateOf(
         when (itemData.state) {
             IssueState.CLOSED -> {

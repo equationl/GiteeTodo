@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.equationl.giteetodo.data.repos.db.IssueDb
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
@@ -22,7 +23,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TodoHomeViewModel @Inject constructor() : ViewModel() {
+class TodoHomeViewModel @Inject constructor(
+    private val dataBase: IssueDb
+) : ViewModel() {
     var viewStates by mutableStateOf(TodoHomeViewState())
         private set
 
@@ -48,6 +51,9 @@ class TodoHomeViewModel @Inject constructor() : ViewModel() {
 
     private fun changeRepo() {
         viewModelScope.launch {
+            // 切换仓库前先清空当前缓存的所有数据
+            dataBase.issue().clearAll()
+            dataBase.issueRemoteKey().clearAll()
             _viewEvents.send(TodoHomeViewEvent.Goto(Route.REPO_LIST))
         }
     }
@@ -85,6 +91,8 @@ class TodoHomeViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             Utils.clearCookies()
             DataStoreUtils.clear()
+            dataBase.issue().clearAll()
+            dataBase.issueRemoteKey().clearAll()
             _viewEvents.send(TodoHomeViewEvent.Goto(Route.LOGIN))
         }
     }

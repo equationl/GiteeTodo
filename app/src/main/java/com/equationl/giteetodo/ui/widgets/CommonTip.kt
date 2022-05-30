@@ -6,22 +6,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.*
 import com.equationl.giteetodo.R
 
 @Composable
-fun ListEmptyContent(text: String, onRefresh: () -> Unit) {
+fun ListEmptyContent(title: String, text: String = "", onRefresh: () -> Unit) {
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.no_result))
         val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
         LottieAnimation(
             composition,
             progress,
-            modifier = Modifier.heightIn(0.dp, 300.dp)
+            modifier = Modifier.heightIn(0.dp, 300.dp).noRippleClickable(onClick = onRefresh)
         )
-        LinkText(text = text, onClick = onRefresh)
+        LinkText(text = title, onClick = onRefresh)
+        if (text.isNotBlank()) {
+            Text(text = text, fontSize = 10.sp, modifier = Modifier.padding(top = 16.dp), lineHeight = 14.sp)
+        }
     }
 }
 
@@ -36,18 +39,4 @@ fun LoadDataContent(text: String) {
         )
         Text(text, Modifier.padding(top = 18.dp))
     }
-}
-
-@Preview
-@Composable
-fun PreviewEmptyContent() {
-    ListEmptyContent("没有找到仓库数据，点击刷新或点击右上角创建一个仓库") {
-
-    }
-}
-
-@Preview
-@Composable
-fun PreviewLoadData() {
-    LoadDataContent(text = "加载中咯")
 }

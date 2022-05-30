@@ -36,6 +36,8 @@ import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 
+private const val TAG = "el, TodoHome"
+
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun HomeScreen(
@@ -120,7 +122,10 @@ fun HomeScreen(
             },
             floatingActionButton = {
                 Column(modifier = if (viewState.isShowSystemBar) Modifier else Modifier.navigationBarsPadding()) {
-                    HomeFloatActionBar(viewState.currentPage, viewModel, viewState)
+                    HomeFloatActionBar(
+                        viewState.currentPage,
+                        viewState.isShowSystemBar,
+                    ) { viewModel.dispatch(TodoHomeViewAction.AddATodo) }
                 }
             },
             floatingActionButtonPosition = FabPosition.Center,
@@ -177,17 +182,21 @@ fun HomeContent(
 }
 
 @Composable
-fun HomeFloatActionBar(currentPager: CurrentPager, viewModel: TodoHomeViewModel, viewState: TodoHomeViewState) {
+fun HomeFloatActionBar(
+    currentPager: CurrentPager,
+    isShowSystemBar: Boolean,
+    onAddClick: () -> Unit
+) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val offsetValue by animateIntAsState(
-        targetValue = if (viewState.isShowSystemBar) 0 else screenWidth / 2 - 32 - 16,
+        targetValue = if (isShowSystemBar) 0 else screenWidth / 2 - 32 - 16,
         animationSpec = spring(0.3f)
     )
 
     if (currentPager == CurrentPager.HOME_TODO) {
         FloatingActionButton(
-            onClick = { viewModel.dispatch(TodoHomeViewAction.AddATodo) },
+            onClick = onAddClick,
             modifier = Modifier.offset(offsetValue.dp, 0.dp)
         ) {
             Icon(Icons.Outlined.Add, "Add")
@@ -216,6 +225,7 @@ fun HomeTopBarAction(currentPager: CurrentPager, viewModel: TodoHomeViewModel) {
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun HomeBottomBar(viewState: TodoHomeViewState, pagerState: PagerState) {
+    // FIXME 点击“我的”再点击“首页”会导致添加FB消失
     val scope = rememberCoroutineScope()
     BottomAppBar {
         Column(horizontalAlignment = Alignment.CenterHorizontally,

@@ -75,6 +75,7 @@ class TodoListViewModel @Inject constructor(
     fun dispatch(action: TodoListViewAction) {
         when (action) {
             is TodoListViewAction.ClearFilter -> clearFilter()
+            is TodoListViewAction.AutoRefreshFinish -> autoFreshFinish()
             is TodoListViewAction.SetRepoPath -> setRepoPath(action.repoPath)
             is TodoListViewAction.UpdateIssueState -> updateIssueState(action.issueNum, action.isClose, action.repoPath)
             is TodoListViewAction.SendMsg -> sendMsg(action.msg)
@@ -86,6 +87,10 @@ class TodoListViewModel @Inject constructor(
             is TodoListViewAction.FilterDirection -> filterDirection(action.direction)
             is TodoListViewAction.FilterDate -> filterDate(action.date, action.isStart)
         }
+    }
+
+    private fun autoFreshFinish() {
+        viewStates = viewStates.copy(isAutoRefresh = true)
     }
 
     private fun clearFilter() {
@@ -248,7 +253,8 @@ data class TodoListViewState(
     val isShowLabelsDropMenu: Boolean = false,
     val isShowStateDropMenu: Boolean = false,
     val isShowDirectionDropMenu: Boolean = false,
-    val filteredOptionList: ArrayList<FilteredOption> = arrayListOf()
+    val filteredOptionList: ArrayList<FilteredOption> = arrayListOf(),
+    val isAutoRefresh: Boolean = false
 )
 
 sealed class TodoListViewEvent {
@@ -257,6 +263,7 @@ sealed class TodoListViewEvent {
 
 sealed class TodoListViewAction {
     object ClearFilter: TodoListViewAction()
+    object AutoRefreshFinish: TodoListViewAction()
     data class SetRepoPath(val repoPath: String): TodoListViewAction()
     data class UpdateIssueState(val issueNum: String, val isClose: Boolean, val repoPath: String): TodoListViewAction()
     data class SendMsg(val msg: String): TodoListViewAction()

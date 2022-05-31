@@ -11,12 +11,8 @@ import com.equationl.giteetodo.data.repos.db.IssueDb
 import com.equationl.giteetodo.data.repos.model.common.IssueRemoteKey
 import com.equationl.giteetodo.data.repos.model.common.TodoShowData
 import com.equationl.giteetodo.data.repos.model.response.Issue
-import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.Utils
-import com.equationl.giteetodo.util.datastore.DataKey
-import com.equationl.giteetodo.util.datastore.DataStoreUtils
-import com.equationl.giteetodo.viewmodel.GroupBy
 import com.equationl.giteetodo.viewmodel.QueryParameter
 import retrofit2.HttpException
 import retrofit2.Response
@@ -132,20 +128,7 @@ class IssueRemoteMediator(
     }
 
     private fun resolveIssue(response: Response<List<Issue>>): List<TodoShowData> {
-        return when (DataStoreUtils.getSyncData(DataKey.SettingGroupBy, GroupBy.Date.name)) {
-            GroupBy.Date.name -> {
-                resolveIssueByDate(response)
-            }
-            GroupBy.Label.name -> {
-                resolveIssueByLabel(response)
-            }
-            GroupBy.State.name -> {
-                resolveIssueByState(response)
-            }
-            else -> {
-                resolveIssueByDate(response)
-            }
-        }
+        return resolveIssueByDate(response)
     }
 
     private fun resolveIssueByDate(response: Response<List<Issue>>): List<TodoShowData> {
@@ -175,79 +158,6 @@ class IssueRemoteMediator(
 
         return todoShowDataList
     }
-
-    private fun resolveIssueByLabel(response: Response<List<Issue>>): List<TodoShowData> {
-        val issueList = response.body()
-        if (issueList.isNullOrEmpty()) {
-            return emptyList()
-        }
-        val todoShowDataList = arrayListOf<TodoShowData>()
-
-        for (issue in issueList) {
-            val labelList: List<Label> = issue.labels
-            val state = try { IssueState.valueOf(issue.state.uppercase()) } catch (e: IllegalArgumentException) { IssueState.OPEN }
-
-            if (labelList.isEmpty()) {
-                todoShowDataList.add(
-                    TodoShowData(
-                        id = issue.id,
-                        title = issue.title,
-                        number = issue.number,
-                        state = state,
-                        updateAt = issue.updatedAt,
-                        createdAt = issue.createdAt,
-                        labels = issue.labels,
-                        headerTitle = "无标签"
-                    )
-                )
-            }
-            else {
-                for (label in labelList) {
-                    todoShowDataList.add(
-                        TodoShowData(
-                            id = issue.id,
-                            title = issue.title,
-                            number = issue.number,
-                            state = state,
-                            updateAt = issue.updatedAt,
-                            createdAt = issue.createdAt,
-                            labels = issue.labels,
-                            headerTitle = label.name
-                        )
-                    )
-                }
-            }
-        }
-
-        return todoShowDataList
-    }
-
-    private fun resolveIssueByState(response: Response<List<Issue>>): List<TodoShowData> {
-        val issueList = response.body()
-        if (issueList.isNullOrEmpty()) {
-            return emptyList()
-        }
-        val todoShowDataList = arrayListOf<TodoShowData>()
-
-        for (issue in issueList) {
-            val state = try { IssueState.valueOf(issue.state.uppercase()) } catch (e: IllegalArgumentException) { IssueState.OPEN }
-
-            todoShowDataList.add(
-                TodoShowData(
-                    id = issue.id,
-                    title = issue.title,
-                    number = issue.number,
-                    state = state,
-                    updateAt = issue.updatedAt,
-                    createdAt = issue.createdAt,
-                    labels = issue.labels,
-                    headerTitle = state.humanName
-                )
-            )
-        }
-        return todoShowDataList
-    }
-
 
     companion object {
         private const val TAG = "el, IssueRemoteMediator"

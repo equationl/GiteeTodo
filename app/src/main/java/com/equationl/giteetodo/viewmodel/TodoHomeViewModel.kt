@@ -51,9 +51,6 @@ class TodoHomeViewModel @Inject constructor(
 
     private fun changeRepo() {
         viewModelScope.launch {
-            // 切换仓库前先清空当前缓存的所有数据
-            dataBase.issue().clearAll()
-            dataBase.issueRemoteKey().clearAll()
             _viewEvents.send(TodoHomeViewEvent.Goto(Route.REPO_LIST))
         }
     }

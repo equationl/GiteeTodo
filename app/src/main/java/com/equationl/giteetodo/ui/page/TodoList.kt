@@ -62,8 +62,11 @@ fun TodoListScreen(
     val todoPagingItems = viewState.todoFlow.collectAsLazyPagingItems()
 
     DisposableEffect(Unit) {
-        viewModel.dispatch(TodoListViewAction.SetRepoPath(repoPath))
-        onDispose {  }
+        viewModel.dispatch(TodoListViewAction.Init(repoPath))
+
+        onDispose {
+            viewModel.dispatch(TodoListViewAction.OnExit)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -317,7 +320,6 @@ fun TodoFilterContent(
     viewModel: TodoListViewModel,
     onRefresh: () -> Unit
 ) {
-    // FIXME 如果应用了筛选条件后没有清除就退出程序，会造成下次打开时数据依旧是已筛选数据，但是没有应用筛选条件
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
         .fillMaxWidth()
         .padding(end = 32.dp, start = 32.dp)) {
@@ -364,7 +366,9 @@ fun TodoFilterContent(
                 dialogState
             ) { date, isStartDate ->
                 viewModel.dispatch(TodoListViewAction.FilterDate(date, isStartDate))
-                onRefresh()
+                if (!isStartDate) {
+                    onRefresh()
+                }
             }
         }
 

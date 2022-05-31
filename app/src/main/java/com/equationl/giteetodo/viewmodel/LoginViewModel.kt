@@ -246,7 +246,7 @@ class LoginViewModel @Inject constructor(
                 when (loginMethod) {
                     LoginMethod.Email, LoginMethod.OAuth2 -> {
                         val expireTime = DataStoreUtils.getSyncData(DataKey.LoginTokenExpireTime, 0)
-                        if (expireTime > System.currentTimeMillis() / 1000 - 1800) {  // 提前半小时刷新
+                        if (expireTime < System.currentTimeMillis() / 1000 - 1800) {  // 提前半小时刷新
                             // 已过期，需要刷新
                             val refreshToken = DataStoreUtils.getSyncData(DataKey.LoginRefreshToken, "")
                             val response = oAuthApi.refreshToken(

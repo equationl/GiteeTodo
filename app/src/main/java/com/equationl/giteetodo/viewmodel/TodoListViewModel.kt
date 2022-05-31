@@ -16,8 +16,11 @@ import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import com.equationl.giteetodo.util.fromJson
+import com.equationl.giteetodo.util.toJson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -76,7 +79,7 @@ class TodoListViewModel @Inject constructor(
         when (action) {
             is TodoListViewAction.ClearFilter -> clearFilter()
             is TodoListViewAction.AutoRefreshFinish -> autoFreshFinish()
-            is TodoListViewAction.SetRepoPath -> setRepoPath(action.repoPath)
+            is TodoListViewAction.Init -> init(action.repoPath)
             is TodoListViewAction.UpdateIssueState -> updateIssueState(action.issueNum, action.isClose, action.repoPath)
             is TodoListViewAction.SendMsg -> sendMsg(action.msg)
             is TodoListViewAction.FilterLabels -> filterLabels(action.labels)
@@ -86,6 +89,7 @@ class TodoListViewModel @Inject constructor(
             is TodoListViewAction.ChangeDirectionDropMenuShowState -> changeDirectionDropMenuShowState(action.isShow)
             is TodoListViewAction.FilterDirection -> filterDirection(action.direction)
             is TodoListViewAction.FilterDate -> filterDate(action.date, action.isStart)
+            is TodoListViewAction.OnExit -> onExit()
         }
     }
 
@@ -215,9 +219,46 @@ class TodoListViewModel @Inject constructor(
         }
     }
 
-    private fun setRepoPath(repoPath: String) {
+    private fun init(repoPath: String) {
         viewModelScope.launch {
-            queryFlow.emit(queryFlow.value.copy(repoPath = repoPath))
+            val saveFilter = DataStoreUtils.getSyncData(DataKey.FilterInfo, "")
+            val newQuery: QueryParameter = if (saveFilter.isNotBlank()) {
+                saveFilter.fromJson<QueryParameter>() ?: QueryParameter()
+            } else {
+                QueryParameter()
+            }
+
+            val filterList = arrayListOf<FilteredOption>()
+            if (newQuery.direction != "desc") {
+                filterList.add(FilteredOption.Direction)
+            }
+            if (newQuery.labels?.isNotBlank() == true) {
+                filterList.add(FilteredOption.Labels)
+            }
+            if (newQuery.state?.isNotBlank() == true) {
+                filterList.add(FilteredOption.States)
+            }
+            if (newQuery.createdAt?.isNotBlank() == true) {
+                filterList.add(FilteredOption.DateTime)
+            }
+
+            if (filterList.isNotEmpty()) {
+                viewStates = viewStates.copy(filteredOptionList = filterList)
+            }
+
+            queryFlow.emit(
+                newQuery.copy(
+                    repoPath = repoPath,
+                    accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+                )
+            )
+        }
+    }
+
+    private fun onExit() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val saveString = queryFlow.value.toJson()
+            DataStoreUtils.saveSyncStringData(DataKey.FilterInfo, saveString)
         }
     }
 
@@ -264,7 +305,8 @@ sealed class TodoListViewEvent {
 sealed class TodoListViewAction {
     object ClearFilter: TodoListViewAction()
     object AutoRefreshFinish: TodoListViewAction()
-    data class SetRepoPath(val repoPath: String): TodoListViewAction()
+    object OnExit: TodoListViewAction()
+    data class Init(val repoPath: String): TodoListViewAction()
     data class UpdateIssueState(val issueNum: String, val isClose: Boolean, val repoPath: String): TodoListViewAction()
     data class SendMsg(val msg: String): TodoListViewAction()
     data class FilterLabels(val labels: MutableMap<String, Boolean>): TodoListViewAction()
@@ -279,7 +321,7 @@ sealed class TodoListViewAction {
 data class QueryParameter(
     val repoPath: String = "null/null",
     val state: String? = null,
-    val accessToken: String = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, ""),
+    val accessToken: String = "",
     val labels: String? = null,
     val direction: String = "desc",
     val createdAt: String? = null

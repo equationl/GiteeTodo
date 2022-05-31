@@ -121,11 +121,14 @@ fun HomeScreen(
                 }
             },
             floatingActionButton = {
-                Column(modifier = if (viewState.isShowSystemBar) Modifier else Modifier.navigationBarsPadding()) {
-                    HomeFloatActionBar(
-                        viewState.currentPage,
-                        viewState.isShowSystemBar,
-                    ) { viewModel.dispatch(TodoHomeViewAction.AddATodo) }
+                if (viewState.currentPage == CurrentPager.HOME_TODO) {
+                    Column(modifier =
+                    if (viewState.isShowSystemBar) Modifier else Modifier.navigationBarsPadding()
+                    ) {
+                        HomeFloatActionBar(
+                            viewState.isShowSystemBar,
+                        ) { viewModel.dispatch(TodoHomeViewAction.AddATodo) }
+                    }
                 }
             },
             floatingActionButtonPosition = FabPosition.Center,
@@ -183,7 +186,6 @@ fun HomeContent(
 
 @Composable
 fun HomeFloatActionBar(
-    currentPager: CurrentPager,
     isShowSystemBar: Boolean,
     onAddClick: () -> Unit
 ) {
@@ -194,13 +196,11 @@ fun HomeFloatActionBar(
         animationSpec = spring(0.3f)
     )
 
-    if (currentPager == CurrentPager.HOME_TODO) {
-        FloatingActionButton(
-            onClick = onAddClick,
-            modifier = Modifier.offset(offsetValue.dp, 0.dp)
-        ) {
-            Icon(Icons.Outlined.Add, "Add")
-        }
+    FloatingActionButton(
+        onClick = onAddClick,
+        modifier = Modifier.offset(offsetValue.dp, 0.dp)
+    ) {
+        Icon(Icons.Outlined.Add, "Add")
     }
 }
 
@@ -225,7 +225,6 @@ fun HomeTopBarAction(currentPager: CurrentPager, viewModel: TodoHomeViewModel) {
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun HomeBottomBar(viewState: TodoHomeViewState, pagerState: PagerState) {
-    // FIXME 点击“我的”再点击“首页”会导致添加FB消失
     val scope = rememberCoroutineScope()
     BottomAppBar {
         Column(horizontalAlignment = Alignment.CenterHorizontally,

@@ -96,7 +96,7 @@ fun LabelManagerScreen(
         )
         {
             if (viewState.labelList.isEmpty()) {
-                ListEmptyContent(text = "暂无标签，点击刷新或点击右上角新建") {
+                ListEmptyContent(title = "暂无标签，点击刷新或点击右上角新建") {
                     viewModel.dispatch(LabelMgViewAction.LoadLabel(true))
                 }
             }

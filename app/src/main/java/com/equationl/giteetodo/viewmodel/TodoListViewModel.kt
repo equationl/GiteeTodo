@@ -5,20 +5,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
+import androidx.paging.*
 import com.equationl.giteetodo.data.repos.RepoApi
-import com.equationl.giteetodo.data.repos.model.pagingSource.IssuesPagingSource
+import com.equationl.giteetodo.data.repos.db.IssueDb
+import com.equationl.giteetodo.data.repos.model.common.TodoShowData
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
+import com.equationl.giteetodo.data.repos.paging.remoteMediator.IssueRemoteMediator
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import com.equationl.giteetodo.util.fromJson
+import com.equationl.giteetodo.util.toJson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -33,18 +35,32 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TodoListViewModel @Inject constructor(
-    private val repoApi: RepoApi
+    private val repoApi: RepoApi,
+    private val dataBase: IssueDb
 ) : ViewModel() {
     private var filterDate = ""
     private val queryFlow = MutableStateFlow(QueryParameter())
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, ExperimentalPagingApi::class)
     private val issueData = queryFlow.flatMapLatest {
         Pager(
-            PagingConfig(pageSize = 50, initialLoadSize = 50)
+            config = PagingConfig(pageSize = 50, initialLoadSize = 50),
+            remoteMediator = IssueRemoteMediator(it, dataBase, repoApi)
         ) {
-            IssuesPagingSource(repoApi, it)
-        }.flow.cachedIn(viewModelScope)
+            if (it.direction == Direction.ASC.des) {
+                dataBase.issue().pagingSourceOrderByAsc()
+            }
+            else {
+                dataBase.issue().pagingSourceOrderByDesc()
+            }
+        }
+            .flow
+            /*.map { pagingData ->
+                pagingData.map { issue ->
+                    issue.convertToShowData()
+                }
+            } */
+            .cachedIn(viewModelScope)
     }
 
     var viewStates by mutableStateOf(TodoListViewState(todoFlow = issueData))
@@ -62,7 +78,8 @@ class TodoListViewModel @Inject constructor(
     fun dispatch(action: TodoListViewAction) {
         when (action) {
             is TodoListViewAction.ClearFilter -> clearFilter()
-            is TodoListViewAction.SetRepoPath -> setRepoPath(action.repoPath)
+            is TodoListViewAction.AutoRefreshFinish -> autoFreshFinish()
+            is TodoListViewAction.Init -> init(action.repoPath)
             is TodoListViewAction.UpdateIssueState -> updateIssueState(action.issueNum, action.isClose, action.repoPath)
             is TodoListViewAction.SendMsg -> sendMsg(action.msg)
             is TodoListViewAction.FilterLabels -> filterLabels(action.labels)
@@ -72,7 +89,12 @@ class TodoListViewModel @Inject constructor(
             is TodoListViewAction.ChangeDirectionDropMenuShowState -> changeDirectionDropMenuShowState(action.isShow)
             is TodoListViewAction.FilterDirection -> filterDirection(action.direction)
             is TodoListViewAction.FilterDate -> filterDate(action.date, action.isStart)
+            is TodoListViewAction.OnExit -> onExit()
         }
+    }
+
+    private fun autoFreshFinish() {
+        viewStates = viewStates.copy(isAutoRefresh = true)
     }
 
     private fun clearFilter() {
@@ -197,9 +219,46 @@ class TodoListViewModel @Inject constructor(
         }
     }
 
-    private fun setRepoPath(repoPath: String) {
+    private fun init(repoPath: String) {
         viewModelScope.launch {
-            queryFlow.emit(queryFlow.value.copy(repoPath = repoPath))
+            val saveFilter = DataStoreUtils.getSyncData(DataKey.FilterInfo, "")
+            val newQuery: QueryParameter = if (saveFilter.isNotBlank()) {
+                saveFilter.fromJson<QueryParameter>() ?: QueryParameter()
+            } else {
+                QueryParameter()
+            }
+
+            val filterList = arrayListOf<FilteredOption>()
+            if (newQuery.direction != "desc") {
+                filterList.add(FilteredOption.Direction)
+            }
+            if (newQuery.labels?.isNotBlank() == true) {
+                filterList.add(FilteredOption.Labels)
+            }
+            if (newQuery.state?.isNotBlank() == true) {
+                filterList.add(FilteredOption.States)
+            }
+            if (newQuery.createdAt?.isNotBlank() == true) {
+                filterList.add(FilteredOption.DateTime)
+            }
+
+            if (filterList.isNotEmpty()) {
+                viewStates = viewStates.copy(filteredOptionList = filterList)
+            }
+
+            queryFlow.emit(
+                newQuery.copy(
+                    repoPath = repoPath,
+                    accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+                )
+            )
+        }
+    }
+
+    private fun onExit() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val saveString = queryFlow.value.toJson()
+            DataStoreUtils.saveSyncStringData(DataKey.FilterInfo, saveString)
         }
     }
 
@@ -230,12 +289,13 @@ class TodoListViewModel @Inject constructor(
 }
 
 data class TodoListViewState(
-    val todoFlow: Flow<PagingData<TodoCardData>>,
+    val todoFlow: Flow<PagingData<TodoShowData>>,
     val availableLabels: MutableMap<String, Boolean> = mutableMapOf(),
     val isShowLabelsDropMenu: Boolean = false,
     val isShowStateDropMenu: Boolean = false,
     val isShowDirectionDropMenu: Boolean = false,
-    val filteredOptionList: ArrayList<FilteredOption> = arrayListOf()
+    val filteredOptionList: ArrayList<FilteredOption> = arrayListOf(),
+    val isAutoRefresh: Boolean = false
 )
 
 sealed class TodoListViewEvent {
@@ -244,7 +304,9 @@ sealed class TodoListViewEvent {
 
 sealed class TodoListViewAction {
     object ClearFilter: TodoListViewAction()
-    data class SetRepoPath(val repoPath: String): TodoListViewAction()
+    object AutoRefreshFinish: TodoListViewAction()
+    object OnExit: TodoListViewAction()
+    data class Init(val repoPath: String): TodoListViewAction()
     data class UpdateIssueState(val issueNum: String, val isClose: Boolean, val repoPath: String): TodoListViewAction()
     data class SendMsg(val msg: String): TodoListViewAction()
     data class FilterLabels(val labels: MutableMap<String, Boolean>): TodoListViewAction()
@@ -256,22 +318,10 @@ sealed class TodoListViewAction {
     data class FilterDate(val date: LocalDate, val isStart: Boolean): TodoListViewAction()
 }
 
-
-data class TodoCardData(
-    val cardTitle: String,
-    val itemArray: ArrayList<TodoCardItemData>
-)
-
-data class TodoCardItemData(
-    val title: String,
-    val state: IssueState,
-    val number: String
-)
-
 data class QueryParameter(
     val repoPath: String = "null/null",
     val state: String? = null,
-    val accessToken: String = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, ""),
+    val accessToken: String = "",
     val labels: String? = null,
     val direction: String = "desc",
     val createdAt: String? = null

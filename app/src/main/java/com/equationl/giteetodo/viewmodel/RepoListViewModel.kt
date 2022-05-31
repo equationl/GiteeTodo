@@ -11,7 +11,8 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.equationl.giteetodo.data.repos.RepoApi
-import com.equationl.giteetodo.data.repos.model.pagingSource.ReposPagingSource
+import com.equationl.giteetodo.data.repos.db.IssueDb
+import com.equationl.giteetodo.data.repos.paging.pagingSource.ReposPagingSource
 import com.equationl.giteetodo.data.user.model.response.Repo
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.datastore.DataKey
@@ -29,7 +30,8 @@ private const val TAG = "el, RepoListViewModel"
 
 @HiltViewModel
 class RepoListViewModel @Inject constructor(
-    private val repoApi: RepoApi
+    private val repoApi: RepoApi,
+    private val dataBase: IssueDb
 ) : ViewModel() {
 
     private val reposData by lazy {
@@ -68,9 +70,13 @@ class RepoListViewModel @Inject constructor(
 
     private fun choiceARepo(repoPath: String) {
         viewModelScope.launch {
+            // 切换仓库前先清空当前缓存的所有数据
+            DataStoreUtils.saveSyncStringData(DataKey.FilterInfo, "")
+            dataBase.issue().clearAll()
+            dataBase.issueRemoteKey().clearAll()
+
             DataStoreUtils.saveSyncStringData(DataKey.UsingRepo, repoPath)
             val result = kotlin.runCatching {
-                println("repoPath=$repoPath")
                 val encodeRepoPath = URLEncoder.encode(repoPath, StandardCharsets.UTF_8.toString())
                 val fullRoute = "${Route.HOME}/$encodeRepoPath"
                 _viewEvents.send(RepoListViewEvent.Goto(fullRoute))

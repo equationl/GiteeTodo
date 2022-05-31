@@ -1,6 +1,8 @@
 package com.equationl.giteetodo.ui.page
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -22,11 +24,12 @@ import androidx.navigation.NavHostController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemsIndexed
 import com.equationl.giteetodo.R
+import com.equationl.giteetodo.data.repos.model.common.TodoShowData
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.Route
+import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.*
 import com.equationl.giteetodo.viewmodel.*
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -38,7 +41,11 @@ import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.MaterialDialogState
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 private const val TAG = "el, TodoListScreen"
 
@@ -52,16 +59,19 @@ fun TodoListScreen(
 ) {
     val viewState = viewModel.viewStates
     val coroutineState = rememberCoroutineScope()
+    val todoPagingItems = viewState.todoFlow.collectAsLazyPagingItems()
 
     DisposableEffect(Unit) {
-        viewModel.dispatch(TodoListViewAction.SetRepoPath(repoPath))
-        onDispose {  }
+        viewModel.dispatch(TodoListViewAction.Init(repoPath))
+
+        onDispose {
+            viewModel.dispatch(TodoListViewAction.OnExit)
+        }
     }
 
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
             if (it is TodoListViewEvent.ShowMessage) {
-                println("收到错误消息：${it.message}")
                 coroutineState.launch {
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }
@@ -70,7 +80,15 @@ fun TodoListScreen(
     }
 
     Column(Modifier.fillMaxSize()) {
-        TodoListContent(viewState, viewModel, repoPath, navController, isShowSystemBar)
+        TodoListContent(
+            viewState,
+            viewModel,
+            repoPath,
+            navController,
+            todoPagingItems,
+            coroutineState,
+            isShowSystemBar
+        )
     }
 }
 
@@ -80,9 +98,10 @@ fun TodoListContent(
     viewModel: TodoListViewModel,
     repoPath: String,
     navController: NavHostController,
+    todoPagingItems: LazyPagingItems<TodoShowData>,
+    coroutineState: CoroutineScope,
     isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
-    val todoPagingItems = viewState.todoFlow.collectAsLazyPagingItems()
     val rememberSwipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
 
     if (todoPagingItems.loadState.refresh is LoadState.Error) {
@@ -90,14 +109,32 @@ fun TodoListContent(
     }
 
     if (todoPagingItems.itemCount < 1) {
+        @Suppress("ControlFlowWithEmptyBody")
         if (todoPagingItems.loadState.refresh == LoadState.Loading) {
             LoadDataContent("正在加载中…")
         }
+        else if (todoPagingItems.loadState.mediator == null ||
+            (todoPagingItems.loadState.mediator != null &&
+                    todoPagingItems.loadState.source.refresh  == LoadState.Loading)
+        ) {
+
+        }
         else {
-            // 筛选类型
-            TodoFilterContent(viewState, viewModel)
-            ListEmptyContent("还没有数据哦，点击立即刷新\n或点击下方 ”+“ 添加数据；也可以点击右上角切换仓库哦") {
-                todoPagingItems.refresh()
+            if (viewState.isAutoRefresh) {
+                // 筛选类型
+                TodoFilterContent(viewState, viewModel) {
+                    coroutineState.launch(Dispatchers.IO) {
+                        delay(100)
+                        todoPagingItems.refresh()
+                    }
+                }
+                ListEmptyContent("还没有数据哦，点击立即刷新", "TIPS： 点击下方 “+” 可以添加你的第一条数据哦\n也可以尝试更换仓库或筛选条件再试试") {
+                    todoPagingItems.refresh()
+                }
+            }
+            else {
+                viewModel.dispatch(TodoListViewAction.AutoRefreshFinish)
+                todoPagingItems.refresh() // 如果数据为空则先尝试刷新一下
             }
         }
     }
@@ -111,19 +148,30 @@ fun TodoListContent(
             },
             modifier = Modifier.fillMaxSize()
         ) {
-            TodoListLazyColumn(viewState, viewModel, todoPagingItems, navController, repoPath, rememberSwipeRefreshState.isRefreshing, isShowSystemBar)
+            TodoListLazyColumn(
+                viewState,
+                viewModel,
+                todoPagingItems,
+                navController,
+                repoPath,
+                rememberSwipeRefreshState.isRefreshing,
+                coroutineState,
+                isShowSystemBar
+            )
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TodoListLazyColumn(
     viewState: TodoListViewState,
     viewModel: TodoListViewModel,
-    todoPagingItems: LazyPagingItems<TodoCardData>,
+    todoPagingItems: LazyPagingItems<TodoShowData>,
     navController: NavHostController,
     repoPath: String,
     isLoading: Boolean,
+    coroutineState: CoroutineScope,
     isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -132,33 +180,46 @@ fun TodoListLazyColumn(
     isShowSystemBar(listState.isScrollingUp())
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 2.dp),
         state = listState
     ) {
         item(key = "headerFilter") {
             // 筛选类型
-            TodoFilterContent(viewState, viewModel)
+            TodoFilterContent(viewState, viewModel) {
+                coroutineState.launch(Dispatchers.IO) {
+                    // 需要延迟一段时间等待新的对象创建完成才能成功刷新
+                    delay(100)
+                    todoPagingItems.refresh()
+                }
+            }
         }
 
-        /*todoPagingItems.itemSnapshotList.forEach {
+        var lastTitle = ""
+
+        todoPagingItems.itemSnapshotList.forEach {
             if (it != null) {
-                stickyHeader {
-                    Text(text = it.cardTitle)
+                if (it.headerTitle != lastTitle) {
+                    stickyHeader {
+                        TodoListGroupHeader(text = it.headerTitle, isLoading)
+                    }
+                    lastTitle = it.headerTitle
                 }
 
-                item {
-                    TodoCardScreen(it, navController, viewModel, repoPath, isLoading)
+                item(key = it.toString()) {
+                    TodoItem(
+                        navController = navController,
+                        itemData = it,
+                        viewModel = viewModel,
+                        repoPath = repoPath,
+                        isLoading
+                    )
                 }
-            }
-        }*/
-
-        itemsIndexed(todoPagingItems, key = { _, item -> item.cardTitle+item.itemArray.toString()}) { _, item ->
-            if (item != null) {
-                TodoCardScreen(item, navController, viewModel, repoPath, isLoading)
             }
         }
 
-        item {
+        item(key = "loading") {
             when (todoPagingItems.loadState.append) {
                 is LoadState.NotLoading -> {}
                 LoadState.Loading -> {
@@ -180,64 +241,85 @@ fun TodoListLazyColumn(
 }
 
 @Composable
-fun TodoCardScreen(data: TodoCardData, navController: NavHostController, viewModel: TodoListViewModel, repoPath: String, isLoading: Boolean) {
-    Card(modifier = Modifier
-        .heightIn(20.dp, Int.MAX_VALUE.dp)
-        .padding(32.dp)
-        .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade()), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
-        Column(Modifier.padding(8.dp)) {
-            Text(text = data.cardTitle, Modifier.padding(8.dp))
-
-            Column(Modifier.fillMaxSize()) {
-                data.itemArray.forEach {
-                    TodoItem(navController, it, viewModel, repoPath)
-                }
-            }
-            /*LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                data.itemArray.forEach {
-                    item(key = it.number) {
-                        TodoItem(navController, it, viewModel, repoPath)
-                    }
-                }
-            }*/
-        }
-    }
-}
-
-@Composable
-fun TodoItem(navController: NavHostController, itemData: TodoCardItemData, viewModel: TodoListViewModel, repoPath: String) {
-    var checked by remember { mutableStateOf(
-        when (itemData.state) {
-            IssueState.CLOSED -> {
-                true
-            }
-            else -> {
-                false
-            }
-        }
-    ) }
-
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
-        Checkbox(checked = checked,
-            enabled = itemData.state != IssueState.REJECTED,
-            onCheckedChange = {
-                checked = it
-                viewModel.dispatch(TodoListViewAction.UpdateIssueState(itemData.number, it, repoPath))
-        })
+fun TodoListGroupHeader(text: String, isLoading: Boolean) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colors.baseBackground)
+            .padding(start = 12.dp)
+            .padding(4.dp)
+    ) {
         Text(
-            text = itemData.title,
-            textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.noRippleClickable {
-                navController.navigate("${Route.TODO_DETAIL}/${itemData.number}")
-            }
+            text = text,
+            modifier = Modifier
+                .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade())
         )
     }
 }
 
 @Composable
-fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel) {
+fun TodoItem(
+    navController: NavHostController,
+    itemData: TodoShowData,
+    viewModel: TodoListViewModel,
+    repoPath: String,
+    isLoading: Boolean
+) {
+    var checked by remember {
+        mutableStateOf(
+            when (itemData.state) {
+                IssueState.CLOSED -> true
+                else -> false
+            }
+        )
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp, 2.dp)
+            .background(MaterialTheme.colors.baseBackground)
+            .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade()),
+        shape = RoundedCornerShape(4.dp),
+        elevation = 2.dp
+    ) {
+        Column(Modifier.padding(4.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Checkbox(checked = checked,
+                    enabled = itemData.state != IssueState.REJECTED,
+                    onCheckedChange = {
+                        checked = it
+                        viewModel.dispatch(
+                            TodoListViewAction.UpdateIssueState(
+                                itemData.number,
+                                it,
+                                repoPath
+                            )
+                        )
+                    })
+                Text(
+                    text = itemData.title,
+                    textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.noRippleClickable {
+                        navController.navigate("${Route.TODO_DETAIL}/${itemData.number}")
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TodoFilterContent(
+    viewState: TodoListViewState,
+    viewModel: TodoListViewModel,
+    onRefresh: () -> Unit
+) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
         .fillMaxWidth()
         .padding(end = 32.dp, start = 32.dp)) {
@@ -248,7 +330,14 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
             val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowLabelsDropMenu) -180f else 0f)
             Text("标签", color = if (viewState.filteredOptionList.contains(FilteredOption.Labels)) MaterialTheme.colors.primary else Color.Unspecified)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "标签", modifier = Modifier.rotate(arrowRotateDegrees))
-            TodoListLabelDropMenu(viewState.availableLabels, viewModel, viewState)
+            TodoListLabelDropMenu(
+                options = viewState.availableLabels,
+                isShowDropMenu = viewState.isShowLabelsDropMenu,
+                onFilterLabels = {
+                    viewModel.dispatch(TodoListViewAction.FilterLabels(it))
+                    onRefresh()
+                }
+            )
         }
 
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
@@ -257,7 +346,14 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
             val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowStateDropMenu) -180f else 0f)
             Text("状态", color = if (viewState.filteredOptionList.contains(FilteredOption.States)) MaterialTheme.colors.primary else Color.Unspecified)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "状态", modifier = Modifier.rotate(arrowRotateDegrees))
-            TodoListStateDropMenu(viewModel = viewModel, isShow = viewState.isShowStateDropMenu)
+            TodoListStateDropMenu(
+                isShow = viewState.isShowStateDropMenu,
+                changeShowState = {viewModel.dispatch(TodoListViewAction.ChangeStateDropMenuShowState(false))},
+                onFilterState = {
+                    viewModel.dispatch(TodoListViewAction.FilterState(it))
+                    onRefresh()
+                }
+            )
         }
 
         val dialogState = rememberMaterialDialogState()
@@ -266,7 +362,14 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
         }) {
             Text("时间", color = if (viewState.filteredOptionList.contains(FilteredOption.DateTime)) MaterialTheme.colors.primary else Color.Unspecified)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "时间")
-            TodoListDateTimePicker(dialogState, viewModel)
+            TodoListDateTimePicker(
+                dialogState
+            ) { date, isStartDate ->
+                viewModel.dispatch(TodoListViewAction.FilterDate(date, isStartDate))
+                if (!isStartDate) {
+                    onRefresh()
+                }
+            }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
@@ -275,13 +378,20 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
             val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowDirectionDropMenu) -180f else 0f)
             Text("排序", color = if (viewState.filteredOptionList.contains(FilteredOption.Direction)) MaterialTheme.colors.primary else Color.Unspecified)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "排序", modifier = Modifier.rotate(arrowRotateDegrees))
-            TodoListDirecDropMenu(viewModel = viewModel, isShow = viewState.isShowDirectionDropMenu)
+            TodoListDirecDropMenu(
+                isShow = viewState.isShowDirectionDropMenu,
+                changeShowState = { viewModel.dispatch(TodoListViewAction.ChangeDirectionDropMenuShowState(false)) },
+                onFilterDirec = {
+                    viewModel.dispatch(TodoListViewAction.FilterDirection(it))
+                }
+            )
         }
 
         if (viewState.filteredOptionList.isNotEmpty()) {
             Icon(painter = painterResource(id = R.drawable.filter_alt_off) , contentDescription = "清除",
                 modifier = Modifier.noRippleClickable {
                     viewModel.dispatch(TodoListViewAction.ClearFilter)
+                    onRefresh()
                 }
             )
         }
@@ -289,9 +399,13 @@ fun TodoFilterContent(viewState: TodoListViewState, viewModel: TodoListViewModel
 }
 
 @Composable
-fun TodoListLabelDropMenu(options: MutableMap<String, Boolean>, viewModel: TodoListViewModel, viewState: TodoListViewState) {
-    DropdownMenu(expanded = viewState.isShowLabelsDropMenu, onDismissRequest = {
-        viewModel.dispatch(TodoListViewAction.FilterLabels(options))
+fun TodoListLabelDropMenu(
+    options: MutableMap<String, Boolean>,
+    isShowDropMenu: Boolean,
+    onFilterLabels: (options: MutableMap<String, Boolean>) -> Unit
+) {
+    DropdownMenu(expanded = isShowDropMenu, onDismissRequest = {
+        onFilterLabels(options)
     }) {
         options.forEach { (name, checked) ->
             var isChecked by remember { mutableStateOf(checked) }
@@ -312,16 +426,20 @@ fun TodoListLabelDropMenu(options: MutableMap<String, Boolean>, viewModel: TodoL
 }
 
 @Composable
-fun TodoListStateDropMenu(viewModel: TodoListViewModel, isShow: Boolean) {
+fun TodoListStateDropMenu(
+    isShow: Boolean,
+    changeShowState: (isShow: Boolean) -> Unit,
+    onFilterState: (state: IssueState) -> Unit
+) {
     val options = listOf(IssueState.OPEN, IssueState.CLOSED, IssueState.PROGRESSING, IssueState.REJECTED, IssueState.ALL)
 
     DropdownMenu(expanded = isShow, onDismissRequest = {
-        viewModel.dispatch(TodoListViewAction.ChangeStateDropMenuShowState(false))
+        changeShowState(false)
     }) {
         options.forEach { state ->
             DropdownMenuItem(
                 onClick = {
-                    viewModel.dispatch(TodoListViewAction.FilterState(state))
+                    onFilterState(state)
                 },
             ) {
                 Text(text = state.humanName)
@@ -331,16 +449,20 @@ fun TodoListStateDropMenu(viewModel: TodoListViewModel, isShow: Boolean) {
 }
 
 @Composable
-fun TodoListDirecDropMenu(viewModel: TodoListViewModel, isShow: Boolean) {
+fun TodoListDirecDropMenu(
+    isShow: Boolean,
+    changeShowState: (isShow: Boolean) -> Unit,
+    onFilterDirec: (Direction) -> Unit
+) {
     val options = listOf(Direction.DESC, Direction.ASC)
 
     DropdownMenu(expanded = isShow, onDismissRequest = {
-        viewModel.dispatch(TodoListViewAction.ChangeDirectionDropMenuShowState(false))
+        changeShowState(false)
     }) {
         options.forEach { direction ->
             DropdownMenuItem(
                 onClick = {
-                    viewModel.dispatch(TodoListViewAction.FilterDirection(direction))
+                    onFilterDirec(direction)
                 },
             ) {
                 Text(text = direction.humanName)
@@ -350,7 +472,10 @@ fun TodoListDirecDropMenu(viewModel: TodoListViewModel, isShow: Boolean) {
 }
 
 @Composable
-fun TodoListDateTimePicker(showState: MaterialDialogState, viewModel: TodoListViewModel) {
+fun TodoListDateTimePicker(
+    showState: MaterialDialogState,
+    onFilterDate: (date: LocalDate, isStartDate: Boolean) -> Unit
+) {
     var isStartDate by remember { mutableStateOf(true) }
     val tipText = if (isStartDate) "请选择起始日期" else "请选择结束日期"
     MaterialDialog(
@@ -369,7 +494,7 @@ fun TodoListDateTimePicker(showState: MaterialDialogState, viewModel: TodoListVi
         }
     ) {
         datepicker(title = tipText) { date ->
-            viewModel.dispatch(TodoListViewAction.FilterDate(date, isStartDate))
+            onFilterDate(date, isStartDate)
         }
     }
 }

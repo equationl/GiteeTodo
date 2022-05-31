@@ -36,6 +36,8 @@ import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 
+private const val TAG = "el, TodoHome"
+
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun HomeScreen(
@@ -119,8 +121,14 @@ fun HomeScreen(
                 }
             },
             floatingActionButton = {
-                Column(modifier = if (viewState.isShowSystemBar) Modifier else Modifier.navigationBarsPadding()) {
-                    HomeFloatActionBar(viewState.currentPage, viewModel, viewState)
+                if (viewState.currentPage == CurrentPager.HOME_TODO) {
+                    Column(modifier =
+                    if (viewState.isShowSystemBar) Modifier else Modifier.navigationBarsPadding()
+                    ) {
+                        HomeFloatActionBar(
+                            viewState.isShowSystemBar,
+                        ) { viewModel.dispatch(TodoHomeViewAction.AddATodo) }
+                    }
                 }
             },
             floatingActionButtonPosition = FabPosition.Center,
@@ -177,21 +185,22 @@ fun HomeContent(
 }
 
 @Composable
-fun HomeFloatActionBar(currentPager: CurrentPager, viewModel: TodoHomeViewModel, viewState: TodoHomeViewState) {
+fun HomeFloatActionBar(
+    isShowSystemBar: Boolean,
+    onAddClick: () -> Unit
+) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val offsetValue by animateIntAsState(
-        targetValue = if (viewState.isShowSystemBar) 0 else screenWidth / 2 - 32 - 16,
+        targetValue = if (isShowSystemBar) 0 else screenWidth / 2 - 32 - 16,
         animationSpec = spring(0.3f)
     )
 
-    if (currentPager == CurrentPager.HOME_TODO) {
-        FloatingActionButton(
-            onClick = { viewModel.dispatch(TodoHomeViewAction.AddATodo) },
-            modifier = Modifier.offset(offsetValue.dp, 0.dp)
-        ) {
-            Icon(Icons.Outlined.Add, "Add")
-        }
+    FloatingActionButton(
+        onClick = onAddClick,
+        modifier = Modifier.offset(offsetValue.dp, 0.dp)
+    ) {
+        Icon(Icons.Outlined.Add, "Add")
     }
 }
 

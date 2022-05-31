@@ -63,18 +63,22 @@ fun SettingScreen(
             }
         )
         {
-            SettingContent(viewModel, viewState)
+            SettingContent(viewModel, viewState, it)
         }
     }
 }
 
 @Composable
-fun SettingContent(viewModel: SettingViewModel, viewState: SettingViewState) {
+fun SettingContent(
+    viewModel: SettingViewModel,
+    viewState: SettingViewState,
+    paddingValues: PaddingValues
+) {
     Column(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colors.baseBackground)
-            .padding(top = 6.dp)
+            .padding(top = 6.dp).padding(paddingValues)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -82,20 +86,6 @@ fun SettingContent(viewModel: SettingViewModel, viewState: SettingViewState) {
         ExpandableItem(title = "远程仓库", modifier = Modifier.padding(12.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(text = "暂时不支持设置远程仓库")
-            }
-        }
-
-        Divider(modifier = Modifier.padding(12.dp, 0.dp))
-
-        ExpandableItem(title = "首页分组方式", modifier = Modifier.padding(12.dp)) {
-            SettingOption.groupBy.forEach {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected =  viewState.currentGroupBy == it.name,
-                        onClick = { viewModel.dispatch(SettingViewAction.ChangeGroupBy(it)) }
-                    )
-                    Text(text = it.des, modifier = Modifier.padding(2.dp))
-                }
             }
         }
 

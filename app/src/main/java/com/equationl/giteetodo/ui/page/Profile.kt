@@ -68,7 +68,7 @@ fun ProfileScreen(
         }
     }
     else {
-        ListEmptyContent(text = "用户信息为空，点击刷新") {
+        ListEmptyContent(title = "用户信息为空，点击刷新") {
             viewModel.dispatch(ProfileViewAction.ReadUserInfo)
         }
     }

@@ -217,6 +217,7 @@ fun HomeTopBarAction(currentPager: CurrentPager, viewModel: TodoHomeViewModel) {
         IconButton(onClick = {
             viewModel.dispatch(TodoHomeViewAction.Logout)
         }) {
+            // fixme 注销后应该清空返回栈，不然在登录页面按返回按键又会返回到主页
             Icon(Icons.Outlined.Logout, "注销")
         }
     }

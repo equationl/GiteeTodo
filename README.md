@@ -120,6 +120,10 @@ CLIENT_SECRET = "xxxxxx"
 
 **请勿滥用 Gitee 资源。**
 
+### 实现思路和代码详解
+
+[使用Compose实现基于MVI架构、retrofit2、数据分页以及分页缓存且支持glance小部件的TODO应用](./docs/description.md)
+
 ### 参考资料
 该程序参照了 [shenzhen2017](https://github.com/shenzhen2017) 的 [wanandroid-compose](https://github.com/shenzhen2017/wanandroid-compose)
 

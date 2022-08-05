@@ -22,13 +22,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.BaseMsgDialog
@@ -62,9 +60,7 @@ fun LoginScreen(
         viewModel.viewEvents.collect {
             if (it is LoginViewEvent.NavTo) {
                 navController.navigate(it.route) {
-                    popUpTo(Route.LOGIN) {
-                        inclusive = true
-                    }
+                    popUpTo(0)
                 }
             }
             else if (it is LoginViewEvent.ShowMessage) {
@@ -332,10 +328,4 @@ fun LoginHelpDialog(loginViewModel: LoginViewModel, viewState: LoginViewState) {
             loginViewModel.dispatch(LoginViewAction.ToggleLoginHelpDialogShow(false))
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewLoginView() {
-    LoginContent()
 }

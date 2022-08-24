@@ -127,6 +127,7 @@ fun HomeScreen(
                     ) {
                         HomeFloatActionBar(
                             viewState.isShowSystemBar,
+                            onAnimationFinish = { viewModel.dispatch(TodoHomeViewAction.OnAnimateFinish) }
                         ) { viewModel.dispatch(TodoHomeViewAction.AddATodo) }
                     }
                 }
@@ -187,13 +188,19 @@ fun HomeContent(
 @Composable
 fun HomeFloatActionBar(
     isShowSystemBar: Boolean,
+    onAnimationFinish: () -> Unit,
     onAddClick: () -> Unit
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val offsetValue by animateIntAsState(
         targetValue = if (isShowSystemBar) 0 else screenWidth / 2 - 32 - 16,
-        animationSpec = spring(0.3f)
+        animationSpec = spring(0.3f),
+        finishedListener = {
+            // 应该使用进入或退出全屏时耗时最长动画的完成事件作为当前动画已全部完成的标志
+            // 目前来说，耗时最长的就是这个悬浮按钮的位移动画，所以这里使用它来标记动画完成
+            onAnimationFinish()
+        }
     )
 
     FloatingActionButton(

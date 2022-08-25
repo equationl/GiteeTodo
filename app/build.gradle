@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    compileSdk 31
+    compileSdk 32
 
     defaultConfig {
         applicationId "com.equationl.giteetodo"
@@ -46,7 +46,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerExtensionVersion "1.2.0"
     }
     packagingOptions {
         resources {
@@ -96,14 +96,14 @@ dependencies {
 
     implementation "io.coil-kt:coil-compose:2.0.0"
 
-    implementation "com.halilibo.compose-richtext:richtext-commonmark:0.12.0"
-    implementation "com.halilibo.compose-richtext:richtext-ui-material:0.12.0"
+    implementation "com.halilibo.compose-richtext:richtext-commonmark:0.13.0"
+    implementation "com.halilibo.compose-richtext:richtext-ui-material:0.13.0"
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
     implementation "com.airbnb.android:lottie-compose:5.0.3"
-    implementation "io.github.vanpra.compose-material-dialogs:datetime:0.8.0-beta"
-    implementation "io.github.vanpra.compose-material-dialogs:color:0.8.0-beta"
+    implementation "io.github.vanpra.compose-material-dialogs:datetime:0.8.1-rc"
+    implementation "io.github.vanpra.compose-material-dialogs:color:0.8.1-rc"
 
     // see: https://developer.android.com/studio/write/java8-support#library-desugaring
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'

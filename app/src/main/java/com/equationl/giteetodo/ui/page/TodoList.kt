@@ -176,7 +176,6 @@ fun TodoListLazyColumn(
 ) {
     val listState = rememberLazyListState()
 
-    // fixme 如果拉到底后往回拉一点再尝试拉到底会导致“反复横跳”
     isShowSystemBar(listState.isScrollingUp())
 
     LazyColumn(

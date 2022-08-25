@@ -26,6 +26,11 @@ import javax.inject.Inject
 class TodoHomeViewModel @Inject constructor(
     private val dataBase: IssueDb
 ) : ViewModel() {
+    /**
+     * 用于标记进入全屏动画是否完成
+     * */
+    private var isAnimationFinish = true
+
     var viewStates by mutableStateOf(TodoHomeViewState())
         private set
 
@@ -40,12 +45,24 @@ class TodoHomeViewModel @Inject constructor(
             is TodoHomeViewAction.AddATodo -> addATodo()
             is TodoHomeViewAction.Logout -> logout()
             is TodoHomeViewAction.ChangeSystemBarShowState -> changeSystemBarShowState(action.isShow)
+            is TodoHomeViewAction.OnAnimateFinish -> onAnimateFinish()
         }
+    }
+
+    private fun onAnimateFinish() {
+        isAnimationFinish = true
     }
 
     private fun changeSystemBarShowState(isShow: Boolean) {
         if (viewStates.currentPage == CurrentPager.HOME_TODO) {
-            viewStates = viewStates.copy(isShowSystemBar = isShow)
+            if (viewStates.isShowSystemBar != isShow) {  // 只有当前显示状态和请求状态不同时才继续，避免重复调用
+                if (isAnimationFinish) {
+                    // 只有在所有动画都完成后才继续，
+                    // 因为动画正在进行时会导致尺寸计算不可预测使得一直重复调用，最终导致动画也跟着“反复横跳”
+                    isAnimationFinish = false
+                    viewStates = viewStates.copy(isShowSystemBar = isShow)
+                }
+            }
         }
     }
 
@@ -118,6 +135,7 @@ sealed class TodoHomeViewAction {
     data class ChangeSystemBarShowState(val isShow: Boolean): TodoHomeViewAction()
     object AddATodo: TodoHomeViewAction()
     object Logout: TodoHomeViewAction()
+    object OnAnimateFinish : TodoHomeViewAction()
 }
 
 enum class CurrentPager {

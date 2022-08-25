@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.equationl.giteetodo.constants.ClientInfo
-import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.widgets.CustomWebView
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.LoginOauthViewAction
@@ -54,7 +53,7 @@ fun OAuthLoginScreen(
         Scaffold(
             topBar = {
                 TopBar("授权登录") {
-                    navHostController.navigate(Route.LOGIN)
+                    navHostController.popBackStack()
                 }
             },
             snackbarHost = {

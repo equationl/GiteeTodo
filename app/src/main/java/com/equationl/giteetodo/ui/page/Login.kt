@@ -64,7 +64,6 @@ fun LoginScreen(
                 }
             }
             else if (it is LoginViewEvent.ShowMessage) {
-                println("收到错误消息：${it.message}")
                 coroutineState.launch {
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }

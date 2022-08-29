@@ -37,13 +37,11 @@ fun OAuthLoginScreen(
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
             if (it is LoginOauthViewEvent.ShowMessage) {
-                println("收到错误消息：${it.message}")
                 coroutineState.launch {
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }
             }
             else if (it is LoginOauthViewEvent.Goto) {
-                println("Goto route=${it.route}")
                 navHostController.navigate(it.route)
             }
         }
@@ -63,6 +61,7 @@ fun OAuthLoginScreen(
             }
         )
         {
+            Log.i(TAG, "OAuthLoginScreen: padding=$it")
             OAuthWebView(viewModel)
         }
     }

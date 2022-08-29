@@ -34,7 +34,10 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val TAG = "el, TodoHome"
 
@@ -49,7 +52,7 @@ fun HomeScreen(
     val activity = (LocalContext.current as? Activity)
     val pagerState = rememberPagerState()
     val scaffoldState = rememberScaffoldState()
-    val coroutineState = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     val systemUiCtrl = rememberSystemUiController()
     val systemBarColor = MaterialTheme.colors.systemBar
 
@@ -63,13 +66,11 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
             if (it is TodoHomeViewEvent.ShowMessage) {
-                println("收到错误消息：${it.message}")
-                coroutineState.launch {
+                coroutineScope.launch {
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }
             }
             else if (it is TodoHomeViewEvent.Goto) {
-                println("Goto route=${it.route}")
                 navController.navigate(it.route)
             }
         }
@@ -116,7 +117,7 @@ fun HomeScreen(
                     enter = slideInVertically(initialOffsetY = { it / 2})
                 ) {
                     Column(modifier = if (viewState.isShowSystemBar) Modifier.navigationBarsPadding() else Modifier) {
-                        HomeBottomBar(viewState, pagerState)
+                        HomeBottomBar(viewState, pagerState, coroutineScope)
                     }
                 }
             },
@@ -152,13 +153,15 @@ fun HomeScreen(
     }
 
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            if (page == CurrentPager.HOME_TODO.ordinal) {
-                viewModel.dispatch(TodoHomeViewAction.GoToTodo(repoPath))
-            }
+        withContext(Dispatchers.IO) {
+            snapshotFlow { pagerState.currentPage }.collect { page ->
+                if (page == CurrentPager.HOME_TODO.ordinal) {
+                    viewModel.dispatch(TodoHomeViewAction.GoToTodo(repoPath))
+                }
 
-            if (page == CurrentPager.HOME_ME.ordinal) {
-                viewModel.dispatch(TodoHomeViewAction.GoToMe(repoPath))
+                if (page == CurrentPager.HOME_ME.ordinal) {
+                    viewModel.dispatch(TodoHomeViewAction.GoToMe(repoPath))
+                }
             }
         }
     }
@@ -232,8 +235,12 @@ fun HomeTopBarAction(currentPager: CurrentPager, viewModel: TodoHomeViewModel) {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HomeBottomBar(viewState: TodoHomeViewState, pagerState: PagerState) {
-    val scope = rememberCoroutineScope()
+fun HomeBottomBar(
+    viewState: TodoHomeViewState,
+    pagerState: PagerState,
+    scope: CoroutineScope
+) {
+    //val scope = rememberCoroutineScope()
     BottomAppBar {
         Column(horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,

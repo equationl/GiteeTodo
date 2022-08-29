@@ -15,6 +15,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+/**
+ * 可展开的列表
+ *
+ * @param title 列表标题
+ * @param modifier Modifier
+ * @param endText 列表标题的尾部文字，默认为空
+ * @param subItemStartPadding 子项距离 start 的 padding 值
+ * @param subItem 子项
+ * */
 @Composable
 fun ExpandableItem(
     title: String,

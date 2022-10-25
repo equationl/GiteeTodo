@@ -83,34 +83,32 @@ fun TodoDetailScreen(
         }
     }
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopBar(viewState.title.ifEmpty { "新建" }, actions = {
-                    if (issueNum != "null") {
-                        val icon = if (viewState.isEditAble) Icons.Outlined.EditOff else Icons.Outlined.EditNote
-                        IconButton(onClick = {
-                            viewModel.dispatch(TodoDetailViewAction.ToggleEditModel(!viewState.isEditAble))
-                        }) {
-                            Icon(icon, contentDescription = "编辑")
-                        }
-                    }
-                }) {
-                    if (navController == null) {
-                        activity?.finish()
-                    }
-                    else {
-                        navController.popBackStack()
+    Scaffold(
+        topBar = {
+            TopBar(viewState.title.ifEmpty { "新建" }, actions = {
+                if (issueNum != "null") {
+                    val icon = if (viewState.isEditAble) Icons.Outlined.EditOff else Icons.Outlined.EditNote
+                    IconButton(onClick = {
+                        viewModel.dispatch(TodoDetailViewAction.ToggleEditModel(!viewState.isEditAble))
+                    }) {
+                        Icon(icon, contentDescription = "编辑")
                     }
                 }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
-                    Snackbar(snackbarData = snackBarData)
-                }})
-        {
-            TodoDetailContent(it, viewModel, viewState, issueNum)
-        }
+            }) {
+                if (navController == null) {
+                    activity?.finish()
+                }
+                else {
+                    navController.popBackStack()
+                }
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                Snackbar(snackbarData = snackBarData)
+            }})
+    {
+        TodoDetailContent(it, viewModel, viewState, issueNum)
     }
 }
 

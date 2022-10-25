@@ -71,30 +71,28 @@ fun LoginScreen(
         }
     }
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopBar("登录", navigationIcon = Icons.Outlined.Close) {
-                    // 点击退出
-                    activity?.finish()
-                }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
-                    Snackbar(snackbarData = snackBarData)
-                }}
-        )
-        {
-            Log.i(TAG, "LoginScreen: padding=$it")
-            if (viewState.isLogging) {
-                LoadDataContent(text = "正在登录中…")
+    Scaffold(
+        topBar = {
+            TopBar("登录", navigationIcon = Icons.Outlined.Close) {
+                // 点击退出
+                activity?.finish()
             }
-            else {
-                LoginContent()
-            }
-
-            LoginHelpDialog(loginViewModel = viewModel, viewState)
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                Snackbar(snackbarData = snackBarData)
+            }}
+    )
+    {
+        Log.i(TAG, "LoginScreen: padding=$it")
+        if (viewState.isLogging) {
+            LoadDataContent(text = "正在登录中…")
         }
+        else {
+            LoginContent()
+        }
+
+        LoginHelpDialog(loginViewModel = viewModel, viewState)
     }
 }
 

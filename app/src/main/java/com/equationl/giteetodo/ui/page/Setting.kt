@@ -49,22 +49,20 @@ fun SettingScreen(
         }
     }
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopBar("设置") {
-                    navController.popBackStack()
-                }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
-                    Snackbar(snackbarData = snackBarData)
-                }
+    Scaffold(
+        topBar = {
+            TopBar("设置") {
+                navController.popBackStack()
             }
-        )
-        {
-            SettingContent(viewModel, viewState, it)
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                Snackbar(snackbarData = snackBarData)
+            }
         }
+    )
+    {
+        SettingContent(viewModel, viewState, it)
     }
 }
 

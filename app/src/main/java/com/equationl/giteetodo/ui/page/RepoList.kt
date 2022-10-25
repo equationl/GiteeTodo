@@ -80,32 +80,30 @@ fun RepoListScreen(
         }
     }
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopBar("仓库列表", actions = {
-                    IconButton(onClick = {
-                        navController.navigate(Route.REPO_DETAIL)
-                    }) {
-                        Icon(Icons.Outlined.LibraryAdd, "添加仓库")
-                    }
+    Scaffold(
+        topBar = {
+            TopBar("仓库列表", actions = {
+                IconButton(onClick = {
+                    navController.navigate(Route.REPO_DETAIL)
                 }) {
-                    val lastQueue = navController.backQueue[navController.backQueue.size - 2]
-                    if (lastQueue.destination.route?.contains(Route.HOME) == true) { // 只有从首页跳转过来的才返回，否则直接退出
-                        navController.popBackStack()
-                    }
-                    else {
-                        activity?.finish()
-                    }
+                    Icon(Icons.Outlined.LibraryAdd, "添加仓库")
                 }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
-                    Snackbar(snackbarData = snackBarData)
-                }})
-        {
-            RepoListContent(viewState.repoFlow, viewModel, it)
-        }
+            }) {
+                val lastQueue = navController.backQueue[navController.backQueue.size - 2]
+                if (lastQueue.destination.route?.contains(Route.HOME) == true) { // 只有从首页跳转过来的才返回，否则直接退出
+                    navController.popBackStack()
+                }
+                else {
+                    activity?.finish()
+                }
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                Snackbar(snackbarData = snackBarData)
+            }})
+    {
+        RepoListContent(viewState.repoFlow, viewModel, it)
     }
 }
 

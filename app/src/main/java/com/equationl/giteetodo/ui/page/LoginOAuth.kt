@@ -47,23 +47,21 @@ fun OAuthLoginScreen(
         }
     }
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopBar("授权登录") {
-                    navHostController.popBackStack()
-                }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
-                    Snackbar(snackbarData = snackBarData)
-                }
+    Scaffold(
+        topBar = {
+            TopBar("授权登录") {
+                navHostController.popBackStack()
             }
-        )
-        {
-            Log.i(TAG, "OAuthLoginScreen: padding=$it")
-            OAuthWebView(viewModel)
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                Snackbar(snackbarData = snackBarData)
+            }
         }
+    )
+    {
+        Log.i(TAG, "OAuthLoginScreen: padding=$it")
+        OAuthWebView(viewModel)
     }
 }
 

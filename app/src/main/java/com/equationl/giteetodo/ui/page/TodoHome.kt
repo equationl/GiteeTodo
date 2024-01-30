@@ -2,18 +2,46 @@ package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material.BottomAppBar
+import androidx.compose.material.FabPosition
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.Snackbar
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ChangeCircle
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Logout
-import androidx.compose.runtime.*
+import androidx.compose.material.rememberScaffoldState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,7 +53,11 @@ import androidx.navigation.NavHostController
 import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.theme.systemBar
 import com.equationl.giteetodo.ui.widgets.HomeTopBar
-import com.equationl.giteetodo.viewmodel.*
+import com.equationl.giteetodo.viewmodel.CurrentPager
+import com.equationl.giteetodo.viewmodel.TodoHomeViewAction
+import com.equationl.giteetodo.viewmodel.TodoHomeViewEvent
+import com.equationl.giteetodo.viewmodel.TodoHomeViewModel
+import com.equationl.giteetodo.viewmodel.TodoHomeViewState
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
@@ -297,7 +329,7 @@ private fun HomeTopBarAction(
     else if (currentPager == CurrentPager.HOME_ME) {
         IconButton(onClick = onLogOut) {
             // fixme 注销后应该清空返回栈，不然在登录页面按返回按键又会返回到主页
-            Icon(Icons.Outlined.Logout, "注销")
+            Icon(Icons.AutoMirrored.Outlined.Logout, "注销")
         }
     }
 }

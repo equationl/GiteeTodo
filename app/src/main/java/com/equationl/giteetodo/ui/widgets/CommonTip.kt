@@ -1,6 +1,10 @@
 package com.equationl.giteetodo.ui.widgets
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -8,7 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.airbnb.lottie.compose.*
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.equationl.giteetodo.R
 
 @Composable
@@ -18,7 +26,7 @@ fun ListEmptyContent(title: String, text: String = "", onRefresh: () -> Unit) {
         val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
         LottieAnimation(
             composition,
-            progress,
+            { progress },
             modifier = Modifier.heightIn(0.dp, 300.dp).noRippleClickable(onClick = onRefresh)
         )
         LinkText(text = title, onClick = onRefresh)
@@ -35,7 +43,7 @@ fun LoadDataContent(text: String) {
         val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
         LottieAnimation(
             composition,
-            progress
+            { progress }
         )
         Text(text, Modifier.padding(top = 18.dp))
     }

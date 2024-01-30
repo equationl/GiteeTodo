@@ -3,13 +3,31 @@ package com.equationl.giteetodo.ui.page
 import android.app.Activity
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Snackbar
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarResult
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.LibraryAdd
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,7 +52,12 @@ import com.equationl.giteetodo.R
 import com.equationl.giteetodo.data.user.model.response.Repo
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.theme.baseBackground
-import com.equationl.giteetodo.ui.widgets.*
+import com.equationl.giteetodo.ui.widgets.BlurImage
+import com.equationl.giteetodo.ui.widgets.LinkText
+import com.equationl.giteetodo.ui.widgets.ListEmptyContent
+import com.equationl.giteetodo.ui.widgets.LoadDataContent
+import com.equationl.giteetodo.ui.widgets.SwipeableActionCard
+import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.viewmodel.RepoListViewAction
 import com.equationl.giteetodo.viewmodel.RepoListViewEvent
@@ -89,7 +112,10 @@ fun RepoListScreen(
                     Icon(Icons.Outlined.LibraryAdd, "添加仓库")
                 }
             }) {
-                val lastQueue = navController.backQueue[navController.backQueue.size - 2]
+
+                // fixme need confirm this code
+                val backStackList = navController.currentBackStack.value
+                val lastQueue = backStackList[backStackList.size - 2]
                 if (lastQueue.destination.route?.contains(Route.HOME) == true) { // 只有从首页跳转过来的才返回，否则直接退出
                     navController.popBackStack()
                 }

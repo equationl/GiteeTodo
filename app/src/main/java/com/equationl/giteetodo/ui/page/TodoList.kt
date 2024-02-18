@@ -18,12 +18,14 @@ import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -67,13 +69,11 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.MaterialDialogState
-import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 private const val TAG = "el, TodoListScreen"
 
@@ -394,9 +394,12 @@ fun TodoFilterContent(
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "时间")
             TodoListDateTimePicker(
                 dialogState
-            ) { date, isStartDate ->
-                viewModel.dispatch(TodoListViewAction.FilterDate(date, isStartDate))
-                if (!isStartDate) {
+            ) { start, end ->
+                if (start == null || end == null) {
+                    viewModel.dispatch(TodoListViewAction.SendMsg("请选择一个日期范围"))
+                }
+                else {
+                    viewModel.dispatch(TodoListViewAction.FilterDate(start, end))
                     onRefresh()
                 }
             }
@@ -506,30 +509,27 @@ fun TodoListDirecDropMenu(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListDateTimePicker(
     showState: MaterialDialogState,
-    onFilterDate: (date: LocalDate, isStartDate: Boolean) -> Unit
+    onFilterDate: (startDate: Long?, endDate: Long?) -> Unit
 ) {
-    var isStartDate by remember { mutableStateOf(true) }
-    val tipText = if (isStartDate) "请选择起始日期" else "请选择结束日期"
+    val state = rememberDateRangePickerState()
+
     MaterialDialog(
         dialogState = showState,
         buttons = {
             positiveButton("确定") {
-                if (isStartDate) {
-                    isStartDate = false
-                    showState.show()
-                }
-                else {
-                    isStartDate = true
-                }
+                onFilterDate(state.selectedStartDateMillis, state.selectedEndDateMillis)
             }
             negativeButton("取消")
         }
     ) {
-        datepicker(title = tipText) { date ->
-            onFilterDate(date, isStartDate)
-        }
+        DateRangePicker(
+            state = state,
+            headline = null,
+            title = null
+        )
     }
 }

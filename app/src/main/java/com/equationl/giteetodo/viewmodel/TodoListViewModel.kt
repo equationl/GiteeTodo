@@ -5,7 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.*
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.db.IssueDb
 import com.equationl.giteetodo.data.repos.model.common.TodoShowData
@@ -28,9 +32,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -88,7 +92,7 @@ class TodoListViewModel @Inject constructor(
             is TodoListViewAction.FilterState -> filterState(action.state)
             is TodoListViewAction.ChangeDirectionDropMenuShowState -> changeDirectionDropMenuShowState(action.isShow)
             is TodoListViewAction.FilterDirection -> filterDirection(action.direction)
-            is TodoListViewAction.FilterDate -> filterDate(action.date, action.isStart)
+            is TodoListViewAction.FilterDate -> filterDate(action.start, action.end)
             is TodoListViewAction.OnExit -> onExit()
         }
     }
@@ -109,21 +113,21 @@ class TodoListViewModel @Inject constructor(
         }
     }
 
-    private fun filterDate(date: LocalDate, isStart: Boolean) {
-        if (isStart) {
-            filterDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd", Locale.CHINA))
-            filterDate += "T000000+8-"
-        }
-        else {
-            filterDate += date.format(DateTimeFormatter.ofPattern("yyyyMMdd", Locale.CHINA))
-            filterDate += "T235959+8"
+    private fun filterDate(start: Long, end: Long) {
+        val sdf = SimpleDateFormat("yyyyMMdd", Locale.CHINA)
 
-            viewModelScope.launch {
-                queryFlow.emit(queryFlow.value.copy(createdAt = filterDate))
-            }
-            if (!viewStates.filteredOptionList.contains(FilteredOption.DateTime)) {
-                viewStates.filteredOptionList.add(FilteredOption.DateTime)
-            }
+        val startDate: String = sdf.format(Date(start))
+        val endDate: String = sdf.format(Date(end))
+        filterDate += startDate
+        filterDate += "T000000+8-"
+        filterDate += endDate
+        filterDate += "T235959+8"
+
+        viewModelScope.launch {
+            queryFlow.emit(queryFlow.value.copy(createdAt = filterDate))
+        }
+        if (!viewStates.filteredOptionList.contains(FilteredOption.DateTime)) {
+            viewStates.filteredOptionList.add(FilteredOption.DateTime)
         }
     }
 
@@ -315,7 +319,7 @@ sealed class TodoListViewAction {
     data class ChangeStateDropMenuShowState(val isShow: Boolean): TodoListViewAction()
     data class FilterDirection(val direction: Direction): TodoListViewAction()
     data class ChangeDirectionDropMenuShowState(val isShow: Boolean): TodoListViewAction()
-    data class FilterDate(val date: LocalDate, val isStart: Boolean): TodoListViewAction()
+    data class FilterDate(val start: Long, val end: Long): TodoListViewAction()
 }
 
 data class QueryParameter(

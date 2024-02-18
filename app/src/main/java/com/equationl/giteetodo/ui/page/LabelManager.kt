@@ -71,38 +71,36 @@ fun LabelManagerScreen(
         }
     }
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopBar("标签管理",
-                    actions = {
-                        IconButton(onClick = {
-                            viewModel.dispatch(LabelMgViewAction.LoadLabel(forceRequest = true, isShowSuccessAlt = true)) }) {
-                            Icon(Icons.Outlined.SyncAlt, "同步标签")
-                        }
-                        IconButton(onClick = { viewModel.dispatch(LabelMgViewAction.ClickAddLabel) }) {
-                            Icon(Icons.Outlined.Add, "添加标签")
-                        }
+    Scaffold(
+        topBar = {
+            TopBar("标签管理",
+                actions = {
+                    IconButton(onClick = {
+                        viewModel.dispatch(LabelMgViewAction.LoadLabel(forceRequest = true, isShowSuccessAlt = true)) }) {
+                        Icon(Icons.Outlined.SyncAlt, "同步标签")
                     }
-                ) {
-                    navController.popBackStack()
+                    IconButton(onClick = { viewModel.dispatch(LabelMgViewAction.ClickAddLabel) }) {
+                        Icon(Icons.Outlined.Add, "添加标签")
+                    }
                 }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
-                    Snackbar(snackbarData = snackBarData)
-                }
+            ) {
+                navController.popBackStack()
             }
-        )
-        {
-            if (viewState.labelList.isEmpty()) {
-                ListEmptyContent(title = "暂无标签，点击刷新或点击右上角新建") {
-                    viewModel.dispatch(LabelMgViewAction.LoadLabel(true))
-                }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                Snackbar(snackbarData = snackBarData)
             }
-            else {
-                LabelListContent(viewState, viewModel, repoPath)
+        }
+    )
+    {
+        if (viewState.labelList.isEmpty()) {
+            ListEmptyContent(title = "暂无标签，点击刷新或点击右上角新建") {
+                viewModel.dispatch(LabelMgViewAction.LoadLabel(true))
             }
+        }
+        else {
+            LabelListContent(viewState, viewModel, repoPath)
         }
     }
 }

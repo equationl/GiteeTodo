@@ -14,7 +14,7 @@ import com.equationl.giteetodo.widget.receive.TodoListWidgetReceiver
 // 可以直接使用 actionSendBroadcast 发送广播的，
 // 但是这里为了方便以后扩展，所以还是统一都使用 callback 转一下
 class TodoListWidgetCallback : ActionCallback {
-    override suspend fun onRun(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
+    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val actionKey = ActionParameters.Key<String>(ACTION_NAME)
         val actionName = parameters[actionKey]
 

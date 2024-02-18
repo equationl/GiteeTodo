@@ -3,6 +3,7 @@ package com.equationl.giteetodo.viewmodel
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,13 +21,17 @@ import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import com.equationl.giteetodo.util.toJson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Response
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
+
+private const val TAG = "LoginViewModel"
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -100,7 +105,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun loginByAccess(isClr: Boolean = false) {
+    private fun loginByAccess(isClr: Boolean = false, fromLoginMethod: LoginMethod = LoginMethod.AccessToken) {
         if (viewStates.password.isBlank()) {
             viewStates = viewStates.copy(isPassWordError = true, passwordLabel = "请输入令牌")
             return
@@ -121,7 +126,7 @@ class LoginViewModel @Inject constructor(
             if (response.isSuccessful) {
                 DataStoreUtils.putSyncData(DataKey.UserInfo, response.body()?.toJson() ?: "")
                 DataStoreUtils.saveSyncStringData(DataKey.LoginAccessToken, viewStates.password)
-                DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, LoginMethod.AccessToken.name)
+                DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, fromLoginMethod.name)
 
                 navToHome()
             }
@@ -229,54 +234,62 @@ class LoginViewModel @Inject constructor(
         }
 
         viewModelScope.launch(exception) {
-            val loginMethodString = DataStoreUtils.readStringData(DataKey.LoginMethod)
-            if (loginMethodString.isBlank()) {
-                // 从未登录过
-                viewStates = viewStates.copy(isLogging = false)
-            }
-            else {
-                // 本地保存了登录信息
-                try {
-                    loginMethod = LoginMethod.valueOf(loginMethodString)
-                } catch (e: IllegalArgumentException) {
-                    _viewEvents.send(LoginViewEvent.ShowMessage("程序内部错误，请重新登录"))
+            withContext(Dispatchers.IO) {
+                val loginMethodString = DataStoreUtils.readStringData(DataKey.LoginMethod)
+                if (loginMethodString.isBlank()) {
+                    // 从未登录过
                     viewStates = viewStates.copy(isLogging = false)
                 }
+                else {
+                    // 本地保存了登录信息
+                    try {
+                        loginMethod = LoginMethod.valueOf(loginMethodString)
+                    } catch (e: IllegalArgumentException) {
+                        _viewEvents.send(LoginViewEvent.ShowMessage("程序内部错误，请重新登录"))
+                        viewStates = viewStates.copy(isLogging = false)
+                    }
 
-                when (loginMethod) {
-                    LoginMethod.Email, LoginMethod.OAuth2 -> {
-                        val expireTime = DataStoreUtils.getSyncData(DataKey.LoginTokenExpireTime, 0)
-                        if (expireTime < System.currentTimeMillis() / 1000 - 1800) {  // 提前半小时刷新
-                            // 已过期，需要刷新
-                            val refreshToken = DataStoreUtils.getSyncData(DataKey.LoginRefreshToken, "")
-                            val response = oAuthApi.refreshToken(
-                                refreshToken = refreshToken
-                            )
-                            resolveTokenResponse(response)
+                    when (loginMethod) {
+                        LoginMethod.Email, LoginMethod.OAuth2 -> {
+                            val expireTime = DataStoreUtils.getSyncData(DataKey.LoginTokenExpireTime, 0)
+
+                            Log.i(TAG, "checkLoginState: Token过期有效期判断：expireTime = $expireTime, currentTime = ${System.currentTimeMillis() / 1000 - 1800}")
+
+                            if (expireTime < System.currentTimeMillis() / 1000 - 1800) {  // 提前半小时刷新
+                                // 已过期，需要刷新
+                                Log.i(TAG, "checkLoginState: Token已过期，尝试刷新！")
+                                val refreshToken = DataStoreUtils.getSyncData(DataKey.LoginRefreshToken, "")
+                                val response = oAuthApi.refreshToken(
+                                    refreshToken = refreshToken
+                                )
+                                resolveTokenResponse(response, loginMethod)
+                            }
+                            else {
+                                // 未过期，开始检查
+                                Log.i(TAG, "checkLoginState: Token未过期！")
+                                viewStates = viewStates.copy(
+                                    password = DataStoreUtils.readStringData(DataKey.LoginAccessToken)
+                                )
+                                loginByAccess(true, loginMethod)
+                            }
                         }
-                        else {
-                            // 未过期，开始检查
+                        LoginMethod.AccessToken -> {
+                            Log.i(TAG, "checkLoginState: 使用 AccessToken 登录！")
                             viewStates = viewStates.copy(
                                 password = DataStoreUtils.readStringData(DataKey.LoginAccessToken)
                             )
-                            loginByAccess(true)
+                            loginByAccess()
                         }
                     }
-                    LoginMethod.AccessToken -> {
-                        viewStates = viewStates.copy(
-                            password = DataStoreUtils.readStringData(DataKey.LoginAccessToken)
-                        )
-                        loginByAccess()
-                    }
-                }
 
-                // 检测完毕后就恢复成默认模式
-                loginMethod = LoginMethod.Email
+                    // 检测完毕后就恢复成默认模式
+                    loginMethod = LoginMethod.Email
+                }
             }
         }
     }
 
-    private suspend fun resolveTokenResponse(response: Response<Token>) {
+    private suspend fun resolveTokenResponse(response: Response<Token>, fromLoginMethod: LoginMethod = LoginMethod.Email) {
         if (response.isSuccessful) {
             val tokenBody = response.body()
             if (tokenBody == null) {
@@ -285,7 +298,7 @@ class LoginViewModel @Inject constructor(
             else {
                 val currentTime = (System.currentTimeMillis() / 1000).toInt()
                 DataStoreUtils.saveSyncStringData(DataKey.LoginAccessToken, tokenBody.accessToken)
-                DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, LoginMethod.Email.name)
+                DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, fromLoginMethod.name)
                 DataStoreUtils.saveSyncStringData(DataKey.LoginRefreshToken, tokenBody.refreshToken)
                 DataStoreUtils.saveSyncIntData(DataKey.LoginTokenExpireTime, tokenBody.expiresIn + currentTime)
                 DataStoreUtils.saveSyncIntData(DataKey.LoginTokenRefreshTime, currentTime)

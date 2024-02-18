@@ -49,20 +49,18 @@ fun RepoDetailScreen(
         }
     }
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopBar("新建仓库") {
-                    navController.popBackStack()
-                }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
-                    Snackbar(snackbarData = snackBarData)
-                }})
-        {
-            RepoDetailContent(viewModel, viewState, it)
-        }
+    Scaffold(
+        topBar = {
+            TopBar("新建仓库") {
+                navController.popBackStack()
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                Snackbar(snackbarData = snackBarData)
+            }})
+    {
+        RepoDetailContent(viewModel, viewState, it)
     }
 }
 

@@ -37,34 +37,31 @@ fun OAuthLoginScreen(
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
             if (it is LoginOauthViewEvent.ShowMessage) {
-                println("收到错误消息：${it.message}")
                 coroutineState.launch {
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }
             }
             else if (it is LoginOauthViewEvent.Goto) {
-                println("Goto route=${it.route}")
                 navHostController.navigate(it.route)
             }
         }
     }
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopBar("授权登录") {
-                    navHostController.popBackStack()
-                }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
-                    Snackbar(snackbarData = snackBarData)
-                }
+    Scaffold(
+        topBar = {
+            TopBar("授权登录") {
+                navHostController.popBackStack()
             }
-        )
-        {
-            OAuthWebView(viewModel)
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                Snackbar(snackbarData = snackBarData)
+            }
         }
+    )
+    {
+        Log.i(TAG, "OAuthLoginScreen: padding=$it")
+        OAuthWebView(viewModel)
     }
 }
 

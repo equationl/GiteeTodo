@@ -1,6 +1,6 @@
 package com.equationl.giteetodo.ui
 
-import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
@@ -8,19 +8,27 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.common.RouteParams
-import com.equationl.giteetodo.ui.page.*
-import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.composable
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.equationl.giteetodo.ui.page.AboutScreen
+import com.equationl.giteetodo.ui.page.HomeScreen
+import com.equationl.giteetodo.ui.page.LabelManagerScreen
+import com.equationl.giteetodo.ui.page.LoginScreen
+import com.equationl.giteetodo.ui.page.OAuthLoginScreen
+import com.equationl.giteetodo.ui.page.RepoDetailScreen
+import com.equationl.giteetodo.ui.page.RepoListScreen
+import com.equationl.giteetodo.ui.page.SettingScreen
+import com.equationl.giteetodo.ui.page.TodoDetailScreen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeNavHost() {
-    val navController = rememberAnimatedNavController()
-    AnimatedNavHost(navController, Route.LOGIN) {
+    val navController = rememberNavController()
+    NavHost(navController, Route.LOGIN) {
         composable(Route.LOGIN) {
             Column(Modifier.systemBarsPadding()) {
                 LoginScreen(navController)
@@ -35,10 +43,10 @@ fun HomeNavHost() {
 
         composable(Route.ABOUT,
             enterTransition = {
-                slideIntoContainer(AnimatedContentScope.SlideDirection.Left, animationSpec = tween(700))
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(700))
             },
             exitTransition = {
-                slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(700))
             }
         ) {
             Column(Modifier.systemBarsPadding()) {
@@ -65,10 +73,10 @@ fun HomeNavHost() {
                     nullable = true}
             ),
             enterTransition = {
-                slideIntoContainer(AnimatedContentScope.SlideDirection.Down, animationSpec = tween(700))
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Down, animationSpec = tween(700))
             },
             exitTransition = {
-                slideOutOfContainer(AnimatedContentScope.SlideDirection.Up, animationSpec = tween(700))
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Up, animationSpec = tween(700))
             }
         ) {
             val argument = requireNotNull(it.arguments)
@@ -86,10 +94,10 @@ fun HomeNavHost() {
 
         composable(Route.REPO_LIST,
             enterTransition = {
-                slideIntoContainer(AnimatedContentScope.SlideDirection.Up, animationSpec = tween(700))
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, animationSpec = tween(700))
             },
             exitTransition = {
-                slideOutOfContainer(AnimatedContentScope.SlideDirection.Down, animationSpec = tween(700))
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, animationSpec = tween(700))
             }
         ) {
             Column(Modifier.systemBarsPadding()) {
@@ -104,10 +112,10 @@ fun HomeNavHost() {
                     nullable = false}
             ),
             enterTransition = {
-                slideIntoContainer(AnimatedContentScope.SlideDirection.Left, animationSpec = tween(700))
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(700))
             },
             exitTransition = {
-                slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(700))
             }
         ) {
             val argument = requireNotNull(it.arguments)
@@ -119,10 +127,10 @@ fun HomeNavHost() {
 
         composable(Route.SETTING,
             enterTransition = {
-                slideIntoContainer(AnimatedContentScope.SlideDirection.Left, animationSpec = tween(700))
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(700))
             },
             exitTransition = {
-                slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(700))
             }) {
             Column(Modifier.systemBarsPadding()) {
                 SettingScreen(navController)

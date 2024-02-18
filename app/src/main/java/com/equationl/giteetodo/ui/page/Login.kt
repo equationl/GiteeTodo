@@ -3,12 +3,32 @@ package com.equationl.giteetodo.ui.page
 import android.app.Activity
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Snackbar
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -64,7 +84,6 @@ fun LoginScreen(
                 }
             }
             else if (it is LoginViewEvent.ShowMessage) {
-                println("收到错误消息：${it.message}")
                 coroutineState.launch {
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }
@@ -72,30 +91,28 @@ fun LoginScreen(
         }
     }
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopBar("登录", navigationIcon = Icons.Outlined.Close) {
-                    // 点击退出
-                    activity?.finish()
-                }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
-                    Snackbar(snackbarData = snackBarData)
-                }}
-        )
-        {
-            Log.i(TAG, "LoginScreen: padding=$it")
-            if (viewState.isLogging) {
-                LoadDataContent(text = "正在登录中…")
+    Scaffold(
+        topBar = {
+            TopBar("登录", navigationIcon = Icons.Outlined.Close) {
+                // 点击退出
+                activity?.finish()
             }
-            else {
-                LoginContent()
-            }
-
-            LoginHelpDialog(loginViewModel = viewModel, viewState)
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState) { snackBarData ->
+                Snackbar(snackbarData = snackBarData)
+            }}
+    )
+    {
+        Log.i(TAG, "LoginScreen: padding=$it")
+        if (viewState.isLogging) {
+            LoadDataContent(text = "正在登录中…")
         }
+        else {
+            LoginContent()
+        }
+
+        LoginHelpDialog(loginViewModel = viewModel, viewState)
     }
 }
 
@@ -179,7 +196,11 @@ fun LoginContent() {
                         .weight(1f)) {
                     Text(text = "其他登录方式")
                     IconButton(onClick = { loginViewModel.dispatch(LoginViewAction.ShowLoginHelp) }) {
-                        Icon(Icons.Outlined.HelpOutline, contentDescription = "疑问", tint = MaterialTheme.colors.primary)
+                        Icon(
+                            Icons.AutoMirrored.Outlined.HelpOutline,
+                            contentDescription = "疑问",
+                            tint = MaterialTheme.colors.primary
+                        )
                     }
                 }
                 Divider(

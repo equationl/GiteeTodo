@@ -1,27 +1,36 @@
 package com.equationl.giteetodo.widget.ui
 
 import android.util.Log
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
-import androidx.glance.action.*
+import androidx.glance.action.Action
+import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
+import androidx.glance.action.actionStartActivity
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.CheckBox
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.itemsIndexed
 import androidx.glance.background
-import androidx.glance.layout.*
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
+import androidx.glance.layout.Column
+import androidx.glance.layout.Row
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.equationl.giteetodo.MainActivity
-import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.widget.callback.TodoListWidgetCallback
 import com.equationl.giteetodo.widget.dataBean.TodoListWidgetShowData
 import com.equationl.giteetodo.widget.receive.TodoListWidgetReceiver
@@ -50,7 +59,7 @@ fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
         .fillMaxSize()
         .cornerRadius(10.dp)
         .padding(8.dp)
-        .background(MaterialTheme.colors.baseBackground)
+        .background(MaterialTheme.colorScheme.background)
         //.clickable(actionStartActivity<MainActivity>())
     ) {
         Row(modifier = GlanceModifier.fillMaxWidth().clickable(actionRunCallback<TodoListWidgetCallback>(refreshActionPar))) {
@@ -58,14 +67,14 @@ fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
                 Row(modifier = GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
                     Text(
                         text = "待办列表：",
-                        style = TextStyle(fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = ColorProvider(MaterialTheme.colors.secondary)
+                        style = TextStyle(fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = ColorProvider(MaterialTheme.colorScheme.secondary)
                         ),
                         modifier = GlanceModifier.padding(start = 8.dp)
                     )
                 }
                 Row(modifier = GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
                     Text(text = "刷新",
-                        style = TextStyle(color = ColorProvider(MaterialTheme.colors.primary)))
+                        style = TextStyle(color = ColorProvider(MaterialTheme.colorScheme.primary)))
                 }
             }
         }
@@ -90,7 +99,7 @@ fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
 
                             Text(
                                 text = "${index+1}: ${item.title}",
-                                style = TextStyle(color = ColorProvider(MaterialTheme.colors.primary)),
+                                style = TextStyle(color = ColorProvider(MaterialTheme.colorScheme.primary)),
                                 modifier = GlanceModifier
                                     .fillMaxWidth()
                                     .padding(start = 2.dp, bottom = 2.dp)
@@ -116,7 +125,7 @@ fun WidgetEmptyContent(text: String = "无数据， 点击刷新", action: Actio
         verticalAlignment = Alignment.CenterVertically,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = text, style = TextStyle(color = ColorProvider(MaterialTheme.colors.primary)))
+        Text(text = text, style = TextStyle(color = ColorProvider(MaterialTheme.colorScheme.primary)))
     }
 }
 

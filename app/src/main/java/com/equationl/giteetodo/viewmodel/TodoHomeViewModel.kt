@@ -1,15 +1,8 @@
 package com.equationl.giteetodo.viewmodel
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.repos.db.IssueDb
@@ -18,6 +11,7 @@ import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -60,6 +54,13 @@ class TodoHomeViewModel @Inject constructor(
                     // 只有在所有动画都完成后才继续，
                     // 因为动画正在进行时会导致尺寸计算不可预测使得一直重复调用，最终导致动画也跟着“反复横跳”
                     isAnimationFinish = false
+
+                    // 这里原本应该是判断动画完成了才可以继续变更，但是监听动画完成的地方有问题，所以暂时改成直接 delay 后恢复状态
+                    viewModelScope.launch {
+                        delay(300)
+                        isAnimationFinish = true
+                    }
+
                     viewStates = viewStates.copy(isShowSystemBar = isShow)
                 }
             }
@@ -76,10 +77,6 @@ class TodoHomeViewModel @Inject constructor(
         viewStates = viewStates.copy(
             currentPage = CurrentPager.HOME_ME,
             title = repoPath.split("/")[0],
-            homeIcon = Icons.Outlined.Home,
-            homeTextColor = Color.Gray,
-            meIcon = Icons.Filled.Person,
-            meTextColor = Color.White,
             isShowSystemBar = true
         )
     }
@@ -88,10 +85,6 @@ class TodoHomeViewModel @Inject constructor(
         viewStates = viewStates.copy(
             currentPage = CurrentPager.HOME_TODO,
             title = repoPath.split("/")[1],
-            homeIcon = Icons.Filled.Home,
-            homeTextColor = Color.White,
-            meIcon = Icons.Outlined.Person,
-            meTextColor = Color.Gray
         )
     }
 
@@ -116,10 +109,6 @@ data class TodoHomeViewState(
     val title: String = "TODO LIST",
     val currentPage: CurrentPager = CurrentPager.HOME_TODO,
     val currentRepo: String = "",
-    val homeIcon: ImageVector = Icons.Filled.Home,
-    val homeTextColor: Color = Color.White,
-    val meIcon: ImageVector = Icons.Outlined.Person,
-    val meTextColor: Color = Color.Gray,
     val isShowSystemBar: Boolean = true
 )
 
@@ -129,13 +118,13 @@ sealed class TodoHomeViewEvent {
 }
 
 sealed class TodoHomeViewAction {
-    object ChangeRepo : TodoHomeViewAction()
+    data object ChangeRepo : TodoHomeViewAction()
     data class GoToTodo(val repoPath: String): TodoHomeViewAction()
     data class GoToMe(val repoPath: String): TodoHomeViewAction()
     data class ChangeSystemBarShowState(val isShow: Boolean): TodoHomeViewAction()
-    object AddATodo: TodoHomeViewAction()
-    object Logout: TodoHomeViewAction()
-    object OnAnimateFinish : TodoHomeViewAction()
+    data object AddATodo: TodoHomeViewAction()
+    data object Logout: TodoHomeViewAction()
+    data object OnAnimateFinish : TodoHomeViewAction()
 }
 
 enum class CurrentPager {

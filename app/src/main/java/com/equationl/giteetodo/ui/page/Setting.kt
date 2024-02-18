@@ -1,10 +1,24 @@
 package com.equationl.giteetodo.ui.page
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -15,20 +29,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.ExpandableItem
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.util.Utils.toColor
-import com.equationl.giteetodo.viewmodel.*
+import com.equationl.giteetodo.viewmodel.SettingOption
+import com.equationl.giteetodo.viewmodel.SettingViewAction
+import com.equationl.giteetodo.viewmodel.SettingViewEvent
+import com.equationl.giteetodo.viewmodel.SettingViewModel
+import com.equationl.giteetodo.viewmodel.SettingViewState
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     navController: NavHostController,
     viewModel: SettingViewModel = hiltViewModel()
 ) {
     val viewState = viewModel.viewStates
-    val scaffoldState = rememberScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineState = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
@@ -75,7 +93,7 @@ fun SettingContent(
     Column(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.baseBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(top = 6.dp).padding(paddingValues)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally

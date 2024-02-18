@@ -7,18 +7,51 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.EditOff
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,11 +67,14 @@ import com.equationl.giteetodo.R
 import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
-import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.util.Utils
-import com.equationl.giteetodo.viewmodel.*
+import com.equationl.giteetodo.viewmodel.TodoDetailViewAction
+import com.equationl.giteetodo.viewmodel.TodoDetailViewEvent
+import com.equationl.giteetodo.viewmodel.TodoDetailViewModel
+import com.equationl.giteetodo.viewmodel.TodoDetailViewState
+import com.equationl.giteetodo.viewmodel.getPriorityString
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
 import com.google.accompanist.placeholder.material.placeholder
@@ -49,6 +85,7 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "el, TodoDetailScreen"
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoDetailScreen(
     navController: NavHostController?,
@@ -57,7 +94,7 @@ fun TodoDetailScreen(
 ) {
     val activity = (LocalContext.current as? Activity)
     val viewState = viewModel.viewStates
-    val scaffoldState = rememberScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineState = rememberCoroutineScope()
 
 
@@ -120,7 +157,7 @@ fun TodoDetailContent(padding: PaddingValues, viewModel: TodoDetailViewModel, vi
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colors.baseBackground)
+                .background(MaterialTheme.colorScheme.background)
             //.imePadding()
             //.imeNestedScroll()
         ) {
@@ -159,7 +196,7 @@ fun TodoDetailMainContent(viewState: TodoDetailViewState, viewModel: TodoDetailV
         modifier = Modifier
             .fillMaxWidth()
             .padding(2.dp)
-            .background(MaterialTheme.colors.background)
+            .background(MaterialTheme.colorScheme.background)
             .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
     )
     Column(
@@ -220,7 +257,7 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
                 .fillMaxWidth()
                 .padding(2.dp)
                 .padding(top = 32.dp)
-                .background(MaterialTheme.colors.background)
+                .background(MaterialTheme.colorScheme.background)
         )
     }
     else {
@@ -238,7 +275,7 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp)
-                    .background(MaterialTheme.colors.background)
+                    .background(MaterialTheme.colorScheme.background)
                     .placeholder(
                         visible = viewState.isLoading,
                         highlight = PlaceholderHighlight.fade()
@@ -262,7 +299,7 @@ fun TodoDetailSateItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
             .fillMaxWidth()
             .padding(2.dp)
             .padding(top = 8.dp)
-            .background(MaterialTheme.colors.background)
+            .background(MaterialTheme.colorScheme.background)
             .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
     ) {
         Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -286,7 +323,7 @@ fun TodoDetailLabelsItem(viewModel: TodoDetailViewModel, viewState: TodoDetailVi
             .fillMaxWidth()
             .padding(2.dp)
             .padding(top = 8.dp)
-            .background(MaterialTheme.colors.background)
+            .background(MaterialTheme.colorScheme.background)
             .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
     ) {
         Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -311,7 +348,7 @@ fun TodoDetailCommonItem(title: String, content: String, isLoading: Boolean) {
             .fillMaxWidth()
             .padding(2.dp)
             .padding(top = 8.dp)
-            .background(MaterialTheme.colors.background)
+            .background(MaterialTheme.colorScheme.background)
             .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade())
     ) {
         Row(
@@ -333,17 +370,20 @@ fun LabelsDropMenu(options: MutableMap<String, Boolean>, viewModel: TodoDetailVi
         options.forEach { (name, checked) ->
             var isChecked by remember { mutableStateOf(checked) }
             DropdownMenuItem(
+                text = {
+                    Text(text = name)
+                },
+                leadingIcon = {
+                    Checkbox(checked = isChecked, onCheckedChange = {
+                        options[name] = it
+                        isChecked = it
+                    })
+                },
                 onClick = {
                     isChecked = !isChecked
                     options[name] = isChecked
                 },
-            ) {
-                Checkbox(checked = isChecked, onCheckedChange = {
-                    options[name] = it
-                    isChecked = it
-                })
-                Text(text = name)
-            }
+            )
         }
     }
 }
@@ -357,12 +397,13 @@ fun StateDropMenu(viewModel: TodoDetailViewModel, isShow: Boolean) {
     }) {
         options.forEach { state ->
             DropdownMenuItem(
+                text = {
+                    Text(text = state.humanName)
+                },
                 onClick = {
                     viewModel.dispatch(TodoDetailViewAction.UpdateState(state))
                 },
-            ) {
-                Text(text = state.humanName)
-            }
+            )
         }
     }
 }
@@ -405,7 +446,7 @@ fun TodoCommentContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(2.dp)
-                .background(MaterialTheme.colors.background)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             Column {
                 if (commentList.isEmpty()) {
@@ -507,7 +548,7 @@ fun TodoCreateCommentEdit(viewModel: TodoDetailViewModel, viewState: TodoDetailV
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colors.background),
+                .background(MaterialTheme.colorScheme.background),
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(value = viewState.newComment,

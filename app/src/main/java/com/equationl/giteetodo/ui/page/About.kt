@@ -13,7 +13,7 @@ import androidx.navigation.NavHostController
 import com.equationl.giteetodo.constants.DefaultText
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.halilibo.richtext.markdown.Markdown
-import com.halilibo.richtext.ui.material.MaterialRichText
+import com.halilibo.richtext.ui.material3.RichText
 
 @Composable
 fun AboutScreen(navController: NavHostController) {
@@ -29,7 +29,7 @@ fun AboutScreen(navController: NavHostController) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
         ) {
-            MaterialRichText(modifier = Modifier
+            RichText(modifier = Modifier
                 .padding(it)
                 .padding(8.dp)) {
                 Markdown(content = DefaultText.AboutContent.trimIndent())

@@ -49,7 +49,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -358,11 +357,11 @@ private fun HomeBottomBar(
                 Icon(
                     if (viewState.currentPage == CurrentPager.HOME_TODO) Icons.Filled.Home else Icons.Outlined.Home,
                     "首页",
-                    tint = if (viewState.currentPage == CurrentPager.HOME_TODO) MaterialTheme.colorScheme.primary else Color.Unspecified
+                    tint = if (viewState.currentPage == CurrentPager.HOME_TODO) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     "首页",
-                    color = if (viewState.currentPage == CurrentPager.HOME_TODO) MaterialTheme.colorScheme.primary else Color.Unspecified
+                    color = if (viewState.currentPage == CurrentPager.HOME_TODO) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -390,11 +389,11 @@ private fun HomeBottomBar(
                 Icon(
                     if (viewState.currentPage == CurrentPager.HOME_ME) Icons.Filled.Person else Icons.Outlined.Person,
                     "我的",
-                    tint = if (viewState.currentPage == CurrentPager.HOME_ME) MaterialTheme.colorScheme.primary else Color.Unspecified
+                    tint = if (viewState.currentPage == CurrentPager.HOME_ME) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     "我的",
-                    color = if (viewState.currentPage == CurrentPager.HOME_ME) MaterialTheme.colorScheme.primary else Color.Unspecified
+                    color = if (viewState.currentPage == CurrentPager.HOME_ME) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
                 )
             }
         }

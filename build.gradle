@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        accompanist_version = '0.25.1'
+        accompanist_version = '0.34.0'
         room_version = "2.6.1"
     }
 

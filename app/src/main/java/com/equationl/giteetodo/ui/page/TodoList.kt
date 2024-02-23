@@ -524,7 +524,8 @@ fun TodoListDateTimePicker(
                 onFilterDate(state.selectedStartDateMillis, state.selectedEndDateMillis)
             }
             negativeButton("取消")
-        }
+        },
+        backgroundColor = MaterialTheme.colorScheme.background
     ) {
         DateRangePicker(
             state = state,

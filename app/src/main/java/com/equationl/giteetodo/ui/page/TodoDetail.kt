@@ -79,8 +79,7 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
 import com.google.accompanist.placeholder.material.placeholder
 import com.halilibo.richtext.markdown.Markdown
-import com.halilibo.richtext.ui.RichText
-import com.halilibo.richtext.ui.material.MaterialRichText
+import com.halilibo.richtext.ui.material3.RichText
 import kotlinx.coroutines.launch
 
 private const val TAG = "el, TodoDetailScreen"
@@ -281,7 +280,7 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
                         highlight = PlaceholderHighlight.fade()
                     )
             ) {
-                MaterialRichText(modifier = Modifier.padding(4.dp)) {
+                RichText(modifier = Modifier.padding(4.dp)) {
                     Markdown(
                         viewState.content
                     )

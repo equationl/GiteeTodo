@@ -17,8 +17,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissValue
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,10 +26,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberDismissState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -166,9 +165,9 @@ fun LabelItem(label: Label, pos: Int, repoPath: String, viewModel: LabelMgViewMo
             viewModel.dispatch(LabelMgViewAction.ClickEditLabel(pos))
         }
     ) {
-        val dismissState = rememberDismissState(
+        val dismissState = rememberSwipeToDismissBoxState(
             confirmValueChange = {
-                if (it == DismissValue.DismissedToStart) {
+                if (it == SwipeToDismissBoxValue.EndToStart) {
                     viewModel.dispatch(LabelMgViewAction.DeleteLabel(label, repoPath))
                     true
                 }
@@ -178,9 +177,9 @@ fun LabelItem(label: Label, pos: Int, repoPath: String, viewModel: LabelMgViewMo
             }
         )
 
-        SwipeToDismiss(
+        SwipeToDismissBox(
             state = dismissState,
-            background = {
+            backgroundContent = {
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -190,7 +189,7 @@ fun LabelItem(label: Label, pos: Int, repoPath: String, viewModel: LabelMgViewMo
                     Icon(Icons.Filled.Delete, contentDescription = "删除", tint = MaterialTheme.colorScheme.background)
                 }
             },
-            dismissContent = {
+            content = {
                 Card(
                     border = BorderStroke(1.dp, Color.Gray),
                     modifier = Modifier
@@ -202,7 +201,8 @@ fun LabelItem(label: Label, pos: Int, repoPath: String, viewModel: LabelMgViewMo
                     }
                 }
             },
-            directions = setOf(DismissDirection.EndToStart)
+            enableDismissFromStartToEnd = false,
+            enableDismissFromEndToStart = true,
         )
     }
 }

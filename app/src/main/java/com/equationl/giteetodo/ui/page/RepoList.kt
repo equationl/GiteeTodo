@@ -19,8 +19,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.LibraryAdd
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,10 +27,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberDismissState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -175,18 +174,18 @@ fun RepoListContent(
             LazyColumn {
                 itemsIndexed(repoList, key = { _, item -> item.fullName }) { _, item ->
                     if (item != null && item.namespace.type == "personal") {  // 仅加载类型为个人的仓库
-                        val dismissState = rememberDismissState(
+                        val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = {
-                                if (it == DismissValue.DismissedToStart) {
+                                if (it == SwipeToDismissBoxValue.EndToStart) {
                                     viewModel.dispatch(RepoListViewAction.DeleteRepo(item.fullName))
                                 }
                                 false
                             },
                         )
 
-                        SwipeToDismiss(
+                        SwipeToDismissBox(
                             state = dismissState,
-                            background = {
+                            backgroundContent = {
                                 Card(
                                     modifier = Modifier.padding(32.dp),
                                     shape = RoundedCornerShape(16.dp),
@@ -212,12 +211,13 @@ fun RepoListContent(
                                     }
                                 }
                             },
-                            dismissContent = {
+                            content = {
                                 RepoItem(item) {
                                     viewModel.dispatch(RepoListViewAction.ChoiceARepo(it))
                                 }
                             },
-                            directions = setOf(DismissDirection.EndToStart)
+                            enableDismissFromStartToEnd = false,
+                            enableDismissFromEndToStart = true,
                         )
                     }
                 }

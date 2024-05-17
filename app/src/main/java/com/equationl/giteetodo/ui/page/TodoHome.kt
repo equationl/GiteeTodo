@@ -3,7 +3,10 @@ package com.equationl.giteetodo.ui.page
 import android.app.Activity
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -60,7 +63,6 @@ import com.equationl.giteetodo.viewmodel.TodoHomeViewAction
 import com.equationl.giteetodo.viewmodel.TodoHomeViewEvent
 import com.equationl.giteetodo.viewmodel.TodoHomeViewModel
 import com.equationl.giteetodo.viewmodel.TodoHomeViewState
-import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
@@ -70,12 +72,14 @@ import kotlinx.coroutines.withContext
 
 private const val TAG = "el, TodoHome"
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
+@OptIn( ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController,
     repoPath: String,
-    viewModel: TodoHomeViewModel = hiltViewModel()
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
+    viewModel: TodoHomeViewModel = hiltViewModel(),
 ) {
     val viewState = viewModel.viewStates
     val activity = (LocalContext.current as? Activity)
@@ -165,7 +169,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            HomeContent(pagerState, navController, repoPath, scaffoldState) { isShow ->
+            HomeContent(pagerState, navController, repoPath, scaffoldState, sharedTransitionScope, animatedContentScope) { isShow ->
                 viewModel.dispatch(TodoHomeViewAction.ChangeSystemBarShowState(isShow))
             }
         }
@@ -264,14 +268,16 @@ private fun TopBar(
     }
 }
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun HomeContent(
     pagerState: PagerState,
     navController: NavHostController,
     repoPath: String,
     scaffoldState: BottomSheetScaffoldState,
-    onChangeSystemBar: (isShow: Boolean) -> Unit
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
+    onChangeSystemBar: (isShow: Boolean) -> Unit,
 ) {
     HorizontalPager(
         count = 2,
@@ -282,7 +288,9 @@ private fun HomeContent(
                 navController,
                 repoPath,
                 scaffoldState,
-                isShowSystemBar = onChangeSystemBar
+                isShowSystemBar = onChangeSystemBar,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedContentScope = animatedContentScope
             )
 
             1 -> ProfileScreen(navController, scaffoldState, repoPath)

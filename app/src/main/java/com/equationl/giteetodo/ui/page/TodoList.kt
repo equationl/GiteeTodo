@@ -1,5 +1,8 @@
 package com.equationl.giteetodo.ui.page
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -48,6 +51,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.equationl.giteetodo.R
+import com.equationl.giteetodo.constants.ShareElementKey
 import com.equationl.giteetodo.data.repos.model.common.TodoShowData
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
@@ -77,14 +81,16 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "el, TodoListScreen"
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun TodoListScreen(
     navController: NavHostController,
     repoPath: String,
     scaffoldState: BottomSheetScaffoldState,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
+    isShowSystemBar: (isShow: Boolean) -> Unit,
     viewModel: TodoListViewModel = hiltViewModel(),
-    isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
     val viewState = viewModel.viewStates
     val coroutineState = rememberCoroutineScope()
@@ -116,11 +122,14 @@ fun TodoListScreen(
             navController,
             todoPagingItems,
             coroutineState,
+            sharedTransitionScope,
+            animatedContentScope,
             isShowSystemBar
         )
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun TodoListContent(
     viewState: TodoListViewState,
@@ -129,6 +138,8 @@ fun TodoListContent(
     navController: NavHostController,
     todoPagingItems: LazyPagingItems<TodoShowData>,
     coroutineState: CoroutineScope,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
     val rememberSwipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
@@ -185,13 +196,15 @@ fun TodoListContent(
                 repoPath,
                 rememberSwipeRefreshState.isRefreshing,
                 coroutineState,
-                isShowSystemBar
+                sharedTransitionScope,
+                animatedContentScope,
+                isShowSystemBar,
             )
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun TodoListLazyColumn(
     viewState: TodoListViewState,
@@ -201,6 +214,8 @@ fun TodoListLazyColumn(
     repoPath: String,
     isLoading: Boolean,
     coroutineState: CoroutineScope,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -241,7 +256,9 @@ fun TodoListLazyColumn(
                         itemData = it,
                         viewModel = viewModel,
                         repoPath = repoPath,
-                        isLoading
+                        isLoading = isLoading,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope = animatedContentScope
                     )
                 }
             }
@@ -285,13 +302,16 @@ fun TodoListGroupHeader(text: String, isLoading: Boolean) {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun TodoItem(
     navController: NavHostController,
     itemData: TodoShowData,
     viewModel: TodoListViewModel,
     repoPath: String,
-    isLoading: Boolean
+    isLoading: Boolean,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
 ) {
     var checked by remember {
         mutableStateOf(
@@ -330,15 +350,22 @@ fun TodoItem(
                             )
                         )
                     })
-                Text(
-                    text = itemData.title,
-                    textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.noRippleClickable {
-                        navController.navigate("${Route.TODO_DETAIL}/${itemData.number}")
-                    }
-                )
+                with(sharedTransitionScope) {
+                    Text(
+                        text = itemData.title,
+                        textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = "${ShareElementKey.TODO_ITEM_TITLE}_${itemData.number}"),
+                                animatedVisibilityScope = animatedContentScope
+                            )
+                            .noRippleClickable {
+                                navController.navigate("${Route.TODO_DETAIL}/${itemData.number}/${itemData.title}")
+                            }
+                    )
+                }
             }
         }
     }

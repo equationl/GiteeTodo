@@ -90,7 +90,7 @@ class TodoHomeViewModel @Inject constructor(
 
     private fun addATodo() {
         viewModelScope.launch {
-            _viewEvents.send(TodoHomeViewEvent.Goto("${Route.TODO_DETAIL}/null"))
+            _viewEvents.send(TodoHomeViewEvent.Goto("${Route.TODO_DETAIL}/null/null"))
         }
     }
 

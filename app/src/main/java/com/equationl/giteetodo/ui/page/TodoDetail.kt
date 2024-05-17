@@ -1,7 +1,10 @@
 package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
@@ -64,6 +67,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.equationl.giteetodo.R
+import com.equationl.giteetodo.constants.ShareElementKey
 import com.equationl.giteetodo.data.repos.model.response.Comment
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
@@ -84,11 +88,14 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "el, TodoDetailScreen"
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun TodoDetailScreen(
     navController: NavHostController?,
     issueNum: String,
+    issueTitle: String?,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     viewModel: TodoDetailViewModel = hiltViewModel()
 ) {
     val activity = (LocalContext.current as? Activity)
@@ -102,6 +109,9 @@ fun TodoDetailScreen(
             viewModel.dispatch(TodoDetailViewAction.ToggleEditModel(true))
         }
         else {
+            if (!issueTitle.isNullOrBlank()) {
+                viewModel.dispatch(TodoDetailViewAction.OnTitleChange(issueTitle))
+            }
             viewModel.dispatch(TodoDetailViewAction.LoadIssue(issueNum))
             viewModel.dispatch(TodoDetailViewAction.LoadComment(issueNum))
         }
@@ -144,12 +154,20 @@ fun TodoDetailScreen(
                 Snackbar(snackbarData = snackBarData)
             }})
     {
-        TodoDetailContent(it, viewModel, viewState, issueNum)
+        TodoDetailContent(it, viewModel, viewState, issueNum, sharedTransitionScope, animatedContentScope)
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun TodoDetailContent(padding: PaddingValues, viewModel: TodoDetailViewModel, viewState: TodoDetailViewState, issueNum: String) {
+fun TodoDetailContent(
+    padding: PaddingValues,
+    viewModel: TodoDetailViewModel,
+    viewState: TodoDetailViewState,
+    issueNum: String,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
+    ) {
     Box {
         val listState = rememberLazyListState()
         LazyColumn(state = listState,
@@ -164,7 +182,9 @@ fun TodoDetailContent(padding: PaddingValues, viewModel: TodoDetailViewModel, vi
                 TodoDetailMainContent(
                     viewState = viewState,
                     viewModel = viewModel,
-                    issueNum = issueNum
+                    issueNum = issueNum,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope
                 )
             }
 
@@ -185,58 +205,72 @@ fun TodoDetailContent(padding: PaddingValues, viewModel: TodoDetailViewModel, vi
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun TodoDetailMainContent(viewState: TodoDetailViewState, viewModel: TodoDetailViewModel, issueNum: String) {
-    OutlinedTextField(
-        value = viewState.title,
-        onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnTitleChange(it)) },
-        readOnly = !viewState.isEditAble,
-        label = { Text("标题")},
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(2.dp)
-            .background(MaterialTheme.colorScheme.background)
-            .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
-    )
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(end = 2.dp),
-        horizontalAlignment = Alignment.End
+fun TodoDetailMainContent(
+    viewState: TodoDetailViewState,
+    viewModel: TodoDetailViewModel,
+    issueNum: String,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     ) {
-        Text(text = "创建于 ${viewState.createdDateTime}",
-            fontSize = 12.sp,
+    with(sharedTransitionScope) {
+        OutlinedTextField(
+            value = viewState.title,
+            onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnTitleChange(it)) },
+            readOnly = !viewState.isEditAble,
+            label = { Text("标题")},
             modifier = Modifier
-                .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
+                .sharedElement(
+                    sharedTransitionScope.rememberSharedContentState(key = "${ShareElementKey.TODO_ITEM_TITLE}_${issueNum}"),
+                    animatedVisibilityScope = animatedContentScope
+                )
+                .fillMaxWidth()
+                .padding(2.dp)
+                .background(MaterialTheme.colorScheme.background)
+                // .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
         )
 
-        Text(text = "更新于 ${viewState.updateDateTime}",
-            fontSize = 12.sp,
-            modifier = Modifier
-                .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
-        )
-    }
-
-    TodoDetailBodyItem(viewModel, viewState)
-
-    TodoDetailSateItem(viewModel, viewState)
-
-    TodoDetailLabelsItem(viewModel, viewState)
-
-    // OpenApi 中没有修改下面这个三个值的接口
-    TodoDetailCommonItem("优先级：", viewState.priority.getPriorityString(), viewState.isLoading)
-    TodoDetailCommonItem("开始时间：", viewState.startDateTime, viewState.isLoading)
-    TodoDetailCommonItem("结束时间：", viewState.stopDateTime, viewState.isLoading)
-
-    if (viewState.isEditAble) {
-        Row(
+        Column(
             Modifier
                 .fillMaxWidth()
-                .padding(top = 32.dp, bottom = 8.dp), horizontalArrangement = Arrangement.Center) {
-            Button(
-                onClick = { viewModel.dispatch(TodoDetailViewAction.ClickSave(issueNum)) },
-                shape = Shapes.large) {
-                Text(text = "保存", fontSize = 20.sp, modifier = Modifier.padding(start = 82.dp, end = 82.dp, top = 4.dp, bottom = 4.dp))
+                .padding(end = 2.dp),
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(text = "创建于 ${viewState.createdDateTime}",
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
+            )
+
+            Text(text = "更新于 ${viewState.updateDateTime}",
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .placeholder(visible = viewState.isLoading, highlight = PlaceholderHighlight.fade())
+            )
+        }
+
+        TodoDetailBodyItem(viewModel, viewState)
+
+        TodoDetailSateItem(viewModel, viewState)
+
+        TodoDetailLabelsItem(viewModel, viewState)
+
+        // OpenApi 中没有修改下面这个三个值的接口
+        TodoDetailCommonItem("优先级：", viewState.priority.getPriorityString(), viewState.isLoading)
+        TodoDetailCommonItem("开始时间：", viewState.startDateTime, viewState.isLoading)
+        TodoDetailCommonItem("结束时间：", viewState.stopDateTime, viewState.isLoading)
+
+        if (viewState.isEditAble) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp, bottom = 8.dp), horizontalArrangement = Arrangement.Center) {
+                Button(
+                    onClick = { viewModel.dispatch(TodoDetailViewAction.ClickSave(issueNum)) },
+                    shape = Shapes.large) {
+                    Text(text = "保存", fontSize = 20.sp, modifier = Modifier.padding(start = 82.dp, end = 82.dp, top = 4.dp, bottom = 4.dp))
+                }
             }
         }
     }

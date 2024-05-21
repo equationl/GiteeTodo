@@ -1,5 +1,6 @@
 package com.equationl.giteetodo.ui.page
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.util.Log
 import androidx.compose.foundation.background
@@ -69,6 +70,7 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "el, RepoList"
 
+@SuppressLint("RestrictedApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepoListScreen(
@@ -120,8 +122,6 @@ fun RepoListScreen(
                     Icon(Icons.Outlined.LibraryAdd, "添加仓库")
                 }
             }) {
-
-                // fixme need confirm this code
                 val backStackList = navController.currentBackStack.value
                 val lastQueue = backStackList[backStackList.size - 2]
                 if (lastQueue.destination.route?.contains(Route.HOME) == true) { // 只有从首页跳转过来的才返回，否则直接退出
@@ -253,7 +253,6 @@ fun RepoListContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepoItem(itemData: Repo, onClick: (path: String) -> Unit) {
     Card(

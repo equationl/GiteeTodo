@@ -26,8 +26,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -88,7 +88,7 @@ fun ProfileScreen(
 
     if (viewState.user != null) {
         Column(Modifier.fillMaxSize()) {
-            ProFileContent(viewState.user, repoPath, viewModel)
+            ProFileContent(viewState.user, repoPath)
         }
     } else {
         ListEmptyContent(title = "用户信息为空，点击刷新") {
@@ -101,7 +101,6 @@ fun ProfileScreen(
 fun ProFileContent(
     user: User,
     repoPath: String,
-    viewModel: ProfileViewModel
 ) {
     val navHostController = LocalNavController.current
 
@@ -167,7 +166,7 @@ fun ProFileContent(
                 )
             }
 
-            Divider()
+            HorizontalDivider()
 
             ProfileInfoItem(
                 icon = Icons.Filled.Info,
@@ -177,7 +176,7 @@ fun ProFileContent(
                 navHostController.navigate(Route.ABOUT)
             }
 
-            Divider()
+            HorizontalDivider()
 
             ProfileInfoItem(
                 icon = Icons.Filled.Settings,

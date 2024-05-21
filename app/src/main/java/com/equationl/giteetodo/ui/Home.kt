@@ -53,7 +53,7 @@ fun HomeNavHost() {
                     }
                 }
 
-                composable(Route.OAuthLogin) {
+                composable(Route.OAUTH_LOGIN) {
                     Column(Modifier.systemBarsPadding()) {
                         OAuthLoginScreen()
                     }

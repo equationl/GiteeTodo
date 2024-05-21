@@ -13,7 +13,7 @@ import com.google.gson.reflect.TypeToken
 import java.lang.reflect.Type
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Locale
 
 
 object Utils {
@@ -30,12 +30,7 @@ object Utils {
                     ")+"
         )
 
-
-        if (this.matches(emailAddressRegex)){
-            return true
-        }
-
-        return false
+        return this.matches(emailAddressRegex)
     }
 
     fun getDateTimeString(sourceDateTime: String, pattern: String = "M月dd日"): String {
@@ -57,12 +52,12 @@ object Utils {
         var localData: String? = null
 
         if (!forceRequest) {
-            localData = DataStoreUtils.getSyncData(DataKey.ExistLabel, "")
+            localData = DataStoreUtils.getSyncData(DataKey.EXIST_LABEL, "")
         }
 
         if (localData.isNullOrBlank()) {
-            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = repoApi.getExistLabels(
                 repoPath.split("/")[0],
@@ -70,7 +65,7 @@ object Utils {
                 token
             )
             return if (response.isSuccessful) {
-                DataStoreUtils.saveStringData(DataKey.ExistLabel, response.body()?.toJson() ?: "")
+                DataStoreUtils.saveStringData(DataKey.EXIST_LABEL, response.body()?.toJson() ?: "")
                 response.body() ?: emptyList()
             } else {
                 Log.w(TAG, "getExistLabel: 请求标签失败: ${response.message()}")

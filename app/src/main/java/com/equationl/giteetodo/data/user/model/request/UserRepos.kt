@@ -1,16 +1,25 @@
 package com.equationl.giteetodo.data.user.model.request
 
+import com.google.gson.annotations.SerializedName
+
 data class UserRepos(
-    val access_token: String,
+    @SerializedName("access_token")
+    val accessToken: String,
     val name: String,
     val description: String? = null,
     val homepage: String? = null,
-    val has_issues: Boolean? = null,
-    val has_wiki: Boolean? = null,
-    val can_comment: Boolean? = null,
-    val auto_init: Boolean? = null,
-    val gitignore_template: String? = null,
-    val license_template: String? = null,
+    @SerializedName("has_issues")
+    val hasIssues: Boolean? = null,
+    @SerializedName("has_wiki")
+    val hasWiki: Boolean? = null,
+    @SerializedName("can_comment")
+    val canComment: Boolean? = null,
+    @SerializedName("auto_init")
+    val autoInit: Boolean? = null,
+    @SerializedName("gitignore_template")
+    val gitignoreTemplate: String? = null,
+    @SerializedName("license_template")
+    val licenseTemplate: String? = null,
     val path: String? = null,
     val private: Boolean? = null
 )

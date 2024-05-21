@@ -32,10 +32,10 @@ import androidx.compose.material.icons.outlined.EditOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,22 +73,20 @@ import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.TopBar
+import com.equationl.giteetodo.ui.widgets.placeholder.PlaceholderHighlight
+import com.equationl.giteetodo.ui.widgets.placeholder.material3.fade
+import com.equationl.giteetodo.ui.widgets.placeholder.material3.placeholder
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.viewmodel.TodoDetailViewAction
 import com.equationl.giteetodo.viewmodel.TodoDetailViewEvent
 import com.equationl.giteetodo.viewmodel.TodoDetailViewModel
 import com.equationl.giteetodo.viewmodel.TodoDetailViewState
 import com.equationl.giteetodo.viewmodel.getPriorityString
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material.fade
-import com.google.accompanist.placeholder.material.placeholder
 import com.halilibo.richtext.markdown.Markdown
 import com.halilibo.richtext.ui.material3.RichText
 import kotlinx.coroutines.launch
 
-private const val TAG = "el, TodoDetailScreen"
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoDetailScreen(
     navController: NavHostController?,
@@ -156,7 +154,6 @@ fun TodoDetailScreen(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun TodoDetailContent(
     padding: PaddingValues,
@@ -277,7 +274,7 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
         OutlinedTextField(
             value = viewState.content,
             onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnContentChange(it)) },
-            readOnly = !viewState.isEditAble,
+            readOnly = false,
             label = {
                 Text("描述（支持 Markdown）")
             },
@@ -560,7 +557,7 @@ fun TodoCommentItem(
             Markdown(content = comment.body)
         }
         if (hasDivider) {
-            Divider()
+            HorizontalDivider()
         }
     }
 }

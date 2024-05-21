@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val issueNumber = intent.getStringExtra(IntentDataKey.IssueNumber)
+                    val issueNumber = intent.getStringExtra(IntentDataKey.ISSUE_NUMBER)
                     if (issueNumber.isNullOrBlank()) {
                         HomeNavHost()
                     }

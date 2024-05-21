@@ -17,8 +17,8 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,8 +57,6 @@ import com.vanpra.composematerialdialogs.color.ColorPalette
 import com.vanpra.composematerialdialogs.color.colorChooser
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import kotlinx.coroutines.launch
-
-private const val TAG = "el, LabelManagerScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,9 +145,10 @@ fun LabelListContent(viewState: LabelMgViewState, viewModel: LabelMgViewModel, r
         }
 
         if (viewState.editPos == Int.MAX_VALUE) {
-            Divider(modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp))
+            HorizontalDivider(
+                modifier = Modifier
+                    .padding(8.dp)
+            )
             EditLabelContent(Int.MAX_VALUE, repoPath, viewModel, viewState)
         }
     }

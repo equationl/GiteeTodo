@@ -58,7 +58,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
             val issueNum = intent.getStringExtra(TodoListWidgetCallback.ISSUE_NUM_NAME)
             val isChecked = intent.getBooleanExtra(ToggleableStateKey.name, true)
             if (issueNum != null) {
-                updateIssueState(context, issueNum, isChecked)
+                updateIssueState(issueNum, isChecked)
             }
             else {
                 Log.w(TAG, "onReceive: issue num is null!")
@@ -68,12 +68,12 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
 
     private fun refreshData(context: Context) {
         coroutineScope.launch {
-            var loadState = LoadSuccess
-            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "null/null")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
-            val maxNum = DataStoreUtils.getSyncData(DataKey.WidgetShowNum, 10)
-            val filterState = DataStoreUtils.getSyncData(DataKey.WidgetFilterState, "")
-            val filterLabelsString = DataStoreUtils.getSyncData(DataKey.WidgetFilterLabels, "")
+            var loadState = LOAD_SUCCESS
+            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "null/null")
+            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
+            val maxNum = DataStoreUtils.getSyncData(DataKey.WIDGET_SHOW_NUM, 10)
+            val filterState = DataStoreUtils.getSyncData(DataKey.WIDGET_FILTER_STATE, "")
+            val filterLabelsString = DataStoreUtils.getSyncData(DataKey.WIDGET_FILTER_LABELS, "")
 
             val listType: Type = object : TypeToken<List<Label?>?>() {}.type
             val filterLabelList: List<Label> =
@@ -94,7 +94,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
             val todoTitleList: MutableList<TodoListWidgetShowData> = mutableListOf()
 
             if (repoPath == "null/null" || token.isBlank()) {
-                loadState = LoadFailByOther
+                loadState = LOAD_FAIL_BY_OTHER
             }
 
             else {
@@ -138,10 +138,10 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
         }
     }
 
-    private fun updateIssueState(context: Context, issueNum: String, isChecked: Boolean) {
+    private fun updateIssueState(issueNum: String, isChecked: Boolean) {
         coroutineScope.launch {
-            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "null/null")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "null/null")
+            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
             val response = repoApi.updateIssues(
                 repoPath.split("/")[0],
                 issueNum,
@@ -172,17 +172,17 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
 
         val TodoListKey = stringPreferencesKey("todo_List")
         /**
-         * 加载状态，成功：[LoadSuccess]；由于网络请求失败：失败的 Http 状态码；其他错误：[LoadFailByOther]
+         * 加载状态，成功：[LOAD_SUCCESS]；由于网络请求失败：失败的 Http 状态码；其他错误：[LOAD_FAIL_BY_OTHER]
          * */
         val LoadStateKey = intPreferencesKey("list_load_State")
 
         /**
          * 加载成功
          * */
-        const val LoadSuccess = 0
+        const val LOAD_SUCCESS = 0
         /**
          * 加载失败，其他错误
          * */
-        const val LoadFailByOther = -1
+        const val LOAD_FAIL_BY_OTHER = -1
     }
 }

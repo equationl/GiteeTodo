@@ -208,12 +208,12 @@ class TodoListViewModel @Inject constructor(
                         }
                     }
 
-                    viewStates = viewStates.copy(isShowLabelsDropMenu = isShow, availableLabels = showLabelMap)
+                    viewStates = viewStates.copy(isShowLabelsDropMenu = true, availableLabels = showLabelMap)
                 }
             }
         }
         else {
-            viewStates = viewStates.copy(isShowLabelsDropMenu = isShow)
+            viewStates = viewStates.copy(isShowLabelsDropMenu = false)
         }
     }
 
@@ -225,7 +225,7 @@ class TodoListViewModel @Inject constructor(
 
     private fun init(repoPath: String) {
         viewModelScope.launch {
-            val saveFilter = DataStoreUtils.getSyncData(DataKey.FilterInfo, "")
+            val saveFilter = DataStoreUtils.getSyncData(DataKey.FILTER_INFO, "")
             val newQuery: QueryParameter = if (saveFilter.isNotBlank()) {
                 saveFilter.fromJson<QueryParameter>() ?: QueryParameter()
             } else {
@@ -253,7 +253,7 @@ class TodoListViewModel @Inject constructor(
             queryFlow.emit(
                 newQuery.copy(
                     repoPath = repoPath,
-                    accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+                    accessToken = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
                 )
             )
         }
@@ -262,7 +262,7 @@ class TodoListViewModel @Inject constructor(
     private fun onExit() {
         viewModelScope.launch(Dispatchers.IO) {
             val saveString = queryFlow.value.toJson()
-            DataStoreUtils.saveSyncStringData(DataKey.FilterInfo, saveString)
+            DataStoreUtils.saveSyncStringData(DataKey.FILTER_INFO, saveString)
         }
     }
 
@@ -272,7 +272,7 @@ class TodoListViewModel @Inject constructor(
                 repoPath.split("/")[0],
                 issueNum,
                 UpdateIssue(
-                    DataStoreUtils.getSyncData(DataKey.LoginAccessToken, ""),
+                    DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, ""),
                     repo = repoPath.split("/")[1],
                     state = if (isClose) IssueState.CLOSED.des else IssueState.OPEN.des
                 )
@@ -307,9 +307,9 @@ sealed class TodoListViewEvent {
 }
 
 sealed class TodoListViewAction {
-    object ClearFilter: TodoListViewAction()
-    object AutoRefreshFinish: TodoListViewAction()
-    object OnExit: TodoListViewAction()
+    data object ClearFilter: TodoListViewAction()
+    data object AutoRefreshFinish: TodoListViewAction()
+    data object OnExit: TodoListViewAction()
     data class Init(val repoPath: String): TodoListViewAction()
     data class UpdateIssueState(val issueNum: String, val isClose: Boolean, val repoPath: String): TodoListViewAction()
     data class SendMsg(val msg: String): TodoListViewAction()

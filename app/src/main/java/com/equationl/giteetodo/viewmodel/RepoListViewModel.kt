@@ -38,7 +38,7 @@ class RepoListViewModel @Inject constructor(
         Pager(
             PagingConfig(pageSize = 6, initialLoadSize = 6)
         ) {
-            ReposPagingSource(repoApi, DataStoreUtils.getSyncData(DataKey.LoginAccessToken, ""))
+            ReposPagingSource(repoApi, DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, ""))
         }.flow.cachedIn(viewModelScope)
     }
 
@@ -71,11 +71,11 @@ class RepoListViewModel @Inject constructor(
     private fun choiceARepo(repoPath: String) {
         viewModelScope.launch {
             // 切换仓库前先清空当前缓存的所有数据
-            DataStoreUtils.saveSyncStringData(DataKey.FilterInfo, "")
+            DataStoreUtils.saveSyncStringData(DataKey.FILTER_INFO, "")
             dataBase.issue().clearAll()
             dataBase.issueRemoteKey().clearAll()
 
-            DataStoreUtils.saveSyncStringData(DataKey.UsingRepo, repoPath)
+            DataStoreUtils.saveSyncStringData(DataKey.USING_REPO, repoPath)
             val result = kotlin.runCatching {
                 val encodeRepoPath = URLEncoder.encode(repoPath, StandardCharsets.UTF_8.toString())
                 val fullRoute = "${Route.HOME}/$encodeRepoPath"

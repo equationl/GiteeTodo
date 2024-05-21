@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -94,7 +94,8 @@ fun SettingContent(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(top = 6.dp).padding(paddingValues)
+            .padding(top = 6.dp)
+            .padding(paddingValues)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -105,7 +106,7 @@ fun SettingContent(
             }
         }
 
-        Divider(modifier = Modifier.padding(12.dp, 0.dp))
+        HorizontalDivider(modifier = Modifier.padding(12.dp, 0.dp))
 
 
         ExpandableItem(title = "小组件设置", modifier = Modifier.padding(12.dp)) {

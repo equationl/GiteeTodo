@@ -98,8 +98,8 @@ class LoginViewModel @Inject constructor(
             val response = oAuthApi.getTokenByPsw(
                 viewStates.email,
                 viewStates.password,
-                ClientInfo.ClientId,
-                ClientInfo.ClientSecret)
+                ClientInfo.CLIENT_ID,
+                ClientInfo.CLIENT_SECRET)
 
             resolveTokenResponse(response)
         }
@@ -124,9 +124,9 @@ class LoginViewModel @Inject constructor(
             }
 
             if (response.isSuccessful) {
-                DataStoreUtils.putSyncData(DataKey.UserInfo, response.body()?.toJson() ?: "")
-                DataStoreUtils.saveSyncStringData(DataKey.LoginAccessToken, viewStates.password)
-                DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, fromLoginMethod.name)
+                DataStoreUtils.putSyncData(DataKey.USER_INFO, response.body()?.toJson() ?: "")
+                DataStoreUtils.saveSyncStringData(DataKey.LOGIN_ACCESS_TOKEN, viewStates.password)
+                DataStoreUtils.saveSyncStringData(DataKey.LOGIN_METHOD, fromLoginMethod.name)
 
                 navToHome()
             }
@@ -143,7 +143,7 @@ class LoginViewModel @Inject constructor(
     }
 
     private suspend fun navToHome() {
-        val usingRepo = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
+        val usingRepo = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
         val repoListRoute = Route.REPO_LIST
         if (usingRepo.isBlank()) {
             _viewEvents.send(LoginViewEvent.NavTo(repoListRoute))
@@ -170,7 +170,7 @@ class LoginViewModel @Inject constructor(
 
     private fun switchToOAuth2() {
         viewModelScope.launch {
-            _viewEvents.send(LoginViewEvent.NavTo(Route.OAuthLogin))
+            _viewEvents.send(LoginViewEvent.NavTo(Route.OAUTH_LOGIN))
         }
     }
 
@@ -235,7 +235,7 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch(exception) {
             withContext(Dispatchers.IO) {
-                val loginMethodString = DataStoreUtils.readStringData(DataKey.LoginMethod)
+                val loginMethodString = DataStoreUtils.readStringData(DataKey.LOGIN_METHOD)
                 if (loginMethodString.isBlank()) {
                     // 从未登录过
                     viewStates = viewStates.copy(isLogging = false)
@@ -251,14 +251,14 @@ class LoginViewModel @Inject constructor(
 
                     when (loginMethod) {
                         LoginMethod.Email, LoginMethod.OAuth2 -> {
-                            val expireTime = DataStoreUtils.getSyncData(DataKey.LoginTokenExpireTime, 0)
+                            val expireTime = DataStoreUtils.getSyncData(DataKey.LOGIN_TOKEN_EXPIRE_TIME, 0)
 
                             Log.i(TAG, "checkLoginState: Token过期有效期判断：expireTime = $expireTime, currentTime = ${System.currentTimeMillis() / 1000 - 1800}")
 
                             if (expireTime < System.currentTimeMillis() / 1000 - 1800) {  // 提前半小时刷新
                                 // 已过期，需要刷新
                                 Log.i(TAG, "checkLoginState: Token已过期，尝试刷新！")
-                                val refreshToken = DataStoreUtils.getSyncData(DataKey.LoginRefreshToken, "")
+                                val refreshToken = DataStoreUtils.getSyncData(DataKey.LOGIN_REFRESH_TOKEN, "")
                                 val response = oAuthApi.refreshToken(
                                     refreshToken = refreshToken
                                 )
@@ -268,7 +268,7 @@ class LoginViewModel @Inject constructor(
                                 // 未过期，开始检查
                                 Log.i(TAG, "checkLoginState: Token未过期！")
                                 viewStates = viewStates.copy(
-                                    password = DataStoreUtils.readStringData(DataKey.LoginAccessToken)
+                                    password = DataStoreUtils.readStringData(DataKey.LOGIN_ACCESS_TOKEN)
                                 )
                                 loginByAccess(true, loginMethod)
                             }
@@ -276,7 +276,7 @@ class LoginViewModel @Inject constructor(
                         LoginMethod.AccessToken -> {
                             Log.i(TAG, "checkLoginState: 使用 AccessToken 登录！")
                             viewStates = viewStates.copy(
-                                password = DataStoreUtils.readStringData(DataKey.LoginAccessToken)
+                                password = DataStoreUtils.readStringData(DataKey.LOGIN_ACCESS_TOKEN)
                             )
                             loginByAccess()
                         }
@@ -297,11 +297,11 @@ class LoginViewModel @Inject constructor(
             }
             else {
                 val currentTime = (System.currentTimeMillis() / 1000).toInt()
-                DataStoreUtils.saveSyncStringData(DataKey.LoginAccessToken, tokenBody.accessToken)
-                DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, fromLoginMethod.name)
-                DataStoreUtils.saveSyncStringData(DataKey.LoginRefreshToken, tokenBody.refreshToken)
-                DataStoreUtils.saveSyncIntData(DataKey.LoginTokenExpireTime, tokenBody.expiresIn + currentTime)
-                DataStoreUtils.saveSyncIntData(DataKey.LoginTokenRefreshTime, currentTime)
+                DataStoreUtils.saveSyncStringData(DataKey.LOGIN_ACCESS_TOKEN, tokenBody.accessToken)
+                DataStoreUtils.saveSyncStringData(DataKey.LOGIN_METHOD, fromLoginMethod.name)
+                DataStoreUtils.saveSyncStringData(DataKey.LOGIN_REFRESH_TOKEN, tokenBody.refreshToken)
+                DataStoreUtils.saveSyncIntData(DataKey.LOGIN_TOKEN_EXPIRE_TIME, tokenBody.expiresIn + currentTime)
+                DataStoreUtils.saveSyncIntData(DataKey.LOGIN_TOKEN_REFRESH_TIME, currentTime)
 
                 navToHome()
             }
@@ -338,14 +338,14 @@ sealed class LoginViewEvent {
 }
 
 sealed class LoginViewAction {
-    object Login : LoginViewAction()
-    object ClearEmail : LoginViewAction()
-    object ClearPassword : LoginViewAction()
-    object TogglePasswordVisibility : LoginViewAction()
-    object SwitchToOAuth2: LoginViewAction()
-    object SwitchToAccessToken: LoginViewAction()
-    object ShowLoginHelp: LoginViewAction()
-    object CheckLoginState: LoginViewAction()
+    data object Login : LoginViewAction()
+    data object ClearEmail : LoginViewAction()
+    data object ClearPassword : LoginViewAction()
+    data object TogglePasswordVisibility : LoginViewAction()
+    data object SwitchToOAuth2: LoginViewAction()
+    data object SwitchToAccessToken: LoginViewAction()
+    data object ShowLoginHelp: LoginViewAction()
+    data object CheckLoginState: LoginViewAction()
     data class Register(val context: Context): LoginViewAction()
     data class UpdateEmail(val email: String) : LoginViewAction()
     data class UpdatePassword(val password: String) : LoginViewAction()

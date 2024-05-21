@@ -34,7 +34,7 @@ fun AboutScreen() {
             RichText(modifier = Modifier
                 .padding(it)
                 .padding(8.dp)) {
-                Markdown(content = DefaultText.AboutContent.trimIndent())
+                Markdown(content = DefaultText.ABOUT_CONTENT.trimIndent())
             }
         }
     }

@@ -50,14 +50,14 @@ class ProfileViewModel @Inject constructor(
 
     private fun readUserInfo() {
         viewModelScope.launch(exception) {
-            var user: User? = DataStoreUtils.readStringData(DataKey.UserInfo).fromJson()
+            var user: User? = DataStoreUtils.readStringData(DataKey.USER_INFO).fromJson()
             if (user == null) {
-                val accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+                val accessToken = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
                 val response = userApi.getUser(accessToken)
 
                 if (response.isSuccessful && response.body() != null) {
                     user = response.body()
-                    DataStoreUtils.putSyncData(DataKey.UserInfo, user?.toJson() ?: "")
+                    DataStoreUtils.putSyncData(DataKey.USER_INFO, user?.toJson() ?: "")
                 }
                 else {
                     val result = kotlin.runCatching {
@@ -85,6 +85,6 @@ sealed class ProfileViewEvent {
 }
 
 sealed class ProfileViewAction {
-    object ReadUserInfo: ProfileViewAction()
+    data object ReadUserInfo: ProfileViewAction()
     data class ShowMessage(val msg: String): ProfileViewAction()
 }

@@ -37,9 +37,9 @@ class LoginOauthViewModel @Inject constructor(
         viewModelScope.launch(exception) {
             val response = oAuthApi.getTokenByCode(
                 code = code,
-                clientId = ClientInfo.ClientId,
-                clientSecret = ClientInfo.ClientSecret,
-                redirectUri = ClientInfo.AuthUri
+                clientId = ClientInfo.CLIENT_ID,
+                clientSecret = ClientInfo.CLIENT_SECRET,
+                redirectUri = ClientInfo.AUTH_URI
             )
 
             println("response = $response")
@@ -51,11 +51,11 @@ class LoginOauthViewModel @Inject constructor(
                 }
                 else {
                     val currentTime = (System.currentTimeMillis() / 1000).toInt()
-                    DataStoreUtils.saveSyncStringData(DataKey.LoginAccessToken, tokenBody.accessToken)
-                    DataStoreUtils.saveSyncStringData(DataKey.LoginMethod, LoginMethod.OAuth2.name)
-                    DataStoreUtils.saveSyncStringData(DataKey.LoginRefreshToken, tokenBody.refreshToken)
-                    DataStoreUtils.saveSyncIntData(DataKey.LoginTokenExpireTime, tokenBody.expiresIn+currentTime)
-                    DataStoreUtils.saveSyncIntData(DataKey.LoginTokenRefreshTime, currentTime)
+                    DataStoreUtils.saveSyncStringData(DataKey.LOGIN_ACCESS_TOKEN, tokenBody.accessToken)
+                    DataStoreUtils.saveSyncStringData(DataKey.LOGIN_METHOD, LoginMethod.OAuth2.name)
+                    DataStoreUtils.saveSyncStringData(DataKey.LOGIN_REFRESH_TOKEN, tokenBody.refreshToken)
+                    DataStoreUtils.saveSyncIntData(DataKey.LOGIN_TOKEN_EXPIRE_TIME, tokenBody.expiresIn+currentTime)
+                    DataStoreUtils.saveSyncIntData(DataKey.LOGIN_TOKEN_REFRESH_TIME, currentTime)
 
                     _viewEvents.send(LoginOauthViewEvent.Goto(Route.REPO_LIST))
                 }

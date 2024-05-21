@@ -61,14 +61,14 @@ import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.ui.widgets.isScrollingUp
 import com.equationl.giteetodo.ui.widgets.noRippleClickable
+import com.equationl.giteetodo.ui.widgets.placeholder.PlaceholderHighlight
+import com.equationl.giteetodo.ui.widgets.placeholder.material3.fade
+import com.equationl.giteetodo.ui.widgets.placeholder.material3.placeholder
 import com.equationl.giteetodo.viewmodel.FilteredOption
 import com.equationl.giteetodo.viewmodel.TodoListViewAction
 import com.equationl.giteetodo.viewmodel.TodoListViewEvent
 import com.equationl.giteetodo.viewmodel.TodoListViewModel
 import com.equationl.giteetodo.viewmodel.TodoListViewState
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material.fade
-import com.google.accompanist.placeholder.material.placeholder
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vanpra.composematerialdialogs.MaterialDialog
@@ -78,8 +78,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-private const val TAG = "el, TodoListScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,7 +121,6 @@ fun TodoListScreen(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun TodoListContent(
     viewState: TodoListViewState,
@@ -192,7 +189,7 @@ fun TodoListContent(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TodoListLazyColumn(
     viewState: TodoListViewState,
@@ -368,7 +365,9 @@ fun TodoFilterContent(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeLabelsDropMenuShowState(true))
         }) {
-            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowLabelsDropMenu) -180f else 0f)
+            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowLabelsDropMenu) -180f else 0f,
+                label = "arrowRotateDegrees"
+            )
             Text("标签", color = if (viewState.filteredOptionList.contains(FilteredOption.Labels)) MaterialTheme.colorScheme.primary else Color.Unspecified)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "标签", modifier = Modifier.rotate(arrowRotateDegrees))
             TodoListLabelDropMenu(
@@ -384,7 +383,9 @@ fun TodoFilterContent(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeStateDropMenuShowState(true))
         }) {
-            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowStateDropMenu) -180f else 0f)
+            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowStateDropMenu) -180f else 0f,
+                label = "arrowRotateDegrees"
+            )
             Text("状态", color = if (viewState.filteredOptionList.contains(FilteredOption.States)) MaterialTheme.colorScheme.primary else Color.Unspecified)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "状态", modifier = Modifier.rotate(arrowRotateDegrees))
             TodoListStateDropMenu(
@@ -419,7 +420,7 @@ fun TodoFilterContent(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeDirectionDropMenuShowState(true))
         }) {
-            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowDirectionDropMenu) -180f else 0f)
+            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowDirectionDropMenu) -180f else 0f, label = "arrowRotateDegrees")
             Text("排序", color = if (viewState.filteredOptionList.contains(FilteredOption.Direction)) MaterialTheme.colorScheme.primary else Color.Unspecified)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "排序", modifier = Modifier.rotate(arrowRotateDegrees))
             TodoListDirecDropMenu(

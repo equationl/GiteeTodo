@@ -16,7 +16,7 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -79,18 +79,18 @@ fun OAuthLoginScreen(
 
 @Composable
 fun OAuthWebView(viewModel: LoginOauthViewModel) {
-    var rememberWebProgress: Int by remember { mutableStateOf(-1)}
+    var rememberWebProgress: Int by remember { mutableIntStateOf(-1) }
 
     Box(Modifier.fillMaxSize()) {
-        val scope = URLEncoder.encode(ClientInfo.PermissionScope, StandardCharsets.UTF_8.toString())
+        val scope = URLEncoder.encode(ClientInfo.PERMISSION_SCOPE, StandardCharsets.UTF_8.toString())
         CustomWebView(
-            url = "https://gitee.com/oauth/authorize?client_id=${ClientInfo.ClientId}&redirect_uri=${ClientInfo.AuthUri}&response_type=code&scope=$scope",
+            url = "https://gitee.com/oauth/authorize?client_id=${ClientInfo.CLIENT_ID}&redirect_uri=${ClientInfo.AUTH_URI}&response_type=code&scope=$scope",
             onBack = {
             it?.goBack()
         },
             onShouldOverrideUrlLoading = { _: WebView?, request: WebResourceRequest? ->
                 if (request != null && request.url != null &&
-                    request.url.toString().startsWith(ClientInfo.AuthUri)) {
+                    request.url.toString().startsWith(ClientInfo.AUTH_URI)) {
                     val code = request.url.getQueryParameter("code")
                     if (code != null) {
                         Log.i(TAG, "OAuthLoginScreen: url=${request.url}")
@@ -118,10 +118,11 @@ fun OAuthWebView(viewModel: LoginOauthViewModel) {
             modifier = Modifier.fillMaxSize())
 
         LinearProgressIndicator(
-            progress = rememberWebProgress * 1.0F / 100F,
-            color = Color.Red,
+            progress = { rememberWebProgress * 1.0F / 100F },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (rememberWebProgress == 100) 0.dp else 5.dp))
+                .height(if (rememberWebProgress == 100) 0.dp else 5.dp),
+            color = Color.Red,
+        )
     }
 }

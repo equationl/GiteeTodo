@@ -1,8 +1,8 @@
 package com.equationl.giteetodo.constants
 
 object DefaultText {
-    const val ReadmeFileName = "README.md"
-    const val ReadmeContent = """
+    const val README_FILE_NAME = "README.md"
+    const val README_CONTENT = """
             
     ***
     
@@ -13,7 +13,7 @@ object DefaultText {
         """
 
 
-    const val AboutContent = """
+    const val ABOUT_CONTENT = """
         ## 关于
         GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TODO 应用；使用 Gitee（码云）的 issue 作为储存仓库。
         

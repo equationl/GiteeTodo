@@ -79,7 +79,7 @@ fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
             }
         }
 
-        if (loadStatus == TodoListWidgetReceiver.LoadSuccess) {
+        if (loadStatus == TodoListWidgetReceiver.LOAD_SUCCESS) {
             if (showTodoList.isEmpty()) {
                 WidgetEmptyContent()
             }

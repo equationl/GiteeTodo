@@ -37,8 +37,6 @@ import com.equationl.giteetodo.viewmodel.RepoDetailViewModel
 import com.equationl.giteetodo.viewmodel.RepoDetailViewState
 import kotlinx.coroutines.launch
 
-private const val TAG = "el, RepoDetail"
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepoDetailScreen(

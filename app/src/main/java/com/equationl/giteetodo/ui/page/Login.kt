@@ -19,8 +19,8 @@ import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalTextInputService
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -184,7 +184,7 @@ fun LoginContent() {
                     .fillMaxWidth()
                     .padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                Divider(
+                HorizontalDivider(
                     thickness = 2.dp,
                     modifier = Modifier
                         .padding(start = 8.dp)
@@ -204,7 +204,7 @@ fun LoginContent() {
                         )
                     }
                 }
-                Divider(
+                HorizontalDivider(
                     thickness = 2.dp,
                     modifier = Modifier
                         .padding(end = 8.dp, start = 8.dp)
@@ -263,7 +263,7 @@ fun EmailEditWidget(loginViewModel: LoginViewModel, viewState: LoginViewState) {
 
 @Composable
 fun PasswordEditWidget(loginViewModel: LoginViewModel, viewState: LoginViewState) {
-    val keyboardService = LocalTextInputService.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     OutlinedTextField(
         value = viewState.password,
@@ -276,7 +276,7 @@ fun PasswordEditWidget(loginViewModel: LoginViewModel, viewState: LoginViewState
         isError = viewState.isPassWordError,
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions { keyboardService?.hideSoftwareKeyboard()  },
+        keyboardActions = KeyboardActions { keyboardController?.hide()  },
         visualTransformation = if (viewState.isPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
             if (viewState.password.isNotEmpty()) {

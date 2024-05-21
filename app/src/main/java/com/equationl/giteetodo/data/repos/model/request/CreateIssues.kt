@@ -1,15 +1,20 @@
 package com.equationl.giteetodo.data.repos.model.request
 
+import com.google.gson.annotations.SerializedName
+
 data class CreateIssues(
-    val access_token: String,
+    @SerializedName("access_token")
+    val accessToken: String,
     val repo: String? = null,
     val title: String,
-    val issue_type: String? = null,
+    @SerializedName("issue_type")
+    val issueType: String? = null,
     val body: String? = null,
     val assignee: String? = null,
     val collaborators: String? = null,
     val milestone: Int? = null,
     val labels: String? = null,
     val program: String? = null,
-    val security_hole: Boolean? = null
+    @SerializedName("security_hole")
+    val securityHole: Boolean? = null
 )

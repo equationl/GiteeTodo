@@ -43,7 +43,7 @@ class TodoListWidgetCallback : ActionCallback {
         private const val TAG = "el, TodoListWidgetCallback"
 
         const val ACTION_NAME = "actionName"
-        const val ISSUE_NUM_NAME = IntentDataKey.IssueNumber
+        const val ISSUE_NUM_NAME = IntentDataKey.ISSUE_NUMBER
 
         const val UPDATE_ACTION = "updateAction"
         const val CHECK_ISSUE_ACTION = "checkIssueAction"

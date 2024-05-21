@@ -1,20 +1,20 @@
 package com.equationl.giteetodo.util.datastore
 
 object DataKey {
-    const val LoginMethod = "login_method"
-    const val LoginAccessToken = "login_access"
-    const val LoginRefreshToken = "login_refresh_token"
-    const val LoginTokenExpireTime = "login_token_expire_time"
-    const val LoginTokenRefreshTime = "login_token_refresh_time"
+    const val LOGIN_METHOD = "login_method"
+    const val LOGIN_ACCESS_TOKEN = "login_access"
+    const val LOGIN_REFRESH_TOKEN = "login_refresh_token"
+    const val LOGIN_TOKEN_EXPIRE_TIME = "login_token_expire_time"
+    const val LOGIN_TOKEN_REFRESH_TIME = "login_token_refresh_time"
 
-    const val UsingRepo = "using_repo"
+    const val USING_REPO = "using_repo"
 
-    const val UserInfo = "user_info_string"
-    const val ExistLabel = "exist_label"
+    const val USER_INFO = "user_info_string"
+    const val EXIST_LABEL = "exist_label"
 
-    const val FilterInfo = "filter_info"
+    const val FILTER_INFO = "filter_info"
 
-    const val WidgetShowNum = "widget_show_num"
-    const val WidgetFilterLabels = "widget_filter_labels"
-    const val WidgetFilterState = "widget_filter_state"
+    const val WIDGET_SHOW_NUM = "widget_show_num"
+    const val WIDGET_FILTER_LABELS = "widget_filter_labels"
+    const val WIDGET_FILTER_STATE = "widget_filter_state"
 }

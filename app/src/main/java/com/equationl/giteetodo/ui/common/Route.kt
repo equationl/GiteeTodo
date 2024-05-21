@@ -7,7 +7,7 @@ object Route {
     const val REPO_DETAIL = "repoDetail"
     const val HOME = "home"
     const val LABEL_MG = "labelMg"
-    const val OAuthLogin = "OAuthLogin"
+    const val OAUTH_LOGIN = "OAuthLogin"
     const val ABOUT = "about"
     const val SETTING = "setting"
 }

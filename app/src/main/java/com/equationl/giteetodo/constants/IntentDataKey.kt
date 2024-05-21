@@ -1,5 +1,5 @@
 package com.equationl.giteetodo.constants
 
 object IntentDataKey {
-    const val IssueNumber = "issueNumber"
+    const val ISSUE_NUMBER = "issueNumber"
 }

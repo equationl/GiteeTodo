@@ -55,12 +55,12 @@ class SettingViewModel @Inject constructor(
             // 只有当前标签未加入筛选列表才继续加入
             if (viewStates.currentChoiceLabel.indexOfFirst { it.id == label.id } == -1) {
                 newLabel.add(label)
-                DataStoreUtils.putSyncData(DataKey.WidgetFilterLabels, newLabel.toJson())
+                DataStoreUtils.putSyncData(DataKey.WIDGET_FILTER_LABELS, newLabel.toJson())
             }
         }
         else {
             newLabel.removeIf { it.id == label.id }
-            DataStoreUtils.putSyncData(DataKey.WidgetFilterLabels, newLabel.toJson())
+            DataStoreUtils.putSyncData(DataKey.WIDGET_FILTER_LABELS, newLabel.toJson())
         }
         viewStates = viewStates.copy(currentChoiceLabel = newLabel)
     }
@@ -70,7 +70,7 @@ class SettingViewModel @Inject constructor(
             return
         }
         viewModelScope.launch(exception) {
-            DataStoreUtils.putSyncData(DataKey.WidgetShowNum, num)
+            DataStoreUtils.putSyncData(DataKey.WIDGET_SHOW_NUM, num)
             viewStates = viewStates.copy(currentShowNum = num)
         }
     }
@@ -80,7 +80,7 @@ class SettingViewModel @Inject constructor(
             return
         }
         viewModelScope.launch(exception) {
-            DataStoreUtils.putSyncData(DataKey.WidgetFilterState, state)
+            DataStoreUtils.putSyncData(DataKey.WIDGET_FILTER_STATE, state)
             viewStates = viewStates.copy(currentState = state)
         }
     }
@@ -88,10 +88,10 @@ class SettingViewModel @Inject constructor(
     private fun initSetting() {
         viewModelScope.launch(exception) {
             val existLabels = Utils.getExistLabel(repoApi = repoApi)
-            val currentShowNum = DataStoreUtils.getSyncData(DataKey.WidgetShowNum, 10)
+            val currentShowNum = DataStoreUtils.getSyncData(DataKey.WIDGET_SHOW_NUM, 10)
 
-            val currentChoiceLabelString = DataStoreUtils.getSyncData(DataKey.WidgetFilterLabels, "")
-            val currentState = DataStoreUtils.getSyncData(DataKey.WidgetFilterState, "")
+            val currentChoiceLabelString = DataStoreUtils.getSyncData(DataKey.WIDGET_FILTER_LABELS, "")
+            val currentState = DataStoreUtils.getSyncData(DataKey.WIDGET_FILTER_STATE, "")
 
             val listType: Type = object : TypeToken<List<Label?>?>() {}.type
             val currentChoiceLabel: List<Label> =
@@ -121,7 +121,7 @@ sealed class SettingViewEvent {
 }
 
 sealed class SettingViewAction {
-    object InitSetting : SettingViewAction()
+    data object InitSetting : SettingViewAction()
     data class ChoiceANewNum(val num: Int): SettingViewAction()
     data class ChoiceANewState(val state: String): SettingViewAction()
     data class ChoiceANewLabel(val label: Label, val isChecked: Boolean): SettingViewAction()

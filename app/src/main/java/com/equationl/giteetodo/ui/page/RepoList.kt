@@ -50,7 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemsIndexed
+import androidx.paging.compose.itemKey
 import com.equationl.giteetodo.R
 import com.equationl.giteetodo.data.user.model.response.Repo
 import com.equationl.giteetodo.ui.LocalNavController
@@ -172,7 +172,8 @@ fun RepoListContent(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn {
-                itemsIndexed(repoList, key = { _, item -> item.fullName }) { _, item ->
+                items(count = repoList.itemCount, key = repoList.itemKey { it.fullName }) {index ->
+                    val item = repoList[index]
                     if (item != null && item.namespace.type == "personal") {  // 仅加载类型为个人的仓库
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = {

@@ -90,7 +90,14 @@ fun HomeScreen(
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }
             } else if (it is TodoHomeViewEvent.Goto) {
-                navController.navigate(it.route)
+                if (it.isClrStack) {
+                    navController.navigate(it.route) {
+                        popUpTo(0)
+                    }
+                }
+                else {
+                    navController.navigate(it.route)
+                }
             }
         }
     }
@@ -327,7 +334,6 @@ private fun HomeTopBarAction(
         }
     } else if (currentPager == CurrentPager.HOME_ME) {
         IconButton(onClick = onLogOut) {
-            // fixme 注销后应该清空返回栈，不然在登录页面按返回按键又会返回到主页
             Icon(Icons.AutoMirrored.Outlined.Logout, "注销")
         }
     }

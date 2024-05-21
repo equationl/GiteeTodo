@@ -100,7 +100,7 @@ class TodoHomeViewModel @Inject constructor(
             DataStoreUtils.clear()
             dataBase.issue().clearAll()
             dataBase.issueRemoteKey().clearAll()
-            _viewEvents.send(TodoHomeViewEvent.Goto(Route.LOGIN))
+            _viewEvents.send(TodoHomeViewEvent.Goto(Route.LOGIN, isClrStack = true))
         }
     }
 }
@@ -113,7 +113,7 @@ data class TodoHomeViewState(
 )
 
 sealed class TodoHomeViewEvent {
-    data class Goto(val route: String): TodoHomeViewEvent()
+    data class Goto(val route: String, val isClrStack: Boolean = false): TodoHomeViewEvent()
     data class ShowMessage(val message: String) : TodoHomeViewEvent()
 }
 

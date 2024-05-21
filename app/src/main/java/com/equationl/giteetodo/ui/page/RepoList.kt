@@ -47,13 +47,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.equationl.giteetodo.R
 import com.equationl.giteetodo.data.user.model.response.Repo
+import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.widgets.BlurImage
 import com.equationl.giteetodo.ui.widgets.LinkText
@@ -72,9 +72,9 @@ private const val TAG = "el, RepoList"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepoListScreen(
-    navController: NavHostController,
     viewModel: RepoListViewModel = hiltViewModel()
 ) {
+    val navController = LocalNavController.current
     val activity = (LocalContext.current as? Activity)
     val viewState = viewModel.viewStates
     val scaffoldState = rememberBottomSheetScaffoldState()

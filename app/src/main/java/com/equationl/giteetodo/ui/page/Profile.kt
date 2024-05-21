@@ -44,11 +44,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.equationl.giteetodo.R
 import com.equationl.giteetodo.data.user.model.response.User
+import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.viewmodel.ProfileViewAction
@@ -61,11 +61,11 @@ import java.nio.charset.StandardCharsets
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    navHostController: NavHostController,
     scaffoldState: BottomSheetScaffoldState,
     repoPath: String,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
+    val navHostController = LocalNavController.current
     val viewState = viewModel.viewStates
     val coroutineState = rememberCoroutineScope()
 
@@ -88,7 +88,7 @@ fun ProfileScreen(
 
     if (viewState.user != null) {
         Column(Modifier.fillMaxSize()) {
-            ProFileContent(viewState.user, navHostController, repoPath, viewModel)
+            ProFileContent(viewState.user, repoPath, viewModel)
         }
     } else {
         ListEmptyContent(title = "用户信息为空，点击刷新") {
@@ -100,10 +100,11 @@ fun ProfileScreen(
 @Composable
 fun ProFileContent(
     user: User,
-    navHostController: NavHostController,
     repoPath: String,
     viewModel: ProfileViewModel
 ) {
+    val navHostController = LocalNavController.current
+
     Column(
         Modifier
             .fillMaxWidth()

@@ -1,10 +1,8 @@
 package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
@@ -69,6 +67,8 @@ import coil.request.ImageRequest
 import com.equationl.giteetodo.R
 import com.equationl.giteetodo.constants.ShareElementKey
 import com.equationl.giteetodo.data.repos.model.response.Comment
+import com.equationl.giteetodo.ui.LocalShareAnimatedContentScope
+import com.equationl.giteetodo.ui.LocalSharedTransitionScope
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.widgets.LinkText
@@ -94,8 +94,6 @@ fun TodoDetailScreen(
     navController: NavHostController?,
     issueNum: String,
     issueTitle: String?,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
     viewModel: TodoDetailViewModel = hiltViewModel()
 ) {
     val activity = (LocalContext.current as? Activity)
@@ -154,7 +152,7 @@ fun TodoDetailScreen(
                 Snackbar(snackbarData = snackBarData)
             }})
     {
-        TodoDetailContent(it, viewModel, viewState, issueNum, sharedTransitionScope, animatedContentScope)
+        TodoDetailContent(it, viewModel, viewState, issueNum)
     }
 }
 
@@ -165,8 +163,6 @@ fun TodoDetailContent(
     viewModel: TodoDetailViewModel,
     viewState: TodoDetailViewState,
     issueNum: String,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
     ) {
     Box {
         val listState = rememberLazyListState()
@@ -183,8 +179,6 @@ fun TodoDetailContent(
                     viewState = viewState,
                     viewModel = viewModel,
                     issueNum = issueNum,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = animatedContentScope
                 )
             }
 
@@ -211,9 +205,10 @@ fun TodoDetailMainContent(
     viewState: TodoDetailViewState,
     viewModel: TodoDetailViewModel,
     issueNum: String,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
     ) {
+    val sharedTransitionScope = LocalSharedTransitionScope.current
+    val animatedContentScope = LocalShareAnimatedContentScope.current
+
     with(sharedTransitionScope) {
         OutlinedTextField(
             value = viewState.title,

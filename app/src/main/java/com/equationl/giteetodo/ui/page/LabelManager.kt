@@ -40,8 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import com.equationl.giteetodo.data.repos.model.response.Label
+import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.util.Utils.toColor
@@ -64,9 +64,9 @@ private const val TAG = "el, LabelManagerScreen"
 @Composable
 fun LabelManagerScreen(
     repoPath: String,
-    navController: NavHostController,
     viewModel: LabelMgViewModel = hiltViewModel()
 ) {
+    val navController = LocalNavController.current
     val viewState = viewModel.viewStates
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineState = rememberCoroutineScope()

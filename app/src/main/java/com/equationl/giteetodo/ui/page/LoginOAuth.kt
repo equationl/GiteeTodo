@@ -24,8 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import com.equationl.giteetodo.constants.ClientInfo
+import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.widgets.CustomWebView
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.LoginOauthViewAction
@@ -40,9 +40,9 @@ private const val TAG = "el, OAuthLogin"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OAuthLoginScreen(
-    navHostController: NavHostController,
     viewModel: LoginOauthViewModel = hiltViewModel()
 ) {
+    val navHostController = LocalNavController.current
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineState = rememberCoroutineScope()
 

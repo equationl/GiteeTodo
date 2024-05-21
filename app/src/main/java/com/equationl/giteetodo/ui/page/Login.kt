@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
+import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.widgets.BaseMsgDialog
 import com.equationl.giteetodo.ui.widgets.LinkText
@@ -64,11 +64,11 @@ private const val TAG = "el, LoginScreen"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    navController: NavHostController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val activity = (LocalContext.current as? Activity)
     val viewState = viewModel.viewStates
+    val navController = LocalNavController.current
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineState = rememberCoroutineScope()
 

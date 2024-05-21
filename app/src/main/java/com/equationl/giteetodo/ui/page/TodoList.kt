@@ -1,8 +1,6 @@
 package com.equationl.giteetodo.ui.page
 
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -46,13 +44,15 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.equationl.giteetodo.R
 import com.equationl.giteetodo.constants.ShareElementKey
 import com.equationl.giteetodo.data.repos.model.common.TodoShowData
+import com.equationl.giteetodo.ui.LocalNavController
+import com.equationl.giteetodo.ui.LocalShareAnimatedContentScope
+import com.equationl.giteetodo.ui.LocalSharedTransitionScope
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.common.Route
@@ -81,14 +81,11 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "el, TodoListScreen"
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListScreen(
-    navController: NavHostController,
     repoPath: String,
     scaffoldState: BottomSheetScaffoldState,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
     isShowSystemBar: (isShow: Boolean) -> Unit,
     viewModel: TodoListViewModel = hiltViewModel(),
 ) {
@@ -119,11 +116,8 @@ fun TodoListScreen(
             viewState,
             viewModel,
             repoPath,
-            navController,
             todoPagingItems,
             coroutineState,
-            sharedTransitionScope,
-            animatedContentScope,
             isShowSystemBar
         )
     }
@@ -135,11 +129,8 @@ fun TodoListContent(
     viewState: TodoListViewState,
     viewModel: TodoListViewModel,
     repoPath: String,
-    navController: NavHostController,
     todoPagingItems: LazyPagingItems<TodoShowData>,
     coroutineState: CoroutineScope,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
     isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
     val rememberSwipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
@@ -192,12 +183,9 @@ fun TodoListContent(
                 viewState,
                 viewModel,
                 todoPagingItems,
-                navController,
                 repoPath,
                 rememberSwipeRefreshState.isRefreshing,
                 coroutineState,
-                sharedTransitionScope,
-                animatedContentScope,
                 isShowSystemBar,
             )
         }
@@ -210,12 +198,9 @@ fun TodoListLazyColumn(
     viewState: TodoListViewState,
     viewModel: TodoListViewModel,
     todoPagingItems: LazyPagingItems<TodoShowData>,
-    navController: NavHostController,
     repoPath: String,
     isLoading: Boolean,
     coroutineState: CoroutineScope,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
     isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -252,13 +237,10 @@ fun TodoListLazyColumn(
 
                 item(key = it.toString()) {
                     TodoItem(
-                        navController = navController,
                         itemData = it,
                         viewModel = viewModel,
                         repoPath = repoPath,
                         isLoading = isLoading,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedContentScope = animatedContentScope
                     )
                 }
             }
@@ -305,14 +287,16 @@ fun TodoListGroupHeader(text: String, isLoading: Boolean) {
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun TodoItem(
-    navController: NavHostController,
     itemData: TodoShowData,
     viewModel: TodoListViewModel,
     repoPath: String,
     isLoading: Boolean,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
 ) {
+
+    val navController = LocalNavController.current
+    val sharedTransitionScope = LocalSharedTransitionScope.current
+    val animatedContentScope = LocalShareAnimatedContentScope.current
+
     var checked by remember {
         mutableStateOf(
             when (itemData.state) {

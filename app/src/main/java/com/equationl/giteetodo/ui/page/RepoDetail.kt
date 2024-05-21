@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.theme.Shapes
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.ui.widgets.TopBar
@@ -42,9 +42,9 @@ private const val TAG = "el, RepoDetail"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepoDetailScreen(
-    navController: NavHostController,
     viewModel: RepoDetailViewModel = hiltViewModel()
 ) {
+    val navController = LocalNavController.current
     val viewState = viewModel.viewStates
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineState = rememberCoroutineScope()

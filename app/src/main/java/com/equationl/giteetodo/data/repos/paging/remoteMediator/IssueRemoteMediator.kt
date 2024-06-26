@@ -16,7 +16,6 @@ import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.viewmodel.QueryParameter
 import retrofit2.HttpException
 import retrofit2.Response
-import java.io.InvalidObjectException
 
 @OptIn(ExperimentalPagingApi::class)
 class IssueRemoteMediator(
@@ -55,8 +54,13 @@ class IssueRemoteMediator(
                 * */
                 LoadType.APPEND -> {
                     val remoteKeys = getRemoteKeyForLastItem(state)
-                        ?: throw InvalidObjectException("Result is empty")
-                    remoteKeys.nextKey ?: return MediatorResult.Success(true)
+                    if (remoteKeys == null) { // 查询数据为空，则设置为 1 ，表示从头加载
+                        Log.w(TAG, "load: remoteKeys == null")
+                        1
+                    }
+                    else {
+                        remoteKeys.nextKey ?: return MediatorResult.Success(true)
+                    }
                 }
             }
 

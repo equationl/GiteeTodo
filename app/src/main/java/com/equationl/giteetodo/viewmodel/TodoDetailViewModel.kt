@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equationl.giteetodo.data.repos.RepoApi
+import com.equationl.giteetodo.data.repos.db.IssueDb
 import com.equationl.giteetodo.data.repos.model.request.CreateComment
 import com.equationl.giteetodo.data.repos.model.request.CreateIssues
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
@@ -25,7 +26,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TodoDetailViewModel @Inject constructor(
-    private val repoApi: RepoApi
+    private val repoApi: RepoApi,
+    private val dataBase: IssueDb
 ) : ViewModel() {
 
     var viewStates by mutableStateOf(TodoDetailViewState())
@@ -385,6 +387,18 @@ class TodoDetailViewModel @Inject constructor(
             }
 
             if (response.isSuccessful) {
+//                if (issueNum == "null") {
+//                    // 新建成功则删除缓存数据，以触发更新
+//                    dataBase.issue().clearAll()
+//                    dataBase.issueRemoteKey().clearAll()
+//                }
+//                else {
+//                    // 修改成功则更新数据
+//                }
+                // 统一都改成清除缓存重新加载吧
+                dataBase.issue().clearAll()
+                dataBase.issueRemoteKey().clearAll()
+
                 _viewEvents.send(TodoDetailViewEvent.ShowMessage("保存成功"))
                 loadIssue(response.body()?.number ?: "null", response.body())
             }

@@ -1,10 +1,7 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id 'com.android.application'
     id 'com.google.dagger.hilt.android'
     id 'org.jetbrains.kotlin.android'
-    id 'kotlin-kapt'
     id 'com.google.devtools.ksp'
     id 'org.jetbrains.kotlin.plugin.compose'
 }
@@ -34,6 +31,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {
@@ -64,9 +62,9 @@ android {
 }
 
 // 用于忽略使用 OptIn 注解的警告
-tasks.withType(KotlinCompile).configureEach {
-    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
-}
+//tasks.withType(KotlinCompile).configureEach {
+//    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+//}
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.13.1'
@@ -94,7 +92,8 @@ dependencies {
     implementation "androidx.glance:glance-appwidget:1.1.0"
     implementation "androidx.room:room-paging:2.6.1"
     implementation "com.google.dagger:hilt-android:2.51.1"
-    kapt "com.google.dagger:hilt-compiler:2.51.1"
+    ksp "com.google.dagger:hilt-compiler:2.51.1"
+    ksp "com.google.dagger:dagger-compiler:2.51.1"
     implementation "androidx.hilt:hilt-navigation-compose:1.2.0"
     implementation "com.google.accompanist:accompanist-swiperefresh:$accompanist_version"
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
@@ -117,8 +116,4 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.0'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.6.8"
     debugImplementation "androidx.compose.ui:ui-tooling"
-}
-
-kapt {
-    correctErrorTypes true
 }

@@ -26,6 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -69,8 +70,6 @@ import com.equationl.giteetodo.viewmodel.TodoListViewAction
 import com.equationl.giteetodo.viewmodel.TodoListViewEvent
 import com.equationl.giteetodo.viewmodel.TodoListViewModel
 import com.equationl.giteetodo.viewmodel.TodoListViewState
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.MaterialDialogState
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
@@ -121,6 +120,7 @@ fun TodoListScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListContent(
     viewState: TodoListViewState,
@@ -130,7 +130,7 @@ fun TodoListContent(
     coroutineState: CoroutineScope,
     isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
-    val rememberSwipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
+    var isRefreshing by remember { mutableStateOf(false) }
 
     if (todoPagingItems.loadState.refresh is LoadState.Error) {
         viewModel.dispatch(TodoListViewAction.SendMsg("加载错误："+ (todoPagingItems.loadState.refresh as LoadState.Error).error.message))
@@ -167,10 +167,10 @@ fun TodoListContent(
         }
     }
     else {
-        rememberSwipeRefreshState.isRefreshing = (todoPagingItems.loadState.refresh is LoadState.Loading)
+        isRefreshing = (todoPagingItems.loadState.refresh is LoadState.Loading)
 
-        SwipeRefresh(
-            state = rememberSwipeRefreshState,
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
             onRefresh = {
                 todoPagingItems.refresh()
             },
@@ -181,7 +181,7 @@ fun TodoListContent(
                 viewModel,
                 todoPagingItems,
                 repoPath,
-                rememberSwipeRefreshState.isRefreshing,
+                isRefreshing,
                 coroutineState,
                 isShowSystemBar,
             )

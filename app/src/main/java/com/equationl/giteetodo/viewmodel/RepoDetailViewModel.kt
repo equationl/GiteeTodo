@@ -62,14 +62,14 @@ class RepoDetailViewModel @Inject constructor(
                 return@launch
             }
 
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = repoApi.createRepos(UserRepos(
-                access_token = token,
+                accessToken = token,
                 name = viewStates.repoName,
                 description = viewStates.repoDescribe,
                 path = viewStates.repoPath,
-                auto_init = viewStates.isInitRepo,
+                autoInit = viewStates.isInitRepo,
                 private = viewStates.isPrivateRepo
             ))
 
@@ -80,7 +80,7 @@ class RepoDetailViewModel @Inject constructor(
                     viewStates = viewStates.copy(isUnderCreation = false)
                     return@launch
                 }
-                DataStoreUtils.putSyncData(DataKey.UsingRepo, repos.fullName)
+                DataStoreUtils.putSyncData(DataKey.USING_REPO, repos.fullName)
 
                 if (viewStates.isInitRepo) {
                     customInitRepo(token, repos.fullName)
@@ -106,18 +106,18 @@ class RepoDetailViewModel @Inject constructor(
     }
 
     private suspend fun customInitRepo(token: String, repoPath: String) {
-        val contentMsg = DefaultText.ReadmeContent.trimIndent()
+        val contentMsg = DefaultText.README_CONTENT.trimIndent()
         val contentResponse = repoApi.getContent(
             owner = repoPath.split("/")[0],
             repo = repoPath.split("/")[1],
-            path =  DefaultText.ReadmeFileName,
+            path =  DefaultText.README_FILE_NAME,
             accessToken = token
         )
         if (!contentResponse.isSuccessful) {
             kotlin.runCatching {
-                Log.w(TAG, "customInitRepo: 获取 ${DefaultText.ReadmeFileName} 文件内容失败！${contentResponse.errorBody()?.string()}")
+                Log.w(TAG, "customInitRepo: 获取 ${DefaultText.README_FILE_NAME} 文件内容失败！${contentResponse.errorBody()?.string()}")
             }.fold({}, {
-                Log.w(TAG, "customInitRepo: 获取 ${DefaultText.ReadmeFileName}文件内容失败！", it)
+                Log.w(TAG, "customInitRepo: 获取 ${DefaultText.README_FILE_NAME}文件内容失败！", it)
             })
 
             return
@@ -132,9 +132,9 @@ class RepoDetailViewModel @Inject constructor(
         val updateResponse = repoApi.updateContent(
             owner = repoPath.split("/")[0],
             repo = repoPath.split("/")[1],
-            path = DefaultText.ReadmeFileName,
+            path = DefaultText.README_FILE_NAME,
             UpdateContent(
-                access_token = token,
+                accessToken = token,
                 content = content,
                 sha = contentResponse.body()?.sha ?: "",
                 message = "init by giteeTodo"
@@ -143,9 +143,9 @@ class RepoDetailViewModel @Inject constructor(
 
         if (!updateResponse.isSuccessful) {
             kotlin.runCatching {
-                Log.w(TAG, "customInitRepo: 更新 ${DefaultText.ReadmeFileName} 文件内容失败！${updateResponse.errorBody()?.string()}")
+                Log.w(TAG, "customInitRepo: 更新 ${DefaultText.README_FILE_NAME} 文件内容失败！${updateResponse.errorBody()?.string()}")
             }.fold({}, {
-                Log.w(TAG, "customInitRepo: 更新 ${DefaultText.ReadmeFileName} 文件内容失败！", it)
+                Log.w(TAG, "customInitRepo: 更新 ${DefaultText.README_FILE_NAME} 文件内容失败！", it)
             })
 
             return
@@ -194,7 +194,7 @@ sealed class RepoDetailViewEvent {
 }
 
 sealed class RepoDetailViewAction {
-    object Create : RepoDetailViewAction()
+    data object Create : RepoDetailViewAction()
     data class ChangeName(val text: String): RepoDetailViewAction()
     data class ChangeDescribe(val text: String): RepoDetailViewAction()
     data class ChangePath(val text: String): RepoDetailViewAction()

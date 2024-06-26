@@ -3,7 +3,7 @@ package com.equationl.giteetodo.data.repos.model.response
 
 import com.google.gson.annotations.SerializedName
 
-data class Issue constructor(
+data class Issue(
     @SerializedName("assignee")
     val assignee: Assignee?,
     @SerializedName("body")
@@ -170,7 +170,7 @@ data class Repository(
     @SerializedName("id")
     val id: Int,
     @SerializedName("internal")
-    val internal_name: Boolean,
+    val internalName: Boolean,
     @SerializedName("issue_comment")
     val issueComment: Boolean?,
     @SerializedName("issue_comment_url")
@@ -208,7 +208,7 @@ data class Repository(
     @SerializedName("path")
     val path: String,
     @SerializedName("private")
-    val private_name: Boolean,
+    val privateName: Boolean,
     @SerializedName("programs")
     val programs: List<String?>? = null,
     @SerializedName("project_creator")
@@ -216,7 +216,7 @@ data class Repository(
     @SerializedName("project_labels")
     val projectLabels: List<ProjectLabels>,
     @SerializedName("public")
-    val public_name: Boolean,
+    val publicName: Boolean,
     @SerializedName("pull_requests_enabled")
     val pullRequestsEnabled: Boolean,
     @SerializedName("pulls_url")
@@ -412,17 +412,24 @@ data class Tester(
 
 data class Milestone(
     val url: String,
-    val html_url: String,
+    @SerializedName("html_url")
+    val htmlUrl: String,
     val number: Int,
-    val repository_id: Int,
+    @SerializedName("repository_id")
+    val repositoryId: Int,
     val state: String,
     val title: String,
     val description: String,
-    val updated_at: String,
-    val created_at: String,
-    val open_issues: Int,
-    val closed_issues: Int,
-    val due_on: String,
+    @SerializedName("updated_at")
+    val updatedAt: String,
+    @SerializedName("created_at")
+    val createdAt: String,
+    @SerializedName("open_issues")
+    val openIssues: Int,
+    @SerializedName("closed_issues")
+    val closedIssues: Int,
+    @SerializedName("due_on")
+    val dueOn: String,
 )
 
 data class Program(
@@ -436,7 +443,8 @@ data class Enterprise(
     val type: String,
     val name: String,
     val path: String,
-    val html_url: String
+    @SerializedName("html_url")
+    val htmlUrl: String
 )
 
 data class ProjectLabels(

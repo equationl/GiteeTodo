@@ -2,7 +2,14 @@ package com.equationl.giteetodo.util.datastore
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.equationl.giteetodo.util.datastore.DataStoreUtils.clear
 import com.equationl.giteetodo.util.datastore.DataStoreUtils.clearSync
@@ -65,8 +72,8 @@ object DataStoreUtils {
     //TODO 增加加密储存
     // 参考：https://proandroiddev.com/securing-androids-datastore-ad56958ca6ee
 
-    private const val preferenceName = "GiteeTodo"
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(preferenceName)
+    private const val PREFERENCE_NAME = "GiteeTodo"
+    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREFERENCE_NAME)
 
     private lateinit var dataStore: DataStore<Preferences>
 

@@ -15,3 +15,7 @@
 local.properties
 /app/src/main/java/com/equationl/giteetodo/test.kt
 /app/release/
+/.idea/dbnavigator.xml
+/.idea/kotlinc.xml
+/.idea/migrations.xml
+/.idea/deploymentTargetSelector.xml

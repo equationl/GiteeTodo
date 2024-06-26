@@ -16,12 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ScaffoldState
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.Description
@@ -29,6 +23,14 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.BottomSheetScaffoldState
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -42,11 +44,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.equationl.giteetodo.R
 import com.equationl.giteetodo.data.user.model.response.User
+import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.viewmodel.ProfileViewAction
@@ -56,19 +58,20 @@ import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    navHostController: NavHostController,
-    scaffoldState: ScaffoldState,
+    scaffoldState: BottomSheetScaffoldState,
     repoPath: String,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
+    val navHostController = LocalNavController.current
     val viewState = viewModel.viewStates
     val coroutineState = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
         viewModel.dispatch(ProfileViewAction.ReadUserInfo)
-        onDispose {  }
+        onDispose { }
     }
 
     LaunchedEffect(Unit) {
@@ -77,8 +80,7 @@ fun ProfileScreen(
                 coroutineState.launch {
                     scaffoldState.snackbarHostState.showSnackbar(message = it.message)
                 }
-            }
-            else if (it is ProfileViewEvent.Goto) {
+            } else if (it is ProfileViewEvent.Goto) {
                 navHostController.navigate(it.route)
             }
         }
@@ -86,10 +88,9 @@ fun ProfileScreen(
 
     if (viewState.user != null) {
         Column(Modifier.fillMaxSize()) {
-            ProFileContent(viewState.user, navHostController, repoPath, viewModel)
+            ProFileContent(viewState.user, repoPath)
         }
-    }
-    else {
+    } else {
         ListEmptyContent(title = "用户信息为空，点击刷新") {
             viewModel.dispatch(ProfileViewAction.ReadUserInfo)
         }
@@ -97,7 +98,12 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProFileContent(user: User, navHostController: NavHostController, repoPath: String, viewModel: ProfileViewModel) {
+fun ProFileContent(
+    user: User,
+    repoPath: String,
+) {
+    val navHostController = LocalNavController.current
+
     Column(
         Modifier
             .fillMaxWidth()
@@ -115,7 +121,7 @@ fun ProFileContent(user: User, navHostController: NavHostController, repoPath: S
                 .width(50.dp)
                 .height(50.dp)
                 .clip(CircleShape)
-                .border(BorderStroke(1.dp, MaterialTheme.colors.primary), shape = CircleShape)
+                .border(BorderStroke(1.dp, MaterialTheme.colorScheme.primary), shape = CircleShape)
         )
 
         Text(user.name, modifier = Modifier.padding(top = 8.dp))
@@ -125,7 +131,7 @@ fun ProFileContent(user: User, navHostController: NavHostController, repoPath: S
                 icon = Icons.Filled.Person,
                 iconDescription = "账号",
                 title = "账号",
-                content = "@"+user.login
+                content = "@" + user.login
             )
 
             ProfileInfoItem(
@@ -150,10 +156,17 @@ fun ProFileContent(user: User, navHostController: NavHostController, repoPath: S
                 iconDescription = "标签管理",
                 title = "标签管理"
             ) {
-                navHostController.navigate("${Route.LABEL_MG}/${URLEncoder.encode(repoPath, StandardCharsets.UTF_8.toString())}")
+                navHostController.navigate(
+                    "${Route.LABEL_MG}/${
+                        URLEncoder.encode(
+                            repoPath,
+                            StandardCharsets.UTF_8.toString()
+                        )
+                    }"
+                )
             }
 
-            Divider()
+            HorizontalDivider()
 
             ProfileInfoItem(
                 icon = Icons.Filled.Info,
@@ -163,7 +176,7 @@ fun ProFileContent(user: User, navHostController: NavHostController, repoPath: S
                 navHostController.navigate(Route.ABOUT)
             }
 
-            Divider()
+            HorizontalDivider()
 
             ProfileInfoItem(
                 icon = Icons.Filled.Settings,
@@ -178,10 +191,14 @@ fun ProFileContent(user: User, navHostController: NavHostController, repoPath: S
 
 @Composable
 fun ProfileInfoCard(content: @Composable () -> Unit) {
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(32.dp, 8.dp)
-        .background(MaterialTheme.colors.background), shape = RoundedCornerShape(16.dp), elevation = 5.dp) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp, 8.dp)
+            .background(MaterialTheme.colorScheme.background),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+    ) {
         Column(Modifier.padding(4.dp)) {
             content.invoke()
         }
@@ -189,7 +206,13 @@ fun ProfileInfoCard(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun ProfileInfoItem(icon: ImageVector, iconDescription: String, title: String, content: String? = null, onClick: (() -> Unit)? = null) {
+fun ProfileInfoItem(
+    icon: ImageVector,
+    iconDescription: String,
+    title: String,
+    content: String? = null,
+    onClick: (() -> Unit)? = null
+) {
     var modifier = Modifier
         .fillMaxWidth()
         .padding(start = 32.dp, end = 8.dp, bottom = 4.dp, top = 4.dp)
@@ -197,8 +220,11 @@ fun ProfileInfoItem(icon: ImageVector, iconDescription: String, title: String, c
         modifier = modifier.clickable(onClick = onClick)
     }
 
-    Row(modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = iconDescription)
             Text(title, modifier = Modifier.padding(start = 4.dp), fontWeight = FontWeight.Bold)

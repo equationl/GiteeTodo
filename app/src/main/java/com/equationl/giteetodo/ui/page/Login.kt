@@ -10,16 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Snackbar
-import androidx.compose.material.SnackbarHost
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Clear
@@ -28,7 +18,18 @@ import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -36,7 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalTextInputService
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,9 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
+import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.theme.Shapes
-import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.BaseMsgDialog
 import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
@@ -61,14 +61,15 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "el, LoginScreen"
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    navController: NavHostController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val activity = (LocalContext.current as? Activity)
     val viewState = viewModel.viewStates
-    val scaffoldState = rememberScaffoldState()
+    val navController = LocalNavController.current
+    val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineState = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
@@ -122,7 +123,7 @@ fun LoginContent() {
     val viewState = loginViewModel.viewStates
     val context = LocalContext.current
 
-    Column(Modifier.background(MaterialTheme.colors.baseBackground)) {
+    Column(Modifier.background(MaterialTheme.colorScheme.background)) {
 
         Column(Modifier.weight(9f)) {
             Row(
@@ -183,7 +184,7 @@ fun LoginContent() {
                     .fillMaxWidth()
                     .padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                Divider(
+                HorizontalDivider(
                     thickness = 2.dp,
                     modifier = Modifier
                         .padding(start = 8.dp)
@@ -199,11 +200,11 @@ fun LoginContent() {
                         Icon(
                             Icons.AutoMirrored.Outlined.HelpOutline,
                             contentDescription = "疑问",
-                            tint = MaterialTheme.colors.primary
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
-                Divider(
+                HorizontalDivider(
                     thickness = 2.dp,
                     modifier = Modifier
                         .padding(end = 8.dp, start = 8.dp)
@@ -262,7 +263,7 @@ fun EmailEditWidget(loginViewModel: LoginViewModel, viewState: LoginViewState) {
 
 @Composable
 fun PasswordEditWidget(loginViewModel: LoginViewModel, viewState: LoginViewState) {
-    val keyboardService = LocalTextInputService.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     OutlinedTextField(
         value = viewState.password,
@@ -275,7 +276,7 @@ fun PasswordEditWidget(loginViewModel: LoginViewModel, viewState: LoginViewState
         isError = viewState.isPassWordError,
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions { keyboardService?.hideSoftwareKeyboard()  },
+        keyboardActions = KeyboardActions { keyboardController?.hide()  },
         visualTransformation = if (viewState.isPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
             if (viewState.password.isNotEmpty()) {

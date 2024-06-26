@@ -1,9 +1,24 @@
 package com.equationl.giteetodo.ui.page
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -12,9 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.theme.Shapes
-import com.equationl.giteetodo.ui.theme.baseBackground
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.viewmodel.RepoDetailViewAction
@@ -23,15 +37,14 @@ import com.equationl.giteetodo.viewmodel.RepoDetailViewModel
 import com.equationl.giteetodo.viewmodel.RepoDetailViewState
 import kotlinx.coroutines.launch
 
-private const val TAG = "el, RepoDetail"
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepoDetailScreen(
-    navController: NavHostController,
     viewModel: RepoDetailViewModel = hiltViewModel()
 ) {
+    val navController = LocalNavController.current
     val viewState = viewModel.viewStates
-    val scaffoldState = rememberScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineState = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -73,7 +86,7 @@ fun RepoDetailContent(
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(paddingValues)
-        .background(MaterialTheme.colors.baseBackground)
+        .background(MaterialTheme.colorScheme.background)
         //.imePadding()
         //.imeNestedScroll()
     ) {
@@ -87,7 +100,7 @@ fun RepoDetailContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp)
-                    .background(MaterialTheme.colors.background))
+                    .background(MaterialTheme.colorScheme.background))
         }
 
         item(key = "仓库描述") {
@@ -99,7 +112,7 @@ fun RepoDetailContent(
                     .fillMaxWidth()
                     .padding(2.dp)
                     .padding(top = 32.dp)
-                    .background(MaterialTheme.colors.background))
+                    .background(MaterialTheme.colorScheme.background))
         }
 
         item(key = "仓库路径") {
@@ -112,7 +125,7 @@ fun RepoDetailContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp)
-                    .background(MaterialTheme.colors.background))
+                    .background(MaterialTheme.colorScheme.background))
         }
 
         item(key = "私有仓库") {
@@ -144,7 +157,7 @@ fun RepoDetailContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(2.dp)
-                        .background(MaterialTheme.colors.background))
+                        .background(MaterialTheme.colorScheme.background))
             }
         }
 

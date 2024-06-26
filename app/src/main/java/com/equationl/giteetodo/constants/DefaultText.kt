@@ -1,19 +1,19 @@
 package com.equationl.giteetodo.constants
 
 object DefaultText {
-    const val ReadmeFileName = "README.md"
-    const val ReadmeContent = """
+    const val README_FILE_NAME = "README.md"
+    const val README_CONTENT = """
             
     ***
     
-    使用 [GiteeTodo](https://gitee.com/equation/GiteeTodo) 创建。
+    使用 [GiteeTodo](https://github.com/equationl/GiteeTodo) 创建。
 
     > GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TODO 应用；使用 Gitee（码云）的 issue 作为储存仓库。
             
         """
 
 
-    const val AboutContent = """
+    const val ABOUT_CONTENT = """
         ## 关于
         GiteeTodo 是一款基于 compose + viewmodel + Retrofit 实现的 MVI 架构 TODO 应用；使用 Gitee（码云）的 issue 作为储存仓库。
         
@@ -30,7 +30,7 @@ object DefaultText {
         - 适配深色模式
         
         ### 源码地址
-        [GiteeTodo](https://gitee.com/equation/GiteeTodo)
+        [GiteeTodo](https://github.com/equationl/GiteeTodo)
         
         ### 联系我
         email: admin@likehide.com

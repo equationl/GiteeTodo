@@ -6,8 +6,6 @@ import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.user.model.response.Repo
 import retrofit2.HttpException
 
-private const val TAG = "el, ReposPagingSource"
-
 class ReposPagingSource(
     private val repoApi: RepoApi,
     private val accessToken: String

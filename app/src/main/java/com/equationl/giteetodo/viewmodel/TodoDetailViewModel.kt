@@ -62,7 +62,7 @@ class TodoDetailViewModel @Inject constructor(
 
     private fun toggleCreateComment(isShow: Boolean) {
         viewStates = if (isShow) {
-            viewStates.copy(isShowCommentEdit = isShow)
+            viewStates.copy(isShowCommentEdit = true)
         } else {
             viewStates.copy(
                 newComment = "",
@@ -76,8 +76,8 @@ class TodoDetailViewModel @Inject constructor(
 
     private fun clickDeleteComment(id: Int) {
         viewModelScope.launch(exception) {
-            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = repoApi.deleteComment(
                 repoPath.split("/")[0],
@@ -121,8 +121,8 @@ class TodoDetailViewModel @Inject constructor(
         viewModelScope.launch(exception) {
             val tipText = if (viewStates.editCommentId == -1) "创建评论" else "更新评论"
 
-            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = if (viewStates.editCommentId == -1) {
                 repoApi.createComment(
@@ -196,8 +196,8 @@ class TodoDetailViewModel @Inject constructor(
 
     private fun loadComment(issueNum: String) {
         viewModelScope.launch(exception) {
-            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = repoApi.getAllComments(
                 repoPath.split("/")[0],
@@ -258,12 +258,12 @@ class TodoDetailViewModel @Inject constructor(
                         }
                     }
 
-                    viewStates = viewStates.copy(isShowLabelsDropMenu = isShow, availableLabels = showLabelMap)
+                    viewStates = viewStates.copy(isShowLabelsDropMenu = true, availableLabels = showLabelMap)
                 }
             }
         }
         else {
-            viewStates = viewStates.copy(isShowLabelsDropMenu = isShow)
+            viewStates = viewStates.copy(isShowLabelsDropMenu = false)
         }
     }
 
@@ -306,22 +306,22 @@ class TodoDetailViewModel @Inject constructor(
                     isEditAble = false,
                     isLoading = false,
                     title = issueDetail.title,
-                    createdDateTime = Utils.getDateTimeString(issueDetail.createdAt, "yyyy年 M月dd日 HH:mm:ss"),
-                    updateDateTime = Utils.getDateTimeString(issueDetail.updatedAt, "yyyy年 M月dd日 HH:mm:ss"),
+                    createdDateTime = Utils.getDateTimeString(issueDetail.createdAt, "yyyy年M月dd日 HH:mm:ss"),
+                    updateDateTime = Utils.getDateTimeString(issueDetail.updatedAt, "yyyy年M月dd日 HH:mm:ss"),
                     content = issueDetail.body ?: "",
                     state = getIssueState(issueDetail.state),
                     priority = issueDetail.priority,
                     labels = labels.ifBlank { "未设置" },
-                    startDateTime = if (issueDetail.planStartedAt == null) "未设置" else Utils.getDateTimeString(issueDetail.planStartedAt, "yyyy年 M月dd日 HH:mm:ss"),
-                    stopDateTime = if (issueDetail.deadline == null ) "未设置" else Utils.getDateTimeString(issueDetail.deadline, "yyyy年 M月dd日 HH:mm:ss")
+                    startDateTime = if (issueDetail.planStartedAt == null) "未设置" else Utils.getDateTimeString(issueDetail.planStartedAt, "yyyy年M月dd日 HH:mm:ss"),
+                    stopDateTime = if (issueDetail.deadline == null ) "未设置" else Utils.getDateTimeString(issueDetail.deadline, "yyyy年M月dd日 HH:mm:ss")
                 )
             }
         }
     }
 
     private suspend fun requestIssue(issueNum: String): Issue? {
-        val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-        val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+        val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
+        val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
         val response = repoApi.getIssue(
             repoPath.split("/")[0],
@@ -359,16 +359,16 @@ class TodoDetailViewModel @Inject constructor(
             val labels = if (viewStates.labels == "未设置") null else viewStates.labels
             val body = viewStates.content.ifBlank { null }
 
-            val repoPath = DataStoreUtils.getSyncData(DataKey.UsingRepo, "")
-            val token = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
+            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = if (issueNum == "null") {
                 repoApi.createIssues(
                     repoPath.split("/")[0],
                     CreateIssues(
-                        access_token = token, repo = repoPath.split("/")[1],
+                        accessToken = token, repo = repoPath.split("/")[1],
                         title = viewStates.title, body = body,
-                        issue_type = state.des, labels = labels
+                        issueType = state.des, labels = labels
                     )
                 )
             }
@@ -377,7 +377,7 @@ class TodoDetailViewModel @Inject constructor(
                     repoPath.split("/")[0],
                     issueNum,
                     UpdateIssue(
-                        access_token = token, repo = repoPath.split("/")[1],
+                        accessToken = token, repo = repoPath.split("/")[1],
                         title = viewStates.title, body = body,
                         state = state.des, labels = labels
                     )

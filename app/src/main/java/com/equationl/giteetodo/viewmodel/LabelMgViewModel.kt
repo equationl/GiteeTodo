@@ -49,7 +49,7 @@ class LabelMgViewModel @Inject constructor(
 
     private fun clickSave(pos: Int, repoPath: String, label: Label?) {
         viewModelScope.launch(exception) {
-            val accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val accessToken = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
             val owner = repoPath.split("/")[0]
             val repo = repoPath.split("/")[1]
             val response = if (pos == Int.MAX_VALUE) {  // 新建
@@ -106,7 +106,7 @@ class LabelMgViewModel @Inject constructor(
         viewStates = viewStates.copy(labelList = newLabelList)
 
         viewModelScope.launch(exception) {
-            val accessToken = DataStoreUtils.getSyncData(DataKey.LoginAccessToken, "")
+            val accessToken = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
             val response = repoApi.deleteLabel(
                 repoPath.split("/")[0],
                 repoPath.split("/")[1],
@@ -168,7 +168,7 @@ sealed class LabelMgViewEvent {
 }
 
 sealed class LabelMgViewAction {
-    object ClickAddLabel: LabelMgViewAction()
+    data object ClickAddLabel: LabelMgViewAction()
     data class ClickEditLabel(val pos: Int): LabelMgViewAction()
     data class LoadLabel(val forceRequest: Boolean, val isShowSuccessAlt: Boolean = false): LabelMgViewAction()
     data class DeleteLabel(val label: Label, val repoPath: String): LabelMgViewAction()

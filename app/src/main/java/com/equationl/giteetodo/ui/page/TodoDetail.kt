@@ -71,6 +71,7 @@ import com.equationl.giteetodo.ui.LocalShareAnimatedContentScope
 import com.equationl.giteetodo.ui.LocalSharedTransitionScope
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
+import com.equationl.giteetodo.ui.widgets.CommonMarkDown
 import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.ui.widgets.placeholder.PlaceholderHighlight
@@ -82,8 +83,7 @@ import com.equationl.giteetodo.viewmodel.TodoDetailViewEvent
 import com.equationl.giteetodo.viewmodel.TodoDetailViewModel
 import com.equationl.giteetodo.viewmodel.TodoDetailViewState
 import com.equationl.giteetodo.viewmodel.getPriorityString
-import com.halilibo.richtext.markdown.Markdown
-import com.halilibo.richtext.ui.material3.RichText
+import com.halilibo.richtext.ui.material3.Material3RichText
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -306,10 +306,8 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
                         highlight = PlaceholderHighlight.fade()
                     )
             ) {
-                RichText(modifier = Modifier.padding(4.dp)) {
-                    Markdown(
-                        viewState.content
-                    )
+                Material3RichText(modifier = Modifier.padding(4.dp)) {
+                    CommonMarkDown(viewState.content)
                 }
             }
         }
@@ -553,8 +551,8 @@ fun TodoCommentItem(
                 //Text(text = "更新于 ${Utils.getDateTimeString(comment.updatedAt, "M月dd日 hh:mm:ss")}", fontSize = 8.sp)
             }
         }
-        RichText(Modifier.padding(bottom = 8.dp, start = 4.dp)) {
-            Markdown(content = comment.body)
+        Material3RichText(Modifier.padding(bottom = 8.dp, start = 4.dp)) {
+            CommonMarkDown(content = comment.body)
         }
         if (hasDivider) {
             HorizontalDivider()

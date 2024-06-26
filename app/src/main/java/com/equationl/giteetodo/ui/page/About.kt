@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.equationl.giteetodo.constants.DefaultText
 import com.equationl.giteetodo.ui.LocalNavController
+import com.equationl.giteetodo.ui.widgets.CommonMarkDown
 import com.equationl.giteetodo.ui.widgets.TopBar
-import com.halilibo.richtext.markdown.Markdown
-import com.halilibo.richtext.ui.material3.RichText
+import com.halilibo.richtext.ui.material3.Material3RichText
 
 @Composable
 fun AboutScreen() {
@@ -31,10 +31,11 @@ fun AboutScreen() {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
         ) {
-            RichText(modifier = Modifier
+            Material3RichText(modifier = Modifier
                 .padding(it)
-                .padding(8.dp)) {
-                Markdown(content = DefaultText.ABOUT_CONTENT.trimIndent())
+                .padding(8.dp)
+            ) {
+                CommonMarkDown(content = DefaultText.ABOUT_CONTENT.trimIndent())
             }
         }
     }

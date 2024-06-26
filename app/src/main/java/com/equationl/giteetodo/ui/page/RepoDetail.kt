@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
@@ -87,7 +89,7 @@ fun RepoDetailContent(
         .fillMaxSize()
         .padding(paddingValues)
         .background(MaterialTheme.colorScheme.background)
-        //.imePadding()
+        .imePadding()
         //.imeNestedScroll()
     ) {
         item(key = "仓库名称") {
@@ -108,6 +110,7 @@ fun RepoDetailContent(
                 value = viewState.repoDescribe,
                 onValueChange = { viewModel.dispatch(RepoDetailViewAction.ChangeDescribe(it)) },
                 label = { Text("仓库描述")},
+                singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp)
@@ -156,6 +159,7 @@ fun RepoDetailContent(
                     label = { Text("仓库详细介绍（README）， 支持 markdown")},
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(180.dp)
                         .padding(2.dp)
                         .background(MaterialTheme.colorScheme.background))
             }

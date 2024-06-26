@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -161,7 +162,9 @@ fun TodoDetailContent(
     viewState: TodoDetailViewState,
     issueNum: String,
     ) {
-    Box {
+    Box(
+        modifier = Modifier.imePadding()
+    ) {
         val listState = rememberLazyListState()
         LazyColumn(state = listState,
             modifier = Modifier
@@ -212,6 +215,7 @@ fun TodoDetailMainContent(
             onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnTitleChange(it)) },
             readOnly = !viewState.isEditAble,
             label = { Text("标题")},
+            singleLine = true,
             modifier = Modifier
                 .sharedElement(
                     sharedTransitionScope.rememberSharedContentState(key = "${ShareElementKey.TODO_ITEM_TITLE}_${issueNum}"),
@@ -280,6 +284,7 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
             },
             modifier = Modifier
                 .fillMaxWidth()
+                .height(250.dp)
                 .padding(2.dp)
                 .padding(top = 32.dp)
                 .background(MaterialTheme.colorScheme.background)
@@ -579,6 +584,7 @@ fun TodoCreateCommentEdit(viewModel: TodoDetailViewModel, viewState: TodoDetailV
                 label = { Text(viewState.editCommentLabel) },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .heightIn(max = 180.dp)
                     .weight(8f)
                     .padding(2.dp)
             )

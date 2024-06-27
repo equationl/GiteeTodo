@@ -53,7 +53,9 @@ class IssueRemoteMediator(
                 * 在这种情况下，我们将返回MediatorResult.Success并带有endOfPaginationReached = true 。
                 * */
                 LoadType.APPEND -> {
-                    val remoteKeys = getRemoteKeyForLastItem(state)
+                    // 这里直接查找 Key 表的最新一条数据，不再使用 issue id 去匹配了
+                    // val remoteKeys = getRemoteKeyForLastItem(state)
+                    val remoteKeys = getLastRemoteKey()
                     if (remoteKeys == null) { // 查询数据为空，则设置为 1 ，表示从头加载
                         Log.w(TAG, "load: remoteKeys == null")
                         1
@@ -125,9 +127,15 @@ class IssueRemoteMediator(
         }
     }
 
-    private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, TodoShowData>): IssueRemoteKey? {
-        return state.lastItemOrNull()?.let { issue ->
-            database.withTransaction { issueKeyDao.remoteKeysByNewsId(issue.id) }
+//    private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, TodoShowData>): IssueRemoteKey? {
+//        return state.lastItemOrNull()?.let { issue ->
+//            database.withTransaction { issueKeyDao.remoteKeysByNewsId(issue.id) }
+//        }
+//    }
+
+    private suspend fun getLastRemoteKey(): IssueRemoteKey? {
+        return database.withTransaction {
+            issueKeyDao.getLastItem()
         }
     }
 

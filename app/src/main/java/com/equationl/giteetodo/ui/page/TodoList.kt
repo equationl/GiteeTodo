@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -223,30 +224,30 @@ fun TodoListLazyColumn(
 
         var lastTitle = ""
 
-        todoPagingItems.itemSnapshotList.forEach {
-            if (it != null) {
-                if (it.headerTitle != lastTitle) {
-                    stickyHeader {
-                        TodoListGroupHeader(text = it.headerTitle, isLoading)
-                    }
-                    lastTitle = it.headerTitle
-                }
+        repeat(todoPagingItems.itemCount - 1) {
+            val data = todoPagingItems.peek(it)
 
-                item(key = it.toString()) {
-                    TodoItem(
-                        itemData = it,
-                        viewModel = viewModel,
-                        repoPath = repoPath,
-                        isLoading = isLoading,
-                    )
+            if (data?.headerTitle != lastTitle) {
+                stickyHeader {
+                    TodoListGroupHeader(text = data?.headerTitle ?: "", isLoading)
                 }
+                lastTitle = data?.headerTitle ?: ""
+            }
+
+            item(key = data?.id) {
+                TodoItem(
+                    itemData = todoPagingItems[it],
+                    viewModel = viewModel,
+                    repoPath = repoPath,
+                    isLoading = isLoading,
+                )
             }
         }
 
         item(key = "loading") {
             when (todoPagingItems.loadState.append) {
                 is LoadState.NotLoading -> {}
-                LoadState.Loading -> {
+                is LoadState.Loading -> {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         Text("加载中")
                     }
@@ -284,68 +285,78 @@ fun TodoListGroupHeader(text: String, isLoading: Boolean) {
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun TodoItem(
-    itemData: TodoShowData,
+    itemData: TodoShowData?,
     viewModel: TodoListViewModel,
     repoPath: String,
     isLoading: Boolean,
 ) {
+    if (itemData == null) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.height(100.dp).placeholder(visible = true, highlight = PlaceholderHighlight.fade())
+        ) {
 
-    val navController = LocalNavController.current
-    val sharedTransitionScope = LocalSharedTransitionScope.current
-    val animatedContentScope = LocalShareAnimatedContentScope.current
-
-    var checked by remember {
-        mutableStateOf(
-            when (itemData.state) {
-                IssueState.CLOSED -> true
-                else -> false
-            }
-        )
+        }
     }
+    else {
+        val navController = LocalNavController.current
+        val sharedTransitionScope = LocalSharedTransitionScope.current
+        val animatedContentScope = LocalShareAnimatedContentScope.current
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp, 2.dp)
-            .background(MaterialTheme.colorScheme.background)
-            .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade()),
-        shape = RoundedCornerShape(4.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
-    ) {
-        Column(Modifier.padding(4.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(end = 8.dp)
-            ) {
-                Checkbox(checked = checked,
-                    enabled = itemData.state != IssueState.REJECTED,
-                    onCheckedChange = {
-                        checked = it
-                        viewModel.dispatch(
-                            TodoListViewAction.UpdateIssueState(
-                                itemData.number,
-                                it,
-                                repoPath
+        var checked by remember {
+            mutableStateOf(
+                when (itemData.state) {
+                    IssueState.CLOSED -> true
+                    else -> false
+                }
+            )
+        }
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp, 2.dp)
+                .background(MaterialTheme.colorScheme.background)
+                .placeholder(visible = isLoading, highlight = PlaceholderHighlight.fade()),
+            shape = RoundedCornerShape(4.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 2.dp
+            )
+        ) {
+            Column(Modifier.padding(4.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Checkbox(checked = checked,
+                        enabled = itemData.state != IssueState.REJECTED,
+                        onCheckedChange = {
+                            checked = it
+                            viewModel.dispatch(
+                                TodoListViewAction.UpdateIssueState(
+                                    itemData.number,
+                                    it,
+                                    repoPath
+                                )
                             )
+                        })
+                    with(sharedTransitionScope) {
+                        Text(
+                            text = itemData.title,
+                            textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .sharedElement(
+                                    sharedTransitionScope.rememberSharedContentState(key = "${ShareElementKey.TODO_ITEM_TITLE}_${itemData.number}"),
+                                    animatedVisibilityScope = animatedContentScope
+                                )
+                                .noRippleClickable {
+                                    navController.navigate("${Route.TODO_DETAIL}/${itemData.number}/${itemData.title}")
+                                }
                         )
-                    })
-                with(sharedTransitionScope) {
-                    Text(
-                        text = itemData.title,
-                        textDecoration = if (itemData.state == IssueState.REJECTED) TextDecoration.LineThrough else null,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .sharedElement(
-                                sharedTransitionScope.rememberSharedContentState(key = "${ShareElementKey.TODO_ITEM_TITLE}_${itemData.number}"),
-                                animatedVisibilityScope = animatedContentScope
-                            )
-                            .noRippleClickable {
-                                navController.navigate("${Route.TODO_DETAIL}/${itemData.number}/${itemData.title}")
-                            }
-                    )
+                    }
                 }
             }
         }

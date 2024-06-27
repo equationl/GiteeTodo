@@ -33,7 +33,7 @@ object Utils {
         return this.matches(emailAddressRegex)
     }
 
-    fun getDateTimeString(sourceDateTime: String, pattern: String = "M月dd日"): String {
+    fun getDateTimeString(sourceDateTime: String, pattern: String = "yyyy年M月dd日"): String {
 
         val date = LocalDateTime.parse(sourceDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 

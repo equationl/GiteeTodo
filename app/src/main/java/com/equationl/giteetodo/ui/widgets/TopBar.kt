@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,11 +22,16 @@ import com.equationl.giteetodo.viewmodel.CurrentPager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(title: String, navigationIcon: ImageVector = Icons.AutoMirrored.Filled.ArrowBack, actions: @Composable RowScope.() -> Unit = {}, onBack: () -> Unit) {
-    TopAppBar (
+fun TopBar(
+    title: String,
+    navigationIcon: ImageVector = Icons.AutoMirrored.Filled.ArrowBack,
+    actions: @Composable RowScope.() -> Unit = {},
+    onBack: () -> Unit
+) {
+    TopAppBar(
         title = {
             Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                },
+        },
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(navigationIcon, "返回")
@@ -37,8 +43,15 @@ fun TopBar(title: String, navigationIcon: ImageVector = Icons.AutoMirrored.Fille
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(title: String, navigationIcon: ImageVector, currentPager: CurrentPager, actions: @Composable RowScope.() -> Unit = {}, onBack: () -> Unit) {
-    TopAppBar (
+fun HomeTopBar(
+    title: String,
+    navigationIcon: ImageVector,
+    currentPager: CurrentPager,
+    scrollBehavior: TopAppBarScrollBehavior,
+    actions: @Composable RowScope.() -> Unit = {},
+    onBack: () -> Unit
+) {
+    TopAppBar(
         title = {
             AnimatedContent(
                 targetState = title,
@@ -46,8 +59,7 @@ fun HomeTopBar(title: String, navigationIcon: ImageVector, currentPager: Current
                     if (currentPager == CurrentPager.HOME_ME) {
                         (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
                             slideOutHorizontally { width -> -width } + fadeOut())
-                    }
-                    else {
+                    } else {
                         (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
                             slideOutHorizontally { width -> width } + fadeOut())
                     }
@@ -62,6 +74,7 @@ fun HomeTopBar(title: String, navigationIcon: ImageVector, currentPager: Current
                 Icon(navigationIcon, "返回")
             }
         },
-        actions = actions
+        actions = actions,
+        scrollBehavior = scrollBehavior
     )
 }

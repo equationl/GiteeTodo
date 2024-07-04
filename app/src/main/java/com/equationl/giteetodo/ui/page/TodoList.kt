@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.BottomAppBarScrollBehavior
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,7 +63,6 @@ import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.ListEmptyContent
 import com.equationl.giteetodo.ui.widgets.LoadDataContent
-import com.equationl.giteetodo.ui.widgets.isScrollingUp
 import com.equationl.giteetodo.ui.widgets.noRippleClickable
 import com.equationl.giteetodo.ui.widgets.placeholder.PlaceholderHighlight
 import com.equationl.giteetodo.ui.widgets.placeholder.material3.fade
@@ -84,7 +85,8 @@ import kotlinx.coroutines.launch
 fun TodoListScreen(
     repoPath: String,
     scaffoldState: BottomSheetScaffoldState,
-    isShowSystemBar: (isShow: Boolean) -> Unit,
+    topAppBarScrollBehavior: TopAppBarScrollBehavior,
+    bottomBarScrollBehavior: BottomAppBarScrollBehavior,
     viewModel: TodoListViewModel = hiltViewModel(),
 ) {
     val viewState = viewModel.viewStates
@@ -109,14 +111,18 @@ fun TodoListScreen(
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection)
+            .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
+    ) {
         TodoListContent(
             viewState,
             viewModel,
             repoPath,
             todoPagingItems,
             coroutineState,
-            isShowSystemBar
         )
     }
 }
@@ -129,26 +135,23 @@ fun TodoListContent(
     repoPath: String,
     todoPagingItems: LazyPagingItems<TodoShowData>,
     coroutineState: CoroutineScope,
-    isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
     var isRefreshing by remember { mutableStateOf(false) }
 
     if (todoPagingItems.loadState.refresh is LoadState.Error) {
-        viewModel.dispatch(TodoListViewAction.SendMsg("加载错误："+ (todoPagingItems.loadState.refresh as LoadState.Error).error.message))
+        viewModel.dispatch(TodoListViewAction.SendMsg("加载错误：" + (todoPagingItems.loadState.refresh as LoadState.Error).error.message))
     }
 
     if (todoPagingItems.itemCount < 1) {
         @Suppress("ControlFlowWithEmptyBody")
         if (todoPagingItems.loadState.refresh == LoadState.Loading) {
             LoadDataContent("正在加载中…")
-        }
-        else if (todoPagingItems.loadState.mediator == null ||
+        } else if (todoPagingItems.loadState.mediator == null ||
             (todoPagingItems.loadState.mediator != null &&
-                    todoPagingItems.loadState.source.refresh  == LoadState.Loading)
+                    todoPagingItems.loadState.source.refresh == LoadState.Loading)
         ) {
 
-        }
-        else {
+        } else {
             if (viewState.isAutoRefresh) {
                 // 筛选类型
                 TodoFilterContent(viewState, viewModel) {
@@ -157,17 +160,18 @@ fun TodoListContent(
                         todoPagingItems.refresh()
                     }
                 }
-                ListEmptyContent("还没有数据哦，点击立即刷新", "TIPS： 点击下方 “+” 可以添加你的第一条数据哦\n也可以尝试更换仓库或筛选条件再试试") {
+                ListEmptyContent(
+                    "还没有数据哦，点击立即刷新",
+                    "TIPS： 点击下方 “+” 可以添加你的第一条数据哦\n也可以尝试更换仓库或筛选条件再试试"
+                ) {
                     todoPagingItems.refresh()
                 }
-            }
-            else {
+            } else {
                 viewModel.dispatch(TodoListViewAction.AutoRefreshFinish)
                 todoPagingItems.refresh() // 如果数据为空则先尝试刷新一下
             }
         }
-    }
-    else {
+    } else {
         isRefreshing = (todoPagingItems.loadState.refresh is LoadState.Loading)
 
         PullToRefreshBox(
@@ -184,7 +188,6 @@ fun TodoListContent(
                 repoPath,
                 isRefreshing,
                 coroutineState,
-                isShowSystemBar,
             )
         }
     }
@@ -199,17 +202,11 @@ fun TodoListLazyColumn(
     repoPath: String,
     isLoading: Boolean,
     coroutineState: CoroutineScope,
-    isShowSystemBar: (isShow: Boolean) -> Unit
 ) {
-    val listState = rememberLazyListState()
-
-    isShowSystemBar(listState.isScrollingUp())
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(bottom = 2.dp),
-        state = listState
     ) {
         item(key = "headerFilter") {
             // 筛选类型
@@ -252,12 +249,13 @@ fun TodoListLazyColumn(
                         Text("加载中")
                     }
                 }
+
                 is LoadState.Error -> {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         LinkText("加载失败，点击重试") {
                             todoPagingItems.retry()
                         }
-                        viewModel.dispatch(TodoListViewAction.SendMsg("加载出错："+ (todoPagingItems.loadState.append as LoadState.Error).error.toString()))
+                        viewModel.dispatch(TodoListViewAction.SendMsg("加载出错：" + (todoPagingItems.loadState.append as LoadState.Error).error.toString()))
                     }
                 }
             }
@@ -294,12 +292,13 @@ fun TodoItem(
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.height(100.dp).placeholder(visible = true, highlight = PlaceholderHighlight.fade())
+            modifier = Modifier
+                .height(100.dp)
+                .placeholder(visible = true, highlight = PlaceholderHighlight.fade())
         ) {
 
         }
-    }
-    else {
+    } else {
         val navController = LocalNavController.current
         val sharedTransitionScope = LocalSharedTransitionScope.current
         val animatedContentScope = LocalShareAnimatedContentScope.current
@@ -369,18 +368,30 @@ fun TodoFilterContent(
     viewModel: TodoListViewModel,
     onRefresh: () -> Unit
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
-        .fillMaxWidth()
-        .padding(end = 32.dp, start = 32.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = 32.dp, start = 32.dp)
+    ) {
 
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeLabelsDropMenuShowState(true))
         }) {
-            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowLabelsDropMenu) -180f else 0f,
+            val arrowRotateDegrees: Float by animateFloatAsState(
+                if (viewState.isShowLabelsDropMenu) -180f else 0f,
                 label = "arrowRotateDegrees"
             )
-            Text("标签", color = if (viewState.filteredOptionList.contains(FilteredOption.Labels)) MaterialTheme.colorScheme.primary else Color.Unspecified)
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = "标签", modifier = Modifier.rotate(arrowRotateDegrees))
+            Text(
+                "标签",
+                color = if (viewState.filteredOptionList.contains(FilteredOption.Labels)) MaterialTheme.colorScheme.primary else Color.Unspecified
+            )
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = "标签",
+                modifier = Modifier.rotate(arrowRotateDegrees)
+            )
             TodoListLabelDropMenu(
                 options = viewState.availableLabels,
                 isShowDropMenu = viewState.isShowLabelsDropMenu,
@@ -394,14 +405,28 @@ fun TodoFilterContent(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeStateDropMenuShowState(true))
         }) {
-            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowStateDropMenu) -180f else 0f,
+            val arrowRotateDegrees: Float by animateFloatAsState(
+                if (viewState.isShowStateDropMenu) -180f else 0f,
                 label = "arrowRotateDegrees"
             )
-            Text("状态", color = if (viewState.filteredOptionList.contains(FilteredOption.States)) MaterialTheme.colorScheme.primary else Color.Unspecified)
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = "状态", modifier = Modifier.rotate(arrowRotateDegrees))
+            Text(
+                "状态",
+                color = if (viewState.filteredOptionList.contains(FilteredOption.States)) MaterialTheme.colorScheme.primary else Color.Unspecified
+            )
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = "状态",
+                modifier = Modifier.rotate(arrowRotateDegrees)
+            )
             TodoListStateDropMenu(
                 isShow = viewState.isShowStateDropMenu,
-                changeShowState = {viewModel.dispatch(TodoListViewAction.ChangeStateDropMenuShowState(false))},
+                changeShowState = {
+                    viewModel.dispatch(
+                        TodoListViewAction.ChangeStateDropMenuShowState(
+                            false
+                        )
+                    )
+                },
                 onFilterState = {
                     viewModel.dispatch(TodoListViewAction.FilterState(it))
                     onRefresh()
@@ -413,15 +438,17 @@ fun TodoFilterContent(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             dialogState.show()
         }) {
-            Text("时间", color = if (viewState.filteredOptionList.contains(FilteredOption.DateTime)) MaterialTheme.colorScheme.primary else Color.Unspecified)
+            Text(
+                "时间",
+                color = if (viewState.filteredOptionList.contains(FilteredOption.DateTime)) MaterialTheme.colorScheme.primary else Color.Unspecified
+            )
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "时间")
             TodoListDateTimePicker(
                 dialogState
             ) { start, end ->
                 if (start == null || end == null) {
                     viewModel.dispatch(TodoListViewAction.SendMsg("请选择一个日期范围"))
-                }
-                else {
+                } else {
                     viewModel.dispatch(TodoListViewAction.FilterDate(start, end))
                     onRefresh()
                 }
@@ -431,12 +458,28 @@ fun TodoFilterContent(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
             viewModel.dispatch(TodoListViewAction.ChangeDirectionDropMenuShowState(true))
         }) {
-            val arrowRotateDegrees: Float by animateFloatAsState(if (viewState.isShowDirectionDropMenu) -180f else 0f, label = "arrowRotateDegrees")
-            Text("排序", color = if (viewState.filteredOptionList.contains(FilteredOption.Direction)) MaterialTheme.colorScheme.primary else Color.Unspecified)
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = "排序", modifier = Modifier.rotate(arrowRotateDegrees))
+            val arrowRotateDegrees: Float by animateFloatAsState(
+                if (viewState.isShowDirectionDropMenu) -180f else 0f,
+                label = "arrowRotateDegrees"
+            )
+            Text(
+                "排序",
+                color = if (viewState.filteredOptionList.contains(FilteredOption.Direction)) MaterialTheme.colorScheme.primary else Color.Unspecified
+            )
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = "排序",
+                modifier = Modifier.rotate(arrowRotateDegrees)
+            )
             TodoListDirecDropMenu(
                 isShow = viewState.isShowDirectionDropMenu,
-                changeShowState = { viewModel.dispatch(TodoListViewAction.ChangeDirectionDropMenuShowState(false)) },
+                changeShowState = {
+                    viewModel.dispatch(
+                        TodoListViewAction.ChangeDirectionDropMenuShowState(
+                            false
+                        )
+                    )
+                },
                 onFilterDirec = {
                     viewModel.dispatch(TodoListViewAction.FilterDirection(it))
                 }
@@ -444,7 +487,8 @@ fun TodoFilterContent(
         }
 
         if (viewState.filteredOptionList.isNotEmpty()) {
-            Icon(painter = painterResource(id = R.drawable.filter_alt_off) , contentDescription = "清除",
+            Icon(painter = painterResource(id = R.drawable.filter_alt_off),
+                contentDescription = "清除",
                 modifier = Modifier.noRippleClickable {
                     viewModel.dispatch(TodoListViewAction.ClearFilter)
                     onRefresh()
@@ -490,7 +534,13 @@ fun TodoListStateDropMenu(
     changeShowState: (isShow: Boolean) -> Unit,
     onFilterState: (state: IssueState) -> Unit
 ) {
-    val options = listOf(IssueState.OPEN, IssueState.CLOSED, IssueState.PROGRESSING, IssueState.REJECTED, IssueState.ALL)
+    val options = listOf(
+        IssueState.OPEN,
+        IssueState.CLOSED,
+        IssueState.PROGRESSING,
+        IssueState.REJECTED,
+        IssueState.ALL
+    )
 
     DropdownMenu(expanded = isShow, onDismissRequest = {
         changeShowState(false)

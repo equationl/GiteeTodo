@@ -11,7 +11,6 @@ import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -49,21 +48,7 @@ class TodoHomeViewModel @Inject constructor(
 
     private fun changeSystemBarShowState(isShow: Boolean) {
         if (viewStates.currentPage == CurrentPager.HOME_TODO) {
-            if (viewStates.isShowSystemBar != isShow) {  // 只有当前显示状态和请求状态不同时才继续，避免重复调用
-                if (isAnimationFinish) {
-                    // 只有在所有动画都完成后才继续，
-                    // 因为动画正在进行时会导致尺寸计算不可预测使得一直重复调用，最终导致动画也跟着“反复横跳”
-                    isAnimationFinish = false
-
-                    // 这里原本应该是判断动画完成了才可以继续变更，但是监听动画完成的地方有问题，所以暂时改成直接 delay 后恢复状态
-                    viewModelScope.launch {
-                        delay(300)
-                        isAnimationFinish = true
-                    }
-
-                    viewStates = viewStates.copy(isShowSystemBar = isShow)
-                }
-            }
+            viewStates = viewStates.copy(isShowSystemBar = isShow)
         }
     }
 
@@ -113,17 +98,17 @@ data class TodoHomeViewState(
 )
 
 sealed class TodoHomeViewEvent {
-    data class Goto(val route: String, val isClrStack: Boolean = false): TodoHomeViewEvent()
+    data class Goto(val route: String, val isClrStack: Boolean = false) : TodoHomeViewEvent()
     data class ShowMessage(val message: String) : TodoHomeViewEvent()
 }
 
 sealed class TodoHomeViewAction {
     data object ChangeRepo : TodoHomeViewAction()
-    data class GoToTodo(val repoPath: String): TodoHomeViewAction()
-    data class GoToMe(val repoPath: String): TodoHomeViewAction()
-    data class ChangeSystemBarShowState(val isShow: Boolean): TodoHomeViewAction()
-    data object AddATodo: TodoHomeViewAction()
-    data object Logout: TodoHomeViewAction()
+    data class GoToTodo(val repoPath: String) : TodoHomeViewAction()
+    data class GoToMe(val repoPath: String) : TodoHomeViewAction()
+    data class ChangeSystemBarShowState(val isShow: Boolean) : TodoHomeViewAction()
+    data object AddATodo : TodoHomeViewAction()
+    data object Logout : TodoHomeViewAction()
     data object OnAnimateFinish : TodoHomeViewAction()
 }
 

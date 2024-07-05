@@ -15,6 +15,9 @@ interface IssueRemoteKeyDao {
     @Query("SELECT * FROM issue_remote_key WHERE issueId = :issueId")
     fun remoteKeysByNewsId(issueId: Int): IssueRemoteKey?
 
+    @Query("SELECT * FROM issue_remote_key ORDER BY id DESC")
+    suspend fun getLastItem(): IssueRemoteKey?
+
     @Query("DELETE FROM issue_remote_key")
     suspend fun clearAll()
 }

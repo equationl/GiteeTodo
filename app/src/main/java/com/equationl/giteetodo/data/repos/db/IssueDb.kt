@@ -10,7 +10,7 @@ import com.equationl.giteetodo.data.repos.model.common.TodoShowData
 
 @Database(
     entities = [TodoShowData::class, IssueRemoteKey::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(IssueConverters::class)

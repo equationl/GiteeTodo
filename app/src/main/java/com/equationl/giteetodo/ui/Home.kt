@@ -24,6 +24,7 @@ import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.ui.common.RouteParams
 import com.equationl.giteetodo.ui.page.AboutScreen
 import com.equationl.giteetodo.ui.page.HomeScreen
+import com.equationl.giteetodo.ui.page.ImageScreen
 import com.equationl.giteetodo.ui.page.LabelManagerScreen
 import com.equationl.giteetodo.ui.page.LoginScreen
 import com.equationl.giteetodo.ui.page.OAuthLoginScreen
@@ -196,6 +197,19 @@ fun HomeNavHost() {
                     Column(Modifier.systemBarsPadding()) {
                         SettingScreen()
                     }
+                }
+
+                composable("${Route.IMAGE_PREVIEW}/{${RouteParams.PAR_IMAGE_URL}}",
+                    arguments = listOf(
+                        navArgument(RouteParams.PAR_IMAGE_URL) {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )) {
+                    val argument = requireNotNull(it.arguments)
+                    val imageUrl = argument.getString(RouteParams.PAR_IMAGE_URL)
+
+                    ImageScreen(image = imageUrl ?: "")
                 }
 
             }

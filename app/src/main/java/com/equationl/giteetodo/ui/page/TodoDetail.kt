@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -71,6 +72,7 @@ import com.equationl.giteetodo.ui.LocalShareAnimatedContentScope
 import com.equationl.giteetodo.ui.LocalSharedTransitionScope
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.ui.theme.Shapes
+import com.equationl.giteetodo.ui.widgets.CommonMarkDown
 import com.equationl.giteetodo.ui.widgets.LinkText
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.ui.widgets.placeholder.PlaceholderHighlight
@@ -82,8 +84,7 @@ import com.equationl.giteetodo.viewmodel.TodoDetailViewEvent
 import com.equationl.giteetodo.viewmodel.TodoDetailViewModel
 import com.equationl.giteetodo.viewmodel.TodoDetailViewState
 import com.equationl.giteetodo.viewmodel.getPriorityString
-import com.halilibo.richtext.markdown.Markdown
-import com.halilibo.richtext.ui.material3.RichText
+import com.halilibo.richtext.ui.material3.Material3RichText
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -161,7 +162,9 @@ fun TodoDetailContent(
     viewState: TodoDetailViewState,
     issueNum: String,
     ) {
-    Box {
+    Box(
+        modifier = Modifier.imePadding()
+    ) {
         val listState = rememberLazyListState()
         LazyColumn(state = listState,
             modifier = Modifier
@@ -212,6 +215,7 @@ fun TodoDetailMainContent(
             onValueChange = { viewModel.dispatch(TodoDetailViewAction.OnTitleChange(it)) },
             readOnly = !viewState.isEditAble,
             label = { Text("标题")},
+            singleLine = true,
             modifier = Modifier
                 .sharedElement(
                     sharedTransitionScope.rememberSharedContentState(key = "${ShareElementKey.TODO_ITEM_TITLE}_${issueNum}"),
@@ -280,6 +284,7 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
             },
             modifier = Modifier
                 .fillMaxWidth()
+                .height(250.dp)
                 .padding(2.dp)
                 .padding(top = 32.dp)
                 .background(MaterialTheme.colorScheme.background)
@@ -306,10 +311,8 @@ fun TodoDetailBodyItem(viewModel: TodoDetailViewModel, viewState: TodoDetailView
                         highlight = PlaceholderHighlight.fade()
                     )
             ) {
-                RichText(modifier = Modifier.padding(4.dp)) {
-                    Markdown(
-                        viewState.content
-                    )
+                Material3RichText(modifier = Modifier.padding(4.dp)) {
+                    CommonMarkDown(viewState.content)
                 }
             }
         }
@@ -553,8 +556,8 @@ fun TodoCommentItem(
                 //Text(text = "更新于 ${Utils.getDateTimeString(comment.updatedAt, "M月dd日 hh:mm:ss")}", fontSize = 8.sp)
             }
         }
-        RichText(Modifier.padding(bottom = 8.dp, start = 4.dp)) {
-            Markdown(content = comment.body)
+        Material3RichText(Modifier.padding(bottom = 8.dp, start = 4.dp)) {
+            CommonMarkDown(content = comment.body)
         }
         if (hasDivider) {
             HorizontalDivider()
@@ -581,6 +584,7 @@ fun TodoCreateCommentEdit(viewModel: TodoDetailViewModel, viewState: TodoDetailV
                 label = { Text(viewState.editCommentLabel) },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .heightIn(max = 180.dp)
                     .weight(8f)
                     .padding(2.dp)
             )

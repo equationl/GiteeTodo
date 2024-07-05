@@ -14,8 +14,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.halilibo.richtext.markdown.Markdown
-import com.halilibo.richtext.ui.material3.RichText
+import com.halilibo.richtext.ui.material3.Material3RichText
 
 @Composable
 fun BaseMsgDialog(
@@ -40,9 +39,10 @@ fun BaseMsgDialog(
         text = {
             Column(modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)) {
-                RichText {
-                    Markdown(
+                .verticalScroll(scrollState)
+            ) {
+                Material3RichText {
+                    CommonMarkDown(
                         message
                     )
                 }

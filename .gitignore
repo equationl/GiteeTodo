@@ -19,3 +19,4 @@ local.properties
 /.idea/kotlinc.xml
 /.idea/migrations.xml
 /.idea/deploymentTargetSelector.xml
+/.idea/other.xml

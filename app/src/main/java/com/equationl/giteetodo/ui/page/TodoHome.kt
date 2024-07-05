@@ -1,15 +1,9 @@
 package com.equationl.giteetodo.ui.page
 
 import android.app.Activity
-import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,10 +11,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -34,6 +26,8 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.BottomAppBarScrollBehavior
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -45,16 +39,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.equationl.giteetodo.ui.LocalNavController
@@ -68,9 +67,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@Suppress("unused")
 private const val TAG = "el, TodoHome"
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     repoPath: String,
@@ -83,6 +83,25 @@ fun HomeScreen(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineScope = rememberCoroutineScope()
 
+    var bottomAppBarScrollBehavior = BottomAppBarDefaults.exitAlwaysScrollBehavior()
+    var topAppBarScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    // 通过使用不同的 scrollBehavior 来确保状态恢复
+    if (viewState.currentPage != CurrentPager.HOME_TODO) {
+        bottomAppBarScrollBehavior = BottomAppBarDefaults.exitAlwaysScrollBehavior()
+        topAppBarScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    }
+
+    val isBottomBarCollapsed by remember {
+        derivedStateOf {
+            bottomAppBarScrollBehavior.state.collapsedFraction == 0f
+        }
+    }
+
+    LaunchedEffect(key1 = isBottomBarCollapsed) {
+        viewModel.dispatch(TodoHomeViewAction.ChangeSystemBarShowState(isBottomBarCollapsed))
+    }
+
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
             if (it is TodoHomeViewEvent.ShowMessage) {
@@ -94,8 +113,7 @@ fun HomeScreen(
                     navController.navigate(it.route) {
                         popUpTo(0)
                     }
-                }
-                else {
+                } else {
                     navController.navigate(it.route)
                 }
             }
@@ -109,9 +127,9 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopBar(
-                isShowSystemBar = viewState.isShowSystemBar,
                 title = viewState.title,
                 currentPager = viewState.currentPage,
+                scrollBehavior = topAppBarScrollBehavior,
                 onChangeRepo = {
                     viewModel.dispatch(TodoHomeViewAction.ChangeRepo)
                 },
@@ -125,8 +143,8 @@ fun HomeScreen(
         },
         bottomBar = {
             BottomBar(
-                viewState.isShowSystemBar,
-                viewState,
+                viewState = viewState,
+                scrollBehavior = bottomAppBarScrollBehavior,
                 onScrollToHome = {
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(CurrentPager.HOME_TODO.ordinal)
@@ -136,9 +154,6 @@ fun HomeScreen(
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(CurrentPager.HOME_ME.ordinal)
                     }
-                },
-                onAnimationFinish = {
-                    viewModel.dispatch(TodoHomeViewAction.OnAnimateFinish)
                 },
                 onAddATodo = {
                     viewModel.dispatch(TodoHomeViewAction.AddATodo)
@@ -155,9 +170,6 @@ fun HomeScreen(
                 Fab(
                     currentPager = viewState.currentPage,
                     isShowSystemBar = false,
-                    onAnimationFinish = {
-                        viewModel.dispatch(TodoHomeViewAction.OnAnimateFinish)
-                    },
                     onClickAdd = {
                         viewModel.dispatch(TodoHomeViewAction.AddATodo)
                     }
@@ -172,9 +184,13 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            HomeContent(pagerState, repoPath, scaffoldState) { isShow ->
-                viewModel.dispatch(TodoHomeViewAction.ChangeSystemBarShowState(isShow))
-            }
+            HomeContent(
+                pagerState = pagerState,
+                repoPath = repoPath,
+                scaffoldState = scaffoldState,
+                topAppBarScrollBehavior = topAppBarScrollBehavior,
+                bottomBarScrollBehavior = bottomAppBarScrollBehavior
+            )
         }
     }
 
@@ -197,87 +213,64 @@ fun HomeScreen(
 fun Fab(
     currentPager: CurrentPager,
     isShowSystemBar: Boolean,
-    onAnimationFinish: () -> Unit,
     onClickAdd: () -> Unit
 ) {
     if (currentPager == CurrentPager.HOME_TODO) {
-        Column(modifier = if (isShowSystemBar) Modifier else Modifier.navigationBarsPadding()) {
-            HomeFloatActionBar(
-                isShowSystemBar = isShowSystemBar,
-                onAnimationFinish = onAnimationFinish,
-                onAddClick = onClickAdd
-            )
-        }
+        HomeFloatAction(
+            isShowSystemBar = isShowSystemBar,
+            onAddClick = onClickAdd
+        )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BottomBar(
-    isShowSystemBar: Boolean,
     viewState: TodoHomeViewState,
+    scrollBehavior: BottomAppBarScrollBehavior,
     onScrollToHome: () -> Unit,
     onScrollToMe: () -> Unit,
-    onAnimationFinish: () -> Unit,
     onAddATodo: () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = isShowSystemBar,
-        exit = slideOutVertically(
-            animationSpec = tween(durationMillis = 50),
-            targetOffsetY = { it / 2 }
-        ),
-        enter = slideInVertically(
-            animationSpec = tween(durationMillis = 50),
-            initialOffsetY = { it / 2 }
-        )
-    ) {
-        Column(modifier = if (isShowSystemBar) Modifier.navigationBarsPadding() else Modifier) {
-            HomeBottomBar(
-                viewState,
-                onScrollToHome,
-                onScrollToMe,
-                onAnimationFinish,
-                onAddATodo
-            )
-        }
-    }
+    HomeBottomBar(
+        viewState,
+        scrollBehavior,
+        onScrollToHome,
+        onScrollToMe,
+        onAddATodo
+    )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
-    isShowSystemBar: Boolean,
     title: String,
     currentPager: CurrentPager,
+    scrollBehavior: TopAppBarScrollBehavior,
     onChangeRepo: () -> Unit,
     onLogOut: () -> Unit,
-    onExit: () ->Unit
+    onExit: () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = isShowSystemBar,
-        exit = slideOutVertically(animationSpec = tween(durationMillis = 50)),
-        enter = slideInVertically(animationSpec = tween(durationMillis = 50))
-    ) {
-        Column(modifier = if (isShowSystemBar) Modifier.statusBarsPadding() else Modifier) {
-            HomeTopBar(
-                title = title,
-                navigationIcon = Icons.Outlined.Close,
-                currentPager = currentPager,
-                actions = {
-                    HomeTopBarAction(currentPager, onChangeRepo, onLogOut)
-                },
-                onBack = onExit
-            )
-        }
-    }
+    HomeTopBar(
+        title = title,
+        navigationIcon = Icons.Outlined.Close,
+        currentPager = currentPager,
+        scrollBehavior = scrollBehavior,
+        actions = {
+            HomeTopBarAction(currentPager, onChangeRepo, onLogOut)
+        },
+        onBack = onExit
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeContent(
     pagerState: PagerState,
     repoPath: String,
     scaffoldState: BottomSheetScaffoldState,
-    onChangeSystemBar: (isShow: Boolean) -> Unit,
+    topAppBarScrollBehavior: TopAppBarScrollBehavior,
+    bottomBarScrollBehavior: BottomAppBarScrollBehavior,
 ) {
     HorizontalPager(
         state = pagerState
@@ -286,7 +279,8 @@ private fun HomeContent(
             0 -> TodoListScreen(
                 repoPath,
                 scaffoldState,
-                isShowSystemBar = onChangeSystemBar
+                topAppBarScrollBehavior = topAppBarScrollBehavior,
+                bottomBarScrollBehavior = bottomBarScrollBehavior,
             )
 
             1 -> ProfileScreen(scaffoldState, repoPath)
@@ -295,28 +289,21 @@ private fun HomeContent(
 }
 
 @Composable
-private fun HomeFloatActionBar(
+private fun HomeFloatAction(
     isShowSystemBar: Boolean,
-    onAnimationFinish: () -> Unit,
     onAddClick: () -> Unit
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val offsetValue by animateIntAsState(
         targetValue = if (isShowSystemBar) 0 else screenWidth / 2 - 32 - 16,
-        animationSpec = spring(0.3f),
-        finishedListener = {
-            Log.i(TAG, "HomeFloatActionBar: animation finish ")
-            // 应该使用进入或退出全屏时耗时最长动画的完成事件作为当前动画已全部完成的标志
-            // 目前来说，耗时最长的就是这个悬浮按钮的位移动画，所以这里使用它来标记动画完成
-            onAnimationFinish()
-        },
+        animationSpec = spring(),
         label = "homeFabOffset"
     )
 
     FloatingActionButton(
         onClick = onAddClick,
-        modifier = Modifier.offset(offsetValue.dp, 0.dp)
+        modifier = Modifier.offset { IntOffset(offsetValue.dp.roundToPx(), 0) }
     ) {
         Icon(Icons.Outlined.Add, "Add")
     }
@@ -339,15 +326,17 @@ private fun HomeTopBarAction(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeBottomBar(
     viewState: TodoHomeViewState,
+    scrollBehavior: BottomAppBarScrollBehavior,
     onScrollToHome: () -> Unit,
     onScrollToMe: () -> Unit,
-    onAnimationFinish: () -> Unit,
     onAddATodo: () -> Unit
 ) {
     BottomAppBar(
+        scrollBehavior = scrollBehavior,
         actions = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -374,7 +363,6 @@ private fun HomeBottomBar(
                 Fab(
                     currentPager = viewState.currentPage,
                     isShowSystemBar = true,
-                    onAnimationFinish = onAnimationFinish,
                     onClickAdd = onAddATodo
                 )
             }

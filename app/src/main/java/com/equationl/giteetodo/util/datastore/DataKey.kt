@@ -14,7 +14,5 @@ object DataKey {
 
     const val FILTER_INFO = "filter_info"
 
-    const val WIDGET_SHOW_NUM = "widget_show_num"
-    const val WIDGET_FILTER_LABELS = "widget_filter_labels"
-    const val WIDGET_FILTER_STATE = "widget_filter_state"
+    const val WIDGET_SETTING_MAP = "widget_setting_map"
 }

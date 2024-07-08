@@ -42,14 +42,14 @@ private const val TAG = "el, TodoListWidgetContent"
 
 val actionKey = ActionParameters.Key<String>(TodoListWidgetCallback.ACTION_NAME)
 val issueNumKey = ActionParameters.Key<String>(TodoListWidgetCallback.ISSUE_NUM_NAME)
-val refreshActionPar = actionParametersOf(actionKey to TodoListWidgetCallback.UPDATE_ACTION)
+val refreshActionPar = actionParametersOf(actionKey to TodoListWidgetCallback.REFRESH_ACTION)
 
 @Composable
 fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
     Log.i(TAG, "TodoListWidgetContent: todoList=$todoList")
     Log.i(TAG, "TodoListWidgetContent: loadState=$loadStatus")
 
-    val showTodoList = remember { mutableStateListOf<TodoListWidgetShowData>() }
+    val showTodoList = remember(todoList) { mutableStateListOf<TodoListWidgetShowData>() }
     showTodoList.addAll(resolveData(todoList))
 
     Log.i(TAG, "TodoListWidgetContent: showTodoList=${showTodoList.toList()}")

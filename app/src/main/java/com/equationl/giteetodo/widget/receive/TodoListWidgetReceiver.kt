@@ -54,14 +54,16 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
-        if (intent.action == TodoListWidgetCallback.UPDATE_ACTION) {
-            refreshData(context, intent.getIntExtra(INTENT_KEY_APP_WIDGET_ID, -1))
+        val appWidgetId = intent.getIntExtra(INTENT_KEY_APP_WIDGET_ID, -1)
+
+        if (intent.action == TodoListWidgetCallback.REFRESH_ACTION) {
+            refreshData(context, appWidgetId)
         }
         else if (intent.action == TodoListWidgetCallback.CHECK_ISSUE_ACTION) {
             val issueNum = intent.getStringExtra(TodoListWidgetCallback.ISSUE_NUM_NAME)
             val isChecked = intent.getBooleanExtra(ToggleableStateKey.name, true)
             if (issueNum != null) {
-                updateIssueState(issueNum, isChecked)
+                updateIssueState(context, appWidgetId, issueNum, isChecked)
             }
             else {
                 Log.w(TAG, "onReceive: issue num is null!")
@@ -145,7 +147,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
         }
     }
 
-    private fun updateIssueState(issueNum: String, isChecked: Boolean) {
+    private fun updateIssueState(context: Context, appWidgetId: Int, issueNum: String, isChecked: Boolean) {
         coroutineScope.launch {
             val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "null/null")
             val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
@@ -160,7 +162,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
             )
             if (response.isSuccessful) {
                 Log.i(TAG, "updateIssueState: change #$issueNum state to $isChecked success!")
-                // refreshData(context)  // 更新组件数据
+                refreshData(context, appWidgetId)  // 更新组件数据
             }
             else {
                 val result = kotlin.runCatching {

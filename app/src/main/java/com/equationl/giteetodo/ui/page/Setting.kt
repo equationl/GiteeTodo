@@ -1,6 +1,11 @@
 package com.equationl.giteetodo.ui.page
 
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
+import android.os.Build
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -26,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,6 +41,7 @@ import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.widgets.ExpandableItem
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.util.Utils.toColor
+import com.equationl.giteetodo.util.pin
 import com.equationl.giteetodo.viewmodel.SettingOption
 import com.equationl.giteetodo.viewmodel.SettingViewAction
 import com.equationl.giteetodo.viewmodel.SettingViewEvent
@@ -52,6 +60,14 @@ fun SettingScreen(
     val viewState = viewModel.viewStates
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineState = rememberCoroutineScope()
+
+    val widgetManager = AppWidgetManager.getInstance(context)
+
+    val widgetProviders = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        widgetManager.getInstalledProvidersForPackage(context.packageName, null)
+    } else {
+        listOf()
+    }
 
     DisposableEffect(Unit) {
         viewModel.dispatch(SettingViewAction.InitSetting(context))
@@ -84,7 +100,7 @@ fun SettingScreen(
         }
     )
     {
-        SettingContent(viewModel, viewState, it)
+        SettingContent(viewModel, viewState, it, widgetProviders)
     }
 }
 
@@ -92,7 +108,8 @@ fun SettingScreen(
 fun SettingContent(
     viewModel: SettingViewModel,
     viewState: SettingViewState,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    widgetProviders: List<AppWidgetProviderInfo>
 ) {
     Column(
         Modifier
@@ -113,7 +130,7 @@ fun SettingContent(
         HorizontalDivider(modifier = Modifier.padding(12.dp, 0.dp))
 
         ExpandableItem(title = "小组件设置", modifier = Modifier.padding(12.dp)) {
-            WidgetSettingList(viewModel = viewModel, viewState = viewState)
+            WidgetSettingList(viewModel = viewModel, viewState = viewState, widgetProviders)
         }
     }
 }
@@ -121,15 +138,57 @@ fun SettingContent(
 @Composable
 private fun WidgetSettingList(
     viewModel: SettingViewModel,
-    viewState: SettingViewState
+    viewState: SettingViewState,
+    widgetProviders: List<AppWidgetProviderInfo>
 ) {
     if (viewState.widgetSettingMap.isEmpty()) {
-        Text(text = "还没有添加小组件，您可以在系统桌面长按添加小组件")
+        Text(text = "还没有添加小组件，您可以在系统桌面长按添加或点击下方“立即添加小组件”")
     }
     else {
         viewState.widgetSettingMap.forEach { (_, model) ->
             ExpandableItem(title = "小组件${model.appWidgetId}", modifier = Modifier.padding(12.dp)) {
                 WidgetSettingContent(viewModel, model, viewState.existLabels)
+            }
+        }
+    }
+
+    AddWidgetContent(widgetProviders)
+}
+
+@Composable
+private fun AddWidgetContent(widgetProviders: List<AppWidgetProviderInfo>) {
+    ExpandableItem(title = "立即添加小组件", modifier = Modifier.padding(12.dp)) {
+        widgetProviders.forEachIndexed { index, providerInfo ->
+            val context = LocalContext.current
+            val label = providerInfo.loadLabel(context.packageManager)
+            val description = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                (providerInfo.loadDescription(context)?:"").toString()
+            } else {
+                "小组件 $index"
+            }
+            val preview = painterResource(id = providerInfo.previewImage)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                onClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        providerInfo.pin(context)
+                    }
+                }
+            ) {
+                Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(modifier = Modifier.padding(end = 8.dp)) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Image(painter = preview, contentDescription = description)
+                }
             }
         }
     }

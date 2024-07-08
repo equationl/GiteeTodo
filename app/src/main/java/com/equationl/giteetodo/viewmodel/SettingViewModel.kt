@@ -138,12 +138,16 @@ class SettingViewModel @Inject constructor(
 
             val mapType: Type = object : TypeToken<MutableMap<Int, WidgetSettingModel>>() {}.type
             val widgetSettingString = DataStoreUtils.getSyncData(DataKey.WIDGET_SETTING_MAP, "")
-            val widgetSettingMap: MutableMap<Int, WidgetSettingModel> = if (widgetSettingString.isBlank()) mutableMapOf() else Gson().fromJson(widgetSettingString, mapType)
+            val rawWidgetSettingMap: MutableMap<Int, WidgetSettingModel> = if (widgetSettingString.isBlank()) mutableMapOf() else Gson().fromJson(widgetSettingString, mapType)
+            val widgetSettingMap: MutableMap<Int, WidgetSettingModel> = mutableMapOf()
+            widgetSettingMap.putAll(rawWidgetSettingMap)
 
             // 先移除已经不存在的数据
-            widgetSettingMap.forEach { (appWidgetId) ->
-                val glanceId = glanceManager.getGlanceIdBy(appWidgetId)
-                if (!glanceList.contains(glanceId)) {
+            rawWidgetSettingMap.forEach { (appWidgetId) ->
+                try {
+                    // 如果 widget 已被移除的话，这个方法会抛出 IllegalArgumentException: Invalid AppWidget ID.
+                    glanceManager.getGlanceIdBy(appWidgetId)
+                } catch (e: IllegalArgumentException) {
                     widgetSettingMap.remove(appWidgetId)
                 }
             }

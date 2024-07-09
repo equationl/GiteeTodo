@@ -37,6 +37,10 @@
                 android:resource="@xml/todo_list_widget_info" />
         </receiver>
 
+        <receiver
+            android:name=".widget.receive.AppWidgetPinnedReceiver"
+            android:exported="false" />
+
     </application>
 
 </manifest>

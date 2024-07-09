@@ -14,13 +14,14 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.model.request.UpdateIssue
-import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import com.equationl.giteetodo.util.toJson
+import com.equationl.giteetodo.viewmodel.WidgetSettingModel
 import com.equationl.giteetodo.widget.TodoListWidget
 import com.equationl.giteetodo.widget.callback.TodoListWidgetCallback
+import com.equationl.giteetodo.widget.callback.TodoListWidgetCallback.Companion.INTENT_KEY_APP_WIDGET_ID
 import com.equationl.giteetodo.widget.dataBean.TodoListWidgetShowData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -45,20 +46,24 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
         appWidgetIds: IntArray
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
-        refreshData(context)
+        for (appWidgetId in appWidgetIds) {
+            refreshData(context, appWidgetId)
+        }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
-        if (intent.action == TodoListWidgetCallback.UPDATE_ACTION) {
-            refreshData(context)
+        val appWidgetId = intent.getIntExtra(INTENT_KEY_APP_WIDGET_ID, -1)
+
+        if (intent.action == TodoListWidgetCallback.REFRESH_ACTION) {
+            refreshData(context, appWidgetId)
         }
         else if (intent.action == TodoListWidgetCallback.CHECK_ISSUE_ACTION) {
             val issueNum = intent.getStringExtra(TodoListWidgetCallback.ISSUE_NUM_NAME)
             val isChecked = intent.getBooleanExtra(ToggleableStateKey.name, true)
             if (issueNum != null) {
-                updateIssueState(issueNum, isChecked)
+                updateIssueState(context, appWidgetId, issueNum, isChecked)
             }
             else {
                 Log.w(TAG, "onReceive: issue num is null!")
@@ -66,19 +71,25 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
         }
     }
 
-    private fun refreshData(context: Context) {
+    private fun refreshData(context: Context, appWidgetId: Int) {
         coroutineScope.launch {
-            var loadState = LOAD_SUCCESS
-            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "null/null")
-            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
-            val maxNum = DataStoreUtils.getSyncData(DataKey.WIDGET_SHOW_NUM, 10)
-            val filterState = DataStoreUtils.getSyncData(DataKey.WIDGET_FILTER_STATE, "")
-            val filterLabelsString = DataStoreUtils.getSyncData(DataKey.WIDGET_FILTER_LABELS, "")
+            if (appWidgetId == -1) {
+                Log.w(TAG, "refreshData: appWidgetIds = -1！")
+                return@launch
+            }
 
-            val listType: Type = object : TypeToken<List<Label?>?>() {}.type
-            val filterLabelList: List<Label> =
-                if (filterLabelsString.isBlank()) { listOf() }
-                else { Gson().fromJson(filterLabelsString, listType) }
+            var loadState = LOAD_SUCCESS
+            val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
+
+            val mapType: Type = object : TypeToken<MutableMap<Int, WidgetSettingModel>>() {}.type
+            val widgetSettingString = DataStoreUtils.getSyncData(DataKey.WIDGET_SETTING_MAP, "")
+            val widgetSettingMap: MutableMap<Int, WidgetSettingModel> = if (widgetSettingString.isBlank()) mutableMapOf() else Gson().fromJson(widgetSettingString, mapType)
+            val model = widgetSettingMap[appWidgetId] ?: WidgetSettingModel(appWidgetId = appWidgetId)
+
+            val maxNum = model.showNum
+            val filterState = model.filterState
+            val filterLabelList = model.filterLabels
+            val repoPath = model.repoPath.ifBlank { DataStoreUtils.getSyncData(DataKey.USING_REPO, "null/null") }
 
             var filterLabels = ""
             filterLabelList.forEach { label ->
@@ -95,8 +106,8 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
 
             if (repoPath == "null/null" || token.isBlank()) {
                 loadState = LOAD_FAIL_BY_OTHER
+                Log.e(TAG, "refreshData: repoPath or token error: repoPath=$repoPath, token=$token")
             }
-
             else {
                 val todoListResponse = repoApi.getAllIssues(
                     repoPath.split("/")[0],
@@ -118,27 +129,25 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
 
                 for (todo in todoList) {
                     val isChecked = todo.state != IssueState.OPEN.des
-                    todoTitleList.add(TodoListWidgetShowData(todo.title, todo.number, isChecked))
+                    todoTitleList.add(TodoListWidgetShowData(todo.title, todo.number, isChecked, repoPath))
                 }
             }
 
-            // 所有 widget 都更新成同一个内容
-            val glanceIdList = GlanceAppWidgetManager(context).getGlanceIds(TodoListWidget::class.java)
-            for (glanceId in glanceIdList) {
-                glanceId.let {
-                    updateAppWidgetState(context, PreferencesGlanceStateDefinition, it) { pref ->
-                        pref.toMutablePreferences().apply {
-                            this[TodoListKey] = todoTitleList.toJson()
-                            this[LoadStateKey] = loadState
-                        }
+            // 更新小组件数据
+            val glanceId = GlanceAppWidgetManager(context).getGlanceIdBy(appWidgetId)
+            glanceId.let {
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, it) { pref ->
+                    pref.toMutablePreferences().apply {
+                        this[TodoListKey] = todoTitleList.toJson()
+                        this[LoadStateKey] = loadState
                     }
-                    glanceAppWidget.update(context, it)
                 }
+                glanceAppWidget.update(context, it)
             }
         }
     }
 
-    private fun updateIssueState(issueNum: String, isChecked: Boolean) {
+    private fun updateIssueState(context: Context, appWidgetId: Int, issueNum: String, isChecked: Boolean) {
         coroutineScope.launch {
             val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "null/null")
             val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
@@ -153,7 +162,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
             )
             if (response.isSuccessful) {
                 Log.i(TAG, "updateIssueState: change #$issueNum state to $isChecked success!")
-                // refreshData(context)  // 更新组件数据
+                refreshData(context, appWidgetId)  // 更新组件数据
             }
             else {
                 val result = kotlin.runCatching {

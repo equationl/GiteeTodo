@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.ToggleableStateKey
 import com.equationl.giteetodo.constants.IntentDataKey
@@ -17,11 +18,13 @@ class TodoListWidgetCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val actionKey = ActionParameters.Key<String>(ACTION_NAME)
         val actionName = parameters[actionKey]
+        val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
 
-        if (actionName == UPDATE_ACTION) {
+        if (actionName == REFRESH_ACTION) {
             Log.i(TAG, "onRun: UPDATE_ACTION")
             val intent = Intent(context, TodoListWidgetReceiver::class.java).apply {
-                action = UPDATE_ACTION
+                action = REFRESH_ACTION
+                putExtra(INTENT_KEY_APP_WIDGET_ID, appWidgetId)
             }
             context.sendBroadcast(intent)
         }
@@ -32,6 +35,7 @@ class TodoListWidgetCallback : ActionCallback {
             val issueNum = parameters[ActionParameters.Key<String>(ISSUE_NUM_NAME)]
             val intent = Intent(context, TodoListWidgetReceiver::class.java).apply {
                 action = CHECK_ISSUE_ACTION
+                putExtra(INTENT_KEY_APP_WIDGET_ID, appWidgetId)
                 putExtra(ISSUE_NUM_NAME, issueNum)
                 putExtra(ToggleableStateKey.name, isChecked)
             }
@@ -44,8 +48,11 @@ class TodoListWidgetCallback : ActionCallback {
 
         const val ACTION_NAME = "actionName"
         const val ISSUE_NUM_NAME = IntentDataKey.ISSUE_NUMBER
+        const val REPO_PATH_NAME = IntentDataKey.REPO_PATH
 
-        const val UPDATE_ACTION = "updateAction"
+        const val REFRESH_ACTION = "refreshAction"
         const val CHECK_ISSUE_ACTION = "checkIssueAction"
+
+        const val INTENT_KEY_APP_WIDGET_ID = "intentKeyAppWidgetId"
     }
 }

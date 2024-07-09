@@ -8,13 +8,12 @@ object DataKey {
     const val LOGIN_TOKEN_REFRESH_TIME = "login_token_refresh_time"
 
     const val USING_REPO = "using_repo"
+    const val USING_REPO_NAME = "using_repo_name"
 
     const val USER_INFO = "user_info_string"
     const val EXIST_LABEL = "exist_label"
 
     const val FILTER_INFO = "filter_info"
 
-    const val WIDGET_SHOW_NUM = "widget_show_num"
-    const val WIDGET_FILTER_LABELS = "widget_filter_labels"
-    const val WIDGET_FILTER_STATE = "widget_filter_state"
+    const val WIDGET_SETTING_MAP = "widget_setting_map"
 }

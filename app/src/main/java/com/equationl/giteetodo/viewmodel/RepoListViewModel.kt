@@ -10,6 +10,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.equationl.giteetodo.constants.ChooseRepoType
 import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.db.IssueDb
 import com.equationl.giteetodo.data.repos.paging.pagingSource.ReposPagingSource
@@ -17,6 +18,9 @@ import com.equationl.giteetodo.data.user.model.response.Repo
 import com.equationl.giteetodo.ui.common.Route
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import com.equationl.giteetodo.util.event.EventKey
+import com.equationl.giteetodo.util.event.FlowBus
+import com.equationl.giteetodo.util.event.MessageEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -51,7 +55,7 @@ class RepoListViewModel @Inject constructor(
     fun dispatch(action: RepoListViewAction) {
         when (action) {
             is RepoListViewAction.SendMsg -> sendMsg(action.msg)
-            is RepoListViewAction.ChoiceARepo -> choiceARepo(action.repoPath)
+            is RepoListViewAction.ChoiceARepo -> choiceARepo(action.repoPath, action.repoName, action.chooseType)
             is RepoListViewAction.DeleteRepo -> deleteRepo(action.repoPath)
         }
     }
@@ -68,20 +72,30 @@ class RepoListViewModel @Inject constructor(
         }
     }
 
-    private fun choiceARepo(repoPath: String) {
+    private fun choiceARepo(repoPath: String, repoName: String, chooseType: String?) {
         viewModelScope.launch {
-            // 切换仓库前先清空当前缓存的所有数据
-            DataStoreUtils.saveSyncStringData(DataKey.FILTER_INFO, "")
-            dataBase.issue().clearAll()
-            dataBase.issueRemoteKey().clearAll()
+            when (chooseType) {
+                ChooseRepoType.WIDGET_SETTING -> {
+                    Log.i(TAG, "choiceARepo: choice for widget: repoPath=$repoPath, repoName=$repoName")
+                    FlowBus.sendEvents.tryEmit(MessageEvent(EventKey.WidgetChooseRepo, repoPath, repoName))
+                    _viewEvents.trySend(RepoListViewEvent.Pop)
+                }
+                else -> {
+                    // 切换仓库前先清空当前缓存的所有数据
+                    DataStoreUtils.saveSyncStringData(DataKey.FILTER_INFO, "")
+                    dataBase.issue().clearAll()
+                    dataBase.issueRemoteKey().clearAll()
 
-            DataStoreUtils.saveSyncStringData(DataKey.USING_REPO, repoPath)
-            val result = kotlin.runCatching {
-                val encodeRepoPath = URLEncoder.encode(repoPath, StandardCharsets.UTF_8.toString())
-                val fullRoute = "${Route.HOME}/$encodeRepoPath"
-                _viewEvents.send(RepoListViewEvent.Goto(fullRoute))
+                    DataStoreUtils.saveSyncStringData(DataKey.USING_REPO, repoPath)
+                    DataStoreUtils.saveSyncStringData(DataKey.USING_REPO_NAME, repoName)
+                    val result = kotlin.runCatching {
+                        val encodeRepoPath = URLEncoder.encode(repoPath, StandardCharsets.UTF_8.toString())
+                        val fullRoute = "${Route.HOME}/$encodeRepoPath"
+                        _viewEvents.send(RepoListViewEvent.Goto(fullRoute))
+                    }
+                    Log.w(TAG, "choiceARepo: ", result.exceptionOrNull())
+                }
             }
-            Log.w(TAG, "choiceARepo: ", result.exceptionOrNull())
         }
     }
 }
@@ -91,6 +105,7 @@ data class RepoListViewState(
 )
 
 sealed class RepoListViewEvent {
+    data object Pop: RepoListViewEvent()
     data class Goto(val route: String): RepoListViewEvent()
     data class ShowMessage(val message: String) : RepoListViewEvent()
     data class ShowDeleteRepoMsg(val message: String, val deleteUrl: String): RepoListViewEvent()
@@ -98,6 +113,6 @@ sealed class RepoListViewEvent {
 
 sealed class RepoListViewAction {
     data class SendMsg(val msg: String): RepoListViewAction()
-    data class ChoiceARepo(val repoPath: String): RepoListViewAction()
+    data class ChoiceARepo(val repoPath: String, val repoName: String, val chooseType: String? = null): RepoListViewAction()
     data class DeleteRepo(val repoPath: String): RepoListViewAction()
 }

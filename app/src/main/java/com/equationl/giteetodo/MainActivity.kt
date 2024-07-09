@@ -1,6 +1,7 @@
 package com.equationl.giteetodo
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
@@ -37,6 +38,10 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val issueNumber = intent.getStringExtra(IntentDataKey.ISSUE_NUMBER)
+                    val repoPath = intent.getStringExtra(IntentDataKey.REPO_PATH)
+
+                    Log.d("el, MainActivity", "onCreate: repoPath = $repoPath")
+
                     if (issueNumber.isNullOrBlank()) {
                         HomeNavHost()
                     }
@@ -51,7 +56,7 @@ class MainActivity : ComponentActivity() {
                                     LocalSharedTransitionScope provides this@SharedTransitionLayout,
                                     LocalShareAnimatedContentScope provides this@AnimatedContent,
                                 ) {
-                                    TodoDetailScreen(null, issueNumber, "Loading...")
+                                    TodoDetailScreen(null, issueNumber, "Loading...", issueRepo = repoPath)
                                 }
                             }
                         }

@@ -53,6 +53,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.equationl.giteetodo.R
+import com.equationl.giteetodo.constants.ChooseRepoType
 import com.equationl.giteetodo.data.user.model.response.Repo
 import com.equationl.giteetodo.ui.LocalNavController
 import com.equationl.giteetodo.ui.common.Route
@@ -74,7 +75,8 @@ private const val TAG = "el, RepoList"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepoListScreen(
-    viewModel: RepoListViewModel = hiltViewModel()
+    viewModel: RepoListViewModel = hiltViewModel(),
+    chooseType: String? = null
 ) {
     val navController = LocalNavController.current
     val activity = (LocalContext.current as? Activity)
@@ -109,6 +111,10 @@ fun RepoListScreen(
                         }
                     }
                 }
+
+                RepoListViewEvent.Pop -> {
+                    navController.popBackStack()
+                }
             }
         }
     }
@@ -124,7 +130,7 @@ fun RepoListScreen(
             }) {
                 val backStackList = navController.currentBackStack.value
                 val lastQueue = backStackList[backStackList.size - 2]
-                if (lastQueue.destination.route?.contains(Route.HOME) == true) { // 只有从首页跳转过来的才返回，否则直接退出
+                if (lastQueue.destination.route?.contains(Route.HOME) == true || chooseType == ChooseRepoType.WIDGET_SETTING) { // 只有从首页跳转过来或来自小组件选择仓库的才返回，否则直接退出
                     navController.popBackStack()
                 } else {
                     activity?.finish()
@@ -137,16 +143,16 @@ fun RepoListScreen(
             }
         })
     {
-        RepoListContent(viewState.repoFlow, viewModel, it)
+        RepoListContent(viewState.repoFlow, viewModel, it, chooseType)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepoListContent(
     repoFlow: Flow<PagingData<Repo>>,
     viewModel: RepoListViewModel,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    chooseType: String? = null,
 ) {
     val repoList = repoFlow.collectAsLazyPagingItems()
 
@@ -213,8 +219,8 @@ fun RepoListContent(
                                 }
                             },
                             content = {
-                                RepoItem(item) {
-                                    viewModel.dispatch(RepoListViewAction.ChoiceARepo(it))
+                                RepoItem(item) { path, name ->
+                                    viewModel.dispatch(RepoListViewAction.ChoiceARepo(path, name, chooseType))
                                 }
                             },
                             enableDismissFromStartToEnd = false,
@@ -254,9 +260,9 @@ fun RepoListContent(
 }
 
 @Composable
-fun RepoItem(itemData: Repo, onClick: (path: String) -> Unit) {
+fun RepoItem(itemData: Repo, onClick: (path: String, name: String) -> Unit) {
     Card(
-        onClick = { onClick.invoke(itemData.fullName) },
+        onClick = { onClick(itemData.fullName, itemData.name) },
         modifier = Modifier.padding(32.dp), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
     ) {
         Column {

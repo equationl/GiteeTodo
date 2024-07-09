@@ -135,7 +135,13 @@ fun HomeNavHost() {
                     }
                 }
 
-                composable(Route.REPO_LIST,
+                composable("${Route.REPO_LIST}?${RouteParams.PAR_REPO_CHOOSE_TYPE}={${RouteParams.PAR_REPO_CHOOSE_TYPE}}",
+                    arguments = listOf(
+                        navArgument(RouteParams.PAR_REPO_CHOOSE_TYPE) {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
                     enterTransition = {
                         slideIntoContainer(
                             AnimatedContentTransitionScope.SlideDirection.Up,
@@ -149,8 +155,9 @@ fun HomeNavHost() {
                         )
                     }
                 ) {
+                    val chooseType = it.arguments?.getString(RouteParams.PAR_REPO_CHOOSE_TYPE)
                     Column(Modifier.systemBarsPadding()) {
-                        RepoListScreen()
+                        RepoListScreen(chooseType = chooseType)
                     }
                 }
 

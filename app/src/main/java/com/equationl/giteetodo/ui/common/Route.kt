@@ -18,4 +18,5 @@ object RouteParams {
     const val PAR_REPO_PATH = "repo_path"
     const val PAR_ISSUE_TITLE = "issue_title"
     const val PAR_IMAGE_URL = "image_url"
+    const val PAR_REPO_CHOOSE_TYPE = "repo_choose_type"
 }

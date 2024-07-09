@@ -166,41 +166,48 @@ private fun WidgetSettingList(
 
 @Composable
 private fun AddWidgetContent(widgetProviders: List<AppWidgetProviderInfo>) {
+    val widgetManager = AppWidgetManager.getInstance(LocalContext.current)
     ExpandableItem(title = "立即添加小组件", modifier = Modifier.padding(12.dp)) {
-        widgetProviders.forEachIndexed { index, providerInfo ->
-            val context = LocalContext.current
-            val label = providerInfo.loadLabel(context.packageManager)
-            val description = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                (providerInfo.loadDescription(context)?:"").toString()
-            } else {
-                "小组件 $index"
-            }
-            val preview = painterResource(id = providerInfo.previewImage)
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                onClick = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        providerInfo.pin(context)
+        if (widgetManager.isRequestPinAppWidgetSupported) {
+            Text(text = "如点击小组件无响应，请检查是否授予权限（通常称之为 “桌面快捷方式” 权限）或手动从桌面添加")
+            widgetProviders.forEachIndexed { index, providerInfo ->
+                val context = LocalContext.current
+                val label = providerInfo.loadLabel(context.packageManager)
+                val description = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    (providerInfo.loadDescription(context)?:"").toString()
+                } else {
+                    "小组件 $index"
+                }
+                val preview = painterResource(id = providerInfo.previewImage)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    onClick = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            providerInfo.pin(context)
+                        }
+                    }
+                ) {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column(modifier = Modifier.padding(end = 8.dp)) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Text(
+                                text = description,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        Image(painter = preview, contentDescription = description)
                     }
                 }
-            ) {
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(modifier = Modifier.padding(end = 8.dp)) {
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Text(
-                            text = description,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    Image(painter = preview, contentDescription = description)
-                }
             }
+        }
+        else {
+            Text(text = "当前桌面不支持一键添加小组件，请自行前往桌面添加")
         }
     }
 }
@@ -213,7 +220,7 @@ private fun WidgetSettingContent(
 ) {
     val navController = LocalNavController.current
 
-    Text(text = "更新小组件设置后需要手动点击桌面上小组件的刷新按钮方可生效", fontSize = 12.sp, modifier = Modifier.padding(8.dp, 4.dp))
+    Text(text = "更新小组件设置后需要手动点击桌面上小组件的 “刷新” 按钮更新数据", fontSize = 12.sp, modifier = Modifier.padding(8.dp, 4.dp))
 
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,

@@ -17,7 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -42,7 +42,7 @@ fun ExpandableItem(
     subItemStartPadding: Int = 8,
     subItem: @Composable () -> Unit
 ) {
-    var isShowSubItem by remember { mutableStateOf(false) }
+    var isShowSubItem by rememberSaveable { mutableStateOf(false) }
 
     val arrowRotateDegrees: Float by animateFloatAsState(if (isShowSubItem) 90f else 0f, label = "rotateArrow")
 
@@ -59,7 +59,9 @@ fun ExpandableItem(
             Row {
                 if (endText.isNotBlank()) {
                     Text(text = endText,
-                        modifier = modifier.padding(end = 4.dp).widthIn(0.dp, 100.dp),
+                        modifier = modifier
+                            .padding(end = 4.dp)
+                            .widthIn(0.dp, 100.dp),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis)
                 }

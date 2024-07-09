@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.reflect.Type
 import javax.inject.Inject
 
@@ -49,7 +50,7 @@ class SettingViewModel @Inject constructor(
 
     fun dispatch(action: SettingViewAction) {
         when (action) {
-            is SettingViewAction.InitSetting -> initSetting(action.context)
+            is SettingViewAction.InitSetting -> init(action.context)
             is SettingViewAction.ChoiceANewNum -> choiceANewNum(action.appWidgetId, action.num)
             is SettingViewAction.ChoiceANewState -> choiceANewState(action.appWidgetId, action.state)
             is SettingViewAction.ChoiceANewLabel -> choiceANewLabel(action.appWidgetId, action.label, action.isChecked)
@@ -155,56 +156,60 @@ class SettingViewModel @Inject constructor(
         }
     }
 
-    private fun initSetting(context: Context) {
+    private fun init(context: Context) {
         viewModelScope.launch(exception) {
             launch(Dispatchers.IO) {
-                initEvent()
+                initEvent(context)
             }
 
-            val existLabels = Utils.getExistLabel(repoApi = repoApi)
-
-            val glanceManager = GlanceAppWidgetManager(context)
-            val glanceList = glanceManager.getGlanceIds(TodoListWidget::class.java)
-
-            val mapType: Type = object : TypeToken<MutableMap<Int, WidgetSettingModel>>() {}.type
-            val widgetSettingString = DataStoreUtils.getSyncData(DataKey.WIDGET_SETTING_MAP, "")
-            val rawWidgetSettingMap: MutableMap<Int, WidgetSettingModel> = if (widgetSettingString.isBlank()) mutableMapOf() else Gson().fromJson(widgetSettingString, mapType)
-            val widgetSettingMap: MutableMap<Int, WidgetSettingModel> = mutableMapOf()
-            widgetSettingMap.putAll(rawWidgetSettingMap)
-
-            // 先移除已经不存在的数据
-            rawWidgetSettingMap.forEach { (appWidgetId) ->
-                try {
-                    // 如果 widget 已被移除的话，这个方法会抛出 IllegalArgumentException: Invalid AppWidget ID.
-                    glanceManager.getGlanceIdBy(appWidgetId)
-                } catch (e: IllegalArgumentException) {
-                    widgetSettingMap.remove(appWidgetId)
-                }
-            }
-
-            // 添加初始化数据
-            glanceList.forEach {
-                val appWidgetId = glanceManager.getAppWidgetId(it)
-                if (!widgetSettingMap.contains(appWidgetId)) {
-                    widgetSettingMap[appWidgetId] = WidgetSettingModel(
-                        appWidgetId = appWidgetId,
-                        repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, ""),
-                        repoName = DataStoreUtils.getSyncData(DataKey.USING_REPO_NAME, ""),
-                    )
-                }
-            }
-
-            Log.i("el", "initSetting: glanceList = $glanceList")
-            Log.i("el", "initSetting: weightSettingMap = $widgetSettingMap")
-
-            viewStates = viewStates.copy(
-                existLabels = existLabels,
-                widgetSettingMap = widgetSettingMap
-            )
+            loadData(context)
         }
     }
 
-    private suspend fun initEvent() {
+    private suspend fun loadData(context: Context) {
+        val existLabels = Utils.getExistLabel(repoApi = repoApi)
+
+        val glanceManager = GlanceAppWidgetManager(context)
+        val glanceList = glanceManager.getGlanceIds(TodoListWidget::class.java)
+
+        val mapType: Type = object : TypeToken<MutableMap<Int, WidgetSettingModel>>() {}.type
+        val widgetSettingString = DataStoreUtils.getSyncData(DataKey.WIDGET_SETTING_MAP, "")
+        val rawWidgetSettingMap: MutableMap<Int, WidgetSettingModel> = if (widgetSettingString.isBlank()) mutableMapOf() else Gson().fromJson(widgetSettingString, mapType)
+        val widgetSettingMap: MutableMap<Int, WidgetSettingModel> = mutableMapOf()
+        widgetSettingMap.putAll(rawWidgetSettingMap)
+
+        // 先移除已经不存在的数据
+        rawWidgetSettingMap.forEach { (appWidgetId) ->
+            try {
+                // 如果 widget 已被移除的话，这个方法会抛出 IllegalArgumentException: Invalid AppWidget ID.
+                glanceManager.getGlanceIdBy(appWidgetId)
+            } catch (e: IllegalArgumentException) {
+                widgetSettingMap.remove(appWidgetId)
+            }
+        }
+
+        // 添加初始化数据
+        glanceList.forEach {
+            val appWidgetId = glanceManager.getAppWidgetId(it)
+            if (!widgetSettingMap.contains(appWidgetId)) {
+                widgetSettingMap[appWidgetId] = WidgetSettingModel(
+                    appWidgetId = appWidgetId,
+                    repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, ""),
+                    repoName = DataStoreUtils.getSyncData(DataKey.USING_REPO_NAME, ""),
+                )
+            }
+        }
+
+        Log.i("el", "initSetting: glanceList = $glanceList")
+        Log.i("el", "initSetting: weightSettingMap = $widgetSettingMap")
+
+        viewStates = viewStates.copy(
+            existLabels = existLabels,
+            widgetSettingMap = widgetSettingMap
+        )
+    }
+
+    private suspend fun initEvent(context: Context) {
         FlowBus.events.collect {
             Log.d("el", "SettingScreen: rcv new event: $it")
 
@@ -212,6 +217,11 @@ class SettingViewModel @Inject constructor(
                 val repoPath = it.params[0]
                 val repoName = it.params[1]
                 settingWidgetRepo(repoPath.toString(), repoName.toString(), ChooseRepoType.currentWidgetAppId)
+            }
+            else if (it.type == EventKey.WidgetAddSuccess) {
+                withContext(Dispatchers.IO) {
+                    loadData(context = context)
+                }
             }
         }
     }

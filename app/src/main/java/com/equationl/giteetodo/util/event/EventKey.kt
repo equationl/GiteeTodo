@@ -10,5 +10,10 @@ enum class EventKey {
      *
      * repoName: String
      * */
-    WidgetChooseRepo
+    WidgetChooseRepo,
+
+    /**
+     * 小组件添加成功
+     * */
+    WidgetAddSuccess,
 }

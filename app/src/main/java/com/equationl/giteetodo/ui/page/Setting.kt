@@ -230,7 +230,7 @@ private fun WidgetSettingContent(
                 text = model.repoName,
                 modifier = Modifier
                     .padding(end = 4.dp)
-                    .widthIn(0.dp, 100.dp),
+                    .widthIn(max = 200.dp),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

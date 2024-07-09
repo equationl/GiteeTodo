@@ -48,6 +48,7 @@ class TodoListWidgetCallback : ActionCallback {
 
         const val ACTION_NAME = "actionName"
         const val ISSUE_NUM_NAME = IntentDataKey.ISSUE_NUMBER
+        const val REPO_PATH_NAME = IntentDataKey.REPO_PATH
 
         const val REFRESH_ACTION = "refreshAction"
         const val CHECK_ISSUE_ACTION = "checkIssueAction"

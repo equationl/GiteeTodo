@@ -87,12 +87,16 @@ import com.equationl.giteetodo.viewmodel.getPriorityString
 import com.halilibo.richtext.ui.material3.Material3RichText
 import kotlinx.coroutines.launch
 
+/**
+ * @param issueRepo 当前 issue 的仓库路径，正常使用无需提供该值（会自动读取当前仓库），只有在从小组件打开时才需要提供该值（可能不是当前仓库）
+ * */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoDetailScreen(
     navController: NavHostController?,
     issueNum: String,
     issueTitle: String?,
+    issueRepo: String? = null,
     viewModel: TodoDetailViewModel = hiltViewModel()
 ) {
     val activity = (LocalContext.current as? Activity)
@@ -102,6 +106,8 @@ fun TodoDetailScreen(
 
 
     DisposableEffect(Unit) {
+        viewModel.dispatch(TodoDetailViewAction.SetRepo(issueRepo))
+
         if (issueNum == "null") {
             viewModel.dispatch(TodoDetailViewAction.ToggleEditModel(true))
         }

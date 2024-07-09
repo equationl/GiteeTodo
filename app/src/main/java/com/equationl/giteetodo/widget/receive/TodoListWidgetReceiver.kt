@@ -79,8 +79,6 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
             }
 
             var loadState = LOAD_SUCCESS
-            // TODO 应该支持不同的仓库设置
-            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "null/null")
             val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val mapType: Type = object : TypeToken<MutableMap<Int, WidgetSettingModel>>() {}.type
@@ -91,6 +89,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
             val maxNum = model.showNum
             val filterState = model.filterState
             val filterLabelList = model.filterLabels
+            val repoPath = model.repoPath.ifBlank { DataStoreUtils.getSyncData(DataKey.USING_REPO, "null/null") }
 
             var filterLabels = ""
             filterLabelList.forEach { label ->
@@ -107,6 +106,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
 
             if (repoPath == "null/null" || token.isBlank()) {
                 loadState = LOAD_FAIL_BY_OTHER
+                Log.e(TAG, "refreshData: repoPath or token error: repoPath=$repoPath, token=$token")
             }
             else {
                 val todoListResponse = repoApi.getAllIssues(
@@ -129,7 +129,7 @@ class TodoListWidgetReceiver : GlanceAppWidgetReceiver() {
 
                 for (todo in todoList) {
                     val isChecked = todo.state != IssueState.OPEN.des
-                    todoTitleList.add(TodoListWidgetShowData(todo.title, todo.number, isChecked))
+                    todoTitleList.add(TodoListWidgetShowData(todo.title, todo.number, isChecked, repoPath))
                 }
             }
 

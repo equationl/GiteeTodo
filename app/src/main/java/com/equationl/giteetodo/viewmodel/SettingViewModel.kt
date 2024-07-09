@@ -8,18 +8,22 @@ import androidx.compose.runtime.setValue
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.equationl.giteetodo.constants.ChooseRepoType
 import com.equationl.giteetodo.data.repos.RepoApi
 import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.Utils
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
+import com.equationl.giteetodo.util.event.EventKey
+import com.equationl.giteetodo.util.event.FlowBus
 import com.equationl.giteetodo.util.toJson
 import com.equationl.giteetodo.widget.TodoListWidget
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -49,6 +53,28 @@ class SettingViewModel @Inject constructor(
             is SettingViewAction.ChoiceANewNum -> choiceANewNum(action.appWidgetId, action.num)
             is SettingViewAction.ChoiceANewState -> choiceANewState(action.appWidgetId, action.state)
             is SettingViewAction.ChoiceANewLabel -> choiceANewLabel(action.appWidgetId, action.label, action.isChecked)
+        }
+    }
+
+    private fun settingWidgetRepo(repoPath: String, repoName: String, appWidgetId: Int) {
+        val widgetSettingModel = mutableMapOf<Int, WidgetSettingModel>()
+        widgetSettingModel.putAll(viewStates.widgetSettingMap)
+        var currentSetting = widgetSettingModel[appWidgetId]
+        if (currentSetting == null) {
+            viewModelScope.launch {
+                _viewEvents.send(SettingViewEvent.ShowMessage("Error： GlanceId not exist!"))
+            }
+            return
+        }
+
+        if (repoPath == currentSetting.repoPath) {
+            return
+        }
+        viewModelScope.launch(exception) {
+            currentSetting = currentSetting!!.copy(repoPath = repoPath, repoName = repoName)
+            widgetSettingModel[appWidgetId] = currentSetting!!
+            DataStoreUtils.putSyncData(DataKey.WIDGET_SETTING_MAP, widgetSettingModel.toJson())
+            viewStates = viewStates.copy(widgetSettingMap = widgetSettingModel)
         }
     }
 
@@ -131,6 +157,10 @@ class SettingViewModel @Inject constructor(
 
     private fun initSetting(context: Context) {
         viewModelScope.launch(exception) {
+            launch(Dispatchers.IO) {
+                initEvent()
+            }
+
             val existLabels = Utils.getExistLabel(repoApi = repoApi)
 
             val glanceManager = GlanceAppWidgetManager(context)
@@ -157,7 +187,9 @@ class SettingViewModel @Inject constructor(
                 val appWidgetId = glanceManager.getAppWidgetId(it)
                 if (!widgetSettingMap.contains(appWidgetId)) {
                     widgetSettingMap[appWidgetId] = WidgetSettingModel(
-                        appWidgetId = appWidgetId
+                        appWidgetId = appWidgetId,
+                        repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, ""),
+                        repoName = DataStoreUtils.getSyncData(DataKey.USING_REPO_NAME, ""),
                     )
                 }
             }
@@ -169,6 +201,18 @@ class SettingViewModel @Inject constructor(
                 existLabels = existLabels,
                 widgetSettingMap = widgetSettingMap
             )
+        }
+    }
+
+    private suspend fun initEvent() {
+        FlowBus.events.collect {
+            Log.d("el", "SettingScreen: rcv new event: $it")
+
+            if (it.type == EventKey.WidgetChooseRepo) {
+                val repoPath = it.params[0]
+                val repoName = it.params[1]
+                settingWidgetRepo(repoPath.toString(), repoName.toString(), ChooseRepoType.currentWidgetAppId)
+            }
         }
     }
 }
@@ -210,4 +254,6 @@ data class WidgetSettingModel(
     val showNum: Int = 10,
     val filterLabels: List<Label> = listOf(),
     val filterState: String = IssueState.OPEN.des,
+    val repoPath: String = "",
+    val repoName: String = ""
 )

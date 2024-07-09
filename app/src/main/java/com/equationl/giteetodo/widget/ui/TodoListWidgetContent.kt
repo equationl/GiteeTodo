@@ -42,6 +42,7 @@ private const val TAG = "el, TodoListWidgetContent"
 
 val actionKey = ActionParameters.Key<String>(TodoListWidgetCallback.ACTION_NAME)
 val issueNumKey = ActionParameters.Key<String>(TodoListWidgetCallback.ISSUE_NUM_NAME)
+val repoPathKey = ActionParameters.Key<String>(TodoListWidgetCallback.REPO_PATH_NAME)
 val refreshActionPar = actionParametersOf(actionKey to TodoListWidgetCallback.REFRESH_ACTION)
 
 @Composable
@@ -103,8 +104,13 @@ fun TodoListWidgetContent(todoList: String?, loadStatus: Int?) {
                                 modifier = GlanceModifier
                                     .fillMaxWidth()
                                     .padding(start = 2.dp, bottom = 2.dp)
-                                    .clickable(actionStartActivity<MainActivity>(
-                                        actionParametersOf(issueNumKey to item.issueNum))
+                                    .clickable(
+                                        actionStartActivity<MainActivity>(
+                                            actionParametersOf(
+                                                issueNumKey to item.issueNum,
+                                                repoPathKey to item.repoPath
+                                            )
+                                        )
                                     )
                             )
                         }

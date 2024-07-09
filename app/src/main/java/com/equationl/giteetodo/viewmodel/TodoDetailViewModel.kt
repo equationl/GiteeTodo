@@ -42,6 +42,8 @@ class TodoDetailViewModel @Inject constructor(
         }
     }
 
+    private var repoPath = ""
+
     fun dispatch(action: TodoDetailViewAction) {
         when (action) {
             is TodoDetailViewAction.ToggleEditModel -> toggleEditModel(action.isEditAble)
@@ -59,6 +61,16 @@ class TodoDetailViewModel @Inject constructor(
             is TodoDetailViewAction.ClickDeleteComment -> clickDeleteComment(action.id)
             is TodoDetailViewAction.ClickEditComment -> clickEditComment(action.comment)
             is TodoDetailViewAction.ToggleCreateComment -> toggleCreateComment(action.isShowLayout)
+            is TodoDetailViewAction.SetRepo -> setRepo(action.repoPath)
+        }
+    }
+
+    private fun setRepo(repoPath: String?) {
+        if (repoPath.isNullOrBlank()) {
+            this.repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
+        }
+        else {
+            this.repoPath = repoPath
         }
     }
 
@@ -78,7 +90,6 @@ class TodoDetailViewModel @Inject constructor(
 
     private fun clickDeleteComment(id: Int) {
         viewModelScope.launch(exception) {
-            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
             val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = repoApi.deleteComment(
@@ -123,7 +134,6 @@ class TodoDetailViewModel @Inject constructor(
         viewModelScope.launch(exception) {
             val tipText = if (viewStates.editCommentId == -1) "创建评论" else "更新评论"
 
-            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
             val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = if (viewStates.editCommentId == -1) {
@@ -198,7 +208,6 @@ class TodoDetailViewModel @Inject constructor(
 
     private fun loadComment(issueNum: String) {
         viewModelScope.launch(exception) {
-            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
             val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = repoApi.getAllComments(
@@ -322,7 +331,6 @@ class TodoDetailViewModel @Inject constructor(
     }
 
     private suspend fun requestIssue(issueNum: String): Issue? {
-        val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
         val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
         val response = repoApi.getIssue(
@@ -361,7 +369,6 @@ class TodoDetailViewModel @Inject constructor(
             val labels = if (viewStates.labels == "未设置") null else viewStates.labels
             val body = viewStates.content.ifBlank { null }
 
-            val repoPath = DataStoreUtils.getSyncData(DataKey.USING_REPO, "")
             val token = DataStoreUtils.getSyncData(DataKey.LOGIN_ACCESS_TOKEN, "")
 
             val response = if (issueNum == "null") {
@@ -469,4 +476,5 @@ sealed class TodoDetailViewAction {
     data class ClickSaveComment(val issueNum: String): TodoDetailViewAction()
     data class ClickDeleteComment(val id: Int): TodoDetailViewAction()
     data class ClickEditComment(val comment: Comment): TodoDetailViewAction()
+    data class SetRepo(val repoPath: String?): TodoDetailViewAction()
 }

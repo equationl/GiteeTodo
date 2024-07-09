@@ -8,6 +8,7 @@ object DataKey {
     const val LOGIN_TOKEN_REFRESH_TIME = "login_token_refresh_time"
 
     const val USING_REPO = "using_repo"
+    const val USING_REPO_NAME = "using_repo_name"
 
     const val USER_INFO = "user_info_string"
     const val EXIST_LABEL = "exist_label"

@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetProviderInfo
 import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,12 +13,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -33,11 +38,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.equationl.giteetodo.constants.ChooseRepoType
 import com.equationl.giteetodo.data.repos.model.response.Label
 import com.equationl.giteetodo.ui.LocalNavController
+import com.equationl.giteetodo.ui.common.Route
+import com.equationl.giteetodo.ui.common.RouteParams
 import com.equationl.giteetodo.ui.widgets.ExpandableItem
 import com.equationl.giteetodo.ui.widgets.TopBar
 import com.equationl.giteetodo.util.Utils.toColor
@@ -176,7 +185,9 @@ private fun AddWidgetContent(widgetProviders: List<AppWidgetProviderInfo>) {
                     }
                 }
             ) {
-                Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column(modifier = Modifier.padding(end = 8.dp)) {
                         Text(
                             text = label,
@@ -200,9 +211,36 @@ private fun WidgetSettingContent(
     model: WidgetSettingModel,
     existLabels: List<Label>
 ) {
+    val navController = LocalNavController.current
+
     Text(text = "更新小组件设置后需要手动点击桌面上小组件的刷新按钮方可生效", fontSize = 12.sp, modifier = Modifier.padding(8.dp, 4.dp))
 
-    // TODO 应该支持设置不同的仓库
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                ChooseRepoType.currentWidgetAppId = model.appWidgetId
+                navController.navigate("${Route.REPO_LIST}?${RouteParams.PAR_REPO_CHOOSE_TYPE}=${ChooseRepoType.WIDGET_SETTING}")
+            }
+    ) {
+        Text(text = "使用仓库")
+        Row {
+            Text(
+                text = model.repoName,
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .widthIn(0.dp, 100.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Icon(
+                Icons.AutoMirrored.Outlined.ArrowRight,
+                contentDescription = model.repoName,
+            )
+        }
+    }
 
     ExpandableItem(title = "最大显示数量", endText = model.showNum.toString()) {
         SettingOption.maxShowNum.forEach {

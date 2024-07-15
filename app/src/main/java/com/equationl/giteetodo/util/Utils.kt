@@ -11,6 +11,7 @@ import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.lang.reflect.Type
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -38,6 +39,11 @@ object Utils {
         val date = LocalDateTime.parse(sourceDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
         return date.format(DateTimeFormatter.ofPattern(pattern, Locale.CHINA))
+    }
+
+    fun String.toTimestamp(format: String = "yyyy-MM-dd HH:mm:ss"): Long {
+        val date = SimpleDateFormat(format, Locale.getDefault()).parse(this)
+        return date?.time ?: 0L
     }
 
     /**

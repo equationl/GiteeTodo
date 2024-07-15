@@ -1,5 +1,6 @@
 package com.equationl.giteetodo.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,6 +19,7 @@ import com.equationl.giteetodo.data.repos.paging.remoteMediator.IssueRemoteMedia
 import com.equationl.giteetodo.ui.common.Direction
 import com.equationl.giteetodo.ui.common.IssueState
 import com.equationl.giteetodo.util.Utils
+import com.equationl.giteetodo.util.Utils.toTimestamp
 import com.equationl.giteetodo.util.datastore.DataKey
 import com.equationl.giteetodo.util.datastore.DataStoreUtils
 import com.equationl.giteetodo.util.fromJson
@@ -129,6 +131,8 @@ class TodoListViewModel @Inject constructor(
         if (!viewStates.filteredOptionList.contains(FilteredOption.DateTime)) {
             viewStates.filteredOptionList.add(FilteredOption.DateTime)
         }
+
+        viewStates = viewStates.copy(filterDateRangeCache = listOf(start, end))
     }
 
     private fun filterState(state: IssueState) {
@@ -225,6 +229,7 @@ class TodoListViewModel @Inject constructor(
 
     private fun init(repoPath: String) {
         viewModelScope.launch {
+            val dateRangeFilterCache = mutableListOf<Long>()
             val saveFilter = DataStoreUtils.getSyncData(DataKey.FILTER_INFO, "")
             val newQuery: QueryParameter = if (saveFilter.isNotBlank()) {
                 saveFilter.fromJson<QueryParameter>() ?: QueryParameter()
@@ -244,10 +249,21 @@ class TodoListViewModel @Inject constructor(
             }
             if (newQuery.createdAt?.isNotBlank() == true) {
                 filterList.add(FilteredOption.DateTime)
+
+                val splitDateTime = newQuery.createdAt.split("-")
+                val startDateTime = splitDateTime[0]
+                val endDateTime = splitDateTime[1]
+                val startTimeStamp = startDateTime.replace("+8", "").replace("T", "").toTimestamp("yyyyMMddHHmmss")
+                val endTimeStamp = endDateTime.replace("+8", "").replace("T", "").toTimestamp("yyyyMMddHHmmss")
+                Log.i("el", "init: startDateTime=$startDateTime, startTimeStamp=$startTimeStamp, endStartDateTime=$endDateTime, endTimeStamp=$endTimeStamp")
+
+
+                dateRangeFilterCache.add(startTimeStamp)
+                dateRangeFilterCache.add(endTimeStamp)
             }
 
             if (filterList.isNotEmpty()) {
-                viewStates = viewStates.copy(filteredOptionList = filterList)
+                viewStates = viewStates.copy(filteredOptionList = filterList, filterDateRangeCache = dateRangeFilterCache)
             }
 
             queryFlow.emit(
@@ -299,7 +315,8 @@ data class TodoListViewState(
     val isShowStateDropMenu: Boolean = false,
     val isShowDirectionDropMenu: Boolean = false,
     val filteredOptionList: ArrayList<FilteredOption> = arrayListOf(),
-    val isAutoRefresh: Boolean = false
+    val isAutoRefresh: Boolean = false,
+    val filterDateRangeCache: List<Long> = listOf()
 )
 
 sealed class TodoListViewEvent {

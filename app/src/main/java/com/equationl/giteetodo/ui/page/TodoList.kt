@@ -20,6 +20,7 @@ import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -27,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDateRangePickerState
@@ -72,9 +74,6 @@ import com.equationl.giteetodo.viewmodel.TodoListViewAction
 import com.equationl.giteetodo.viewmodel.TodoListViewEvent
 import com.equationl.giteetodo.viewmodel.TodoListViewModel
 import com.equationl.giteetodo.viewmodel.TodoListViewState
-import com.vanpra.composematerialdialogs.MaterialDialog
-import com.vanpra.composematerialdialogs.MaterialDialogState
-import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -368,6 +367,8 @@ fun TodoFilterContent(
     viewModel: TodoListViewModel,
     onRefresh: () -> Unit
 ) {
+    var isShowDatePickerDialog by remember { mutableStateOf(false) }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -434,25 +435,14 @@ fun TodoFilterContent(
             )
         }
 
-        val dialogState = rememberMaterialDialogState()
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
-            dialogState.show()
+            isShowDatePickerDialog = true
         }) {
             Text(
                 "时间",
                 color = if (viewState.filteredOptionList.contains(FilteredOption.DateTime)) MaterialTheme.colorScheme.primary else Color.Unspecified
             )
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "时间")
-            TodoListDateTimePicker(
-                dialogState
-            ) { start, end ->
-                if (start == null || end == null) {
-                    viewModel.dispatch(TodoListViewAction.SendMsg("请选择一个日期范围"))
-                } else {
-                    viewModel.dispatch(TodoListViewAction.FilterDate(start, end))
-                    onRefresh()
-                }
-            }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.noRippleClickable {
@@ -495,6 +485,23 @@ fun TodoFilterContent(
                 }
             )
         }
+    }
+
+    if (isShowDatePickerDialog) {
+        TodoListDateTimePicker(
+            initValue = viewState.filterDateRangeCache,
+            onFilterDate = { start, end ->
+                if (start == null || end == null) {
+                    viewModel.dispatch(TodoListViewAction.SendMsg("请选择一个日期范围"))
+                } else {
+                    viewModel.dispatch(TodoListViewAction.FilterDate(start, end))
+                    onRefresh()
+                }
+            },
+            onDismissRequest = {
+                isShowDatePickerDialog = false
+            }
+        )
     }
 }
 
@@ -584,21 +591,39 @@ fun TodoListDirecDropMenu(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoListDateTimePicker(
-    showState: MaterialDialogState,
-    onFilterDate: (startDate: Long?, endDate: Long?) -> Unit
+private fun TodoListDateTimePicker(
+    initValue: List<Long>,
+    onFilterDate: (startDate: Long?, endDate: Long?) -> Unit,
+    onDismissRequest: () -> Unit
 ) {
-    val state = rememberDateRangePickerState()
+    val state = rememberDateRangePickerState(
+        initialSelectedStartDateMillis = initValue.getOrNull(0),
+        initialSelectedEndDateMillis = initValue.getOrNull(1)
+    )
 
-    MaterialDialog(
-        dialogState = showState,
-        buttons = {
-            positiveButton("确定") {
-                onFilterDate(state.selectedStartDateMillis, state.selectedEndDateMillis)
+    state.setSelection(initValue.getOrNull(0), initValue.getOrNull(1))
+
+    DatePickerDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onDismissRequest()
+                    onFilterDate(state.selectedStartDateMillis, state.selectedEndDateMillis)
+                }
+            ) {
+                Text(text = "确认")
             }
-            negativeButton("取消")
         },
-        backgroundColor = MaterialTheme.colorScheme.background
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onDismissRequest()
+                }
+            ) {
+                Text(text = "取消")
+            }
+        }
     ) {
         DateRangePicker(
             state = state,
